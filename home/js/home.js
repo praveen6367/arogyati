@@ -75,7 +75,7 @@
   const applyR = () => hcards.forEach((c, i) => { c.style.transform = `rotateY(${(i * STEP).toFixed(2)}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
   const layout = () => { arc.R = radius(); cw = Math.max(220, Math.min(360, Math.round(arc.R * (STEP * Math.PI / 180) - 20))); hcards.forEach((c) => c.style.setProperty('--cw', cw + 'px')); hx.style.setProperty('--lane-y', laneY() + 'px'); applyR(); };
   const applyRing = () => { ring.style.transform = `translateZ(${(arc.R * 0.55).toFixed(1)}px) rotateY(${arc.ry.toFixed(2)}deg)`; };
-  const ARC3D = !LITE && innerWidth >= 900;
+  const ARC3D = false;
   /* the photo fills all the space under the button (never overlapping it) and sits on the bottom edge */
   const sizePerson = () => {
     const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
@@ -137,56 +137,73 @@
 
 
 
-  /* ---------- FLIGHT — hero cards gather into a deck, follow you down, fan out, and land in the three panels ---------- */
-  const sizeSlots = () => $$('.rx-slot').forEach((s) => s.style.setProperty('--k', (s.offsetWidth / 260).toFixed(4)));
-  sizeSlots(); addEventListener('resize', sizeSlots);
-  const flight = (() => {
-    const fx = $('.fx'), rx = $('.rx'); if (!fx || !rx || RM || LITE) return null;
-    const fcs = $$('.fx-card', fx), N = fcs.length, CW = 260, CH = 234;
-    const slotOf = (i) => $(`.rx-slot[data-card="${i}"]`);
+
+  /* ---------- THE RAIL — one set of cards: a 3D loop in the hero that comes down with you,
+     unbends into a flat filmstrip, then your scroll drives it through the next section ---------- */
+  const railIn = { v: RM ? 1 : 0 };
+  const rail = (() => {
+    const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE) return null;
+    const cards = $$('.rl-card', el), N = cards.length, U = N / 2;
+    const head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
     const clamp = (v) => Math.max(0, Math.min(1, v)), mix = (a, b, t) => a + (b - a) * t;
-    const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), out3 = (t) => 1 - Math.pow(1 - t, 3);
-    let pin = null;
-    const render = () => {
-      if (!pin) return;
-      const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
-      const a = clamp((y - heroH * 0.18) / (pin.start - heroH * 0.18 || 1));
-      const p = clamp((y - pin.start) / (pin.end - pin.start));
-      const docked = p >= 0.999;
-      h.classList.toggle('fx-docked', docked);
-      if (docked) return;
-      const ea = out3(a), fan = io3(clamp((p - 0.06) / 0.3));
-      const R = vh * 1.25, pivX = vw / 2, pivY = vh * 0.56 + R;
-      fcs.forEach((el, i) => {
-        const c = i - (N - 1) / 2;
-        /* deck: rises from behind the hero photo, travels to the centre of the next screen */
-        const dS = mix(0.5, 0.78, ea);
-        let x = vw / 2 + c * 7, yy = mix(vh * 0.92, vh * 0.55, ea) + Math.abs(c) * 2.5, r = c * 2.4, s = dS;
-        /* fan arc */
-        const ang = (-30 + (i / (N - 1)) * 60) * Math.PI / 180;
-        const fx2 = pivX + R * Math.sin(ang), fy2 = pivY - R * Math.cos(ang), fr = ang * 180 / Math.PI, fs = 0.72;
-        x = mix(x, fx2, fan); yy = mix(yy, fy2, fan); r = mix(r, fr, fan); s = mix(s, fs, fan);
-        /* dock into its slot (live rect), staggered */
-        const sl = slotOf(el.dataset.card);
-        const dk = io3(clamp((p - 0.42 - i * 0.04) / 0.3));
-        if (sl && dk > 0) { const b = sl.getBoundingClientRect(); x = mix(x, b.left + b.width / 2, dk); yy = mix(yy, b.top + b.height / 2, dk); r = mix(r, 0, dk); s = mix(s, b.width / CW, dk); }
-        el.style.opacity = a > 0.02 || p > 0 ? Math.min(1, a * 3 + p * 10).toFixed(3) : 0;
-        el.style.zIndex = 20 - Math.round(Math.abs(c) * 2);
-        el.style.transform = `translate3d(${(x - CW / 2).toFixed(1)}px,${(yy - CH / 2).toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${s.toFixed(4)})`;
-      });
+    const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const mq = matchMedia('(min-width: 1024px)');
+    let pin = null, cw = 300, sp = 336, R0 = 900, L = 0, off = 0, lane0 = 600, active = -1, on = false;
+    const measure = () => {
+      cw = Math.round(Math.max(250, Math.min(340, innerWidth * 0.2)));
+      sp = cw * 1.12; L = sp * N; R0 = L / (2 * Math.PI);
+      cards.forEach((c) => c.style.setProperty('--cw', cw + 'px'));
+      const cp = $('.hx__copy'), ct = $('.hx__ctas'); lane0 = cp.offsetTop + ct.offsetTop + ct.offsetHeight + 46 + cw * 0.45;
     };
-    const mmq = matchMedia('(min-width: 1024px)');
+    const setCap = (i) => {
+      if (i === active) return; active = i; const c = CAP[i];
+      capI.textContent = String(i + 1).padStart(2, '0');
+      g.fromTo([capT, capD], { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power3.out', overwrite: true, onStart: () => { capT.innerHTML = c.t; capD.innerHTML = c.d; } });
+    };
+    const render = (dt) => {
+      const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
+      const a = io3(clamp(y / Math.max(1, (pin ? pin.start : heroH))));
+      const p = pin ? clamp((y - pin.start) / (pin.end - pin.start)) : 0;
+      const after = pin ? Math.max(0, y - pin.end) : 0;
+      if (after > vh * 1.2) { el.style.visibility = 'hidden'; return; } el.style.visibility = '';
+      off += (dt || 16) / 1000 * 26 * (1 - a);
+      const k = mix(1 / R0, 0, a), d = mix(0.45 * R0, 0, a);
+      const railY = mix(lane0, vh * 0.5, a) - after;
+      const sc = mix(1, 0.92, a);
+      el.style.perspectiveOrigin = `50% ${railY.toFixed(1)}px`;
+      const total = off + p * sp * (U - 1) + sp * 0.5 * clamp(p * 4);
+      const pf = clamp(p * 12);
+      let best = 0, bi = 0;
+      cards.forEach((c, i) => {
+        let s = ((i * sp - total) % L + L) % L - L / 2;
+        const th = s * k, x = k ? Math.sin(th) / k : s, z0 = -d + (k ? (1 - Math.cos(th)) / k : 0);
+        const vis = k ? Math.abs(th) < 1.7 : Math.abs(x) < vw * 0.62 + cw;
+        let f = pf * Math.max(0, 1 - Math.abs(x) / (sp * 0.95));
+        if (f > best) { best = f; bi = i % U; }
+        const z = z0 + 140 * f, scl = sc * (1 + 0.22 * f);
+        const op = vis ? railIn.v * mix(1, 0.4 + 0.6 * Math.min(1, f * 1.6), pf) : 0;
+        c.style.opacity = op.toFixed(3);
+        c.style.transform = `translate3d(${x.toFixed(1)}px,${railY.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${(-th * 180 / Math.PI).toFixed(2)}deg) scale(${scl.toFixed(4)})`;
+      });
+      if (pin && p > 0 && p < 1) setCap(bi);
+      el.classList.toggle('is-flat', a > 0.55);
+      if (head) head.style.opacity = clamp((a - 0.72) / 0.28).toFixed(3);
+      if (cap) cap.style.opacity = pf.toFixed(3);
+      if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
+    };
+    const tick = (t, dt) => { if (on) render(dt); };
     const setup = () => {
       if (pin) { pin.kill(true); pin = null; }
-      h.classList.remove('fx-on', 'fx-docked');
-      if (!mmq.matches) return;
-      h.classList.add('fx-on');
-      pin = ScrollTrigger.create({ trigger: rx, start: 'top top', end: '+=210%', pin: '.rx__stage', pinSpacing: true, onUpdate: render, onRefresh: render });
-      render();
+      on = mq.matches; h.classList.toggle('rl-on', on);
+      if (!on) return;
+      measure();
+      pin = ScrollTrigger.create({ trigger: rx, start: 'top top', end: '+=' + Math.round(U * 70) + '%', pin: '.rx__stage', pinSpacing: true });
+      setCap(0); render(0);
     };
-    addEventListener('scroll', render, { passive: true });
-    mmq.addEventListener('change', () => { setup(); ScrollTrigger.refresh(); });
-    return { setup, render };
+    g.ticker.add(tick);
+    addEventListener('resize', () => { if (on) measure(); });
+    mq.addEventListener('change', () => { setup(); ScrollTrigger.refresh(); });
+    return { setup };
   })();
 
   /* ---------- motion ---------- */
@@ -366,7 +383,7 @@
     tl.fromTo('.hx__sky img', { scale: 1.12 }, { scale: 1, duration: 2.4, ease: OUT }, 0)
       .fromTo('.hx__person picture', { yPercent: 14, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.6, ease: OUT }, 0.3)
       .fromTo(sp.chars, { yPercent: 70, opacity: 0, ...blur(14) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.2, stagger: 0.035, ease: OUT, clearProps: 'filter' }, 0.25)
-      .fromTo(hcards, { opacity: 0 }, { opacity: 1, duration: 1, stagger: 0.04 }, 0.45)
+      .fromTo(railIn, { v: 0 }, { v: 1, duration: 1.4, ease: 'power2.out' }, 0.45)
       .fromTo(arc, { speed: 26 }, { speed: 6, duration: 2.6, ease: 'power3.out' }, 0.45)
       .fromTo('[data-hx-intro]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: OUT }, 0.6)
       .fromTo('.az-head__bar', { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, ease: OUT }, 0.4);
@@ -382,8 +399,8 @@
     ScrollTrigger.sort();
     preloader().then(heroIntro);
     window.__azReady = true;
-    if (flight) { flight.setup(); ScrollTrigger.sort(); ScrollTrigger.refresh(); }
-    addEventListener('load', () => { sizeSlots(); ScrollTrigger.refresh(); });
+    if (rail) { rail.setup(); ScrollTrigger.sort(); ScrollTrigger.refresh(); }
+    addEventListener('load', () => ScrollTrigger.refresh());
   };
   Promise.race([d.fonts ? d.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 1500))]).then(start);
 })();

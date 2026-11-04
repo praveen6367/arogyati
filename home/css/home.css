@@ -543,35 +543,40 @@ html.az-rm .ix__big .ix-w,html.az-nojs .ix__big{color:var(--hx-ink)}
 .ix>.az-wrap{position:relative;z-index:3}
 .hx__flood{display:none}
 
-/* ---------- RANGE: three panels the hero cards land in ---------- */
+
+/* ---------- RAIL SECTION ---------- */
 .rx{position:relative;background:#F7F9FB;color:var(--hx-ink)}
-.rx__stage{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:clamp(5rem,9vh,6.5rem) 0 clamp(2rem,5vh,3rem)}
-.rx__head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;margin-bottom:clamp(1.5rem,3.5vh,2.5rem)}
+.rx__stage{position:relative;min-height:100svh;display:flex;flex-direction:column;padding:clamp(5rem,10vh,6.5rem) 0 clamp(1.5rem,4vh,2.5rem);z-index:3}
+.rx__head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem}
 .rx__label{display:block;font-size:.68rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#4B5650;margin-bottom:.7rem}
 .az-home .rx__h2{font-weight:500;font-size:clamp(1.8rem,3vw,2.8rem);line-height:1.05;letter-spacing:-.035em}
 .az-home .rx__side{max-width:30ch;text-align:right;font-size:.85rem;line-height:1.5;color:#7D8781}
-.rx__islands{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.8rem,1.4vw,1.4rem)}
-.rx-isl{border-radius:26px;padding:clamp(.9rem,1.3vw,1.3rem);display:flex;flex-direction:column}
-.rx-isl--sky{background:#E6EEF6}.rx-isl--sage{background:#E7EEE3}.rx-isl--sand{background:#F1ECE2}
-.rx-isl__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
-.az-home .rx-isl__head h3{font-weight:500;font-size:clamp(.95rem,1.1vw,1.1rem);letter-spacing:-.01em}
-.rx-isl__head a{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;border-radius:999px;background:#fff;font-size:.72rem;font-weight:600;color:var(--hx-ink)}
-.rx-isl__head a span{color:var(--hx-green)}
-.rx-isl__slots{display:grid;grid-template-columns:1fr 1fr;gap:clamp(.55rem,.9vw,.9rem)}
-.rx-slot{position:relative;aspect-ratio:1/.9;border-radius:clamp(14px,1.4vw,22px);background:rgba(255,255,255,.45);box-shadow:inset 0 0 0 1.5px rgba(23,35,27,.06)}
-.rx-slot .rx-card{position:absolute;left:0;top:0;--cw:260px;transform-origin:0 0;transform:scale(var(--k,1))}
-.rx-card{box-shadow:0 14px 30px -22px rgba(30,60,100,.5)}
-/* flight overlay (desktop): cards travel here, then hand over to the slots */
-.fx{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}
-.fx-card{position:absolute;left:0;top:0;width:260px;height:234px;will-change:transform;opacity:0}
-.fx-card .rx-card{position:absolute;inset:0;--cw:260px}
-html.fx-on .fx{display:block}
-html.fx-on .rx-slot .rx-card{visibility:hidden}
-html.fx-on.fx-docked .rx-slot .rx-card{visibility:visible}
-html.fx-on.fx-docked .fx{display:none}
-@media (max-width:1023px){
-  .rx__head{flex-direction:column;align-items:flex-start}
-  .az-home .rx__side{text-align:left}
-  .rx__islands{grid-template-columns:1fr}
-  .rx__stage{min-height:0}
-}
+.rx__cap{margin-top:auto;display:grid;grid-template-columns:120px 1fr 220px;gap:2rem;align-items:end}
+.rx__idx{font-size:.8rem;font-weight:600;color:#9AA39D;letter-spacing:.06em}
+.rx__idx b{font-size:2.2rem;font-weight:500;letter-spacing:-.04em;color:var(--hx-ink);margin-right:.15em}
+.az-home .rx__txt h3{font-weight:500;font-size:clamp(1.2rem,1.6vw,1.6rem);letter-spacing:-.02em}
+.az-home .rx__txt p{margin-top:.5rem;max-width:62ch;font-size:.92rem;line-height:1.55;color:#5E6963}
+.rx__bar{height:3px;border-radius:3px;background:#E1E7E3;overflow:hidden;margin-bottom:.6rem}
+.rx__bar i{display:block;height:100%;width:100%;background:var(--hx-green);transform:scaleX(0);transform-origin:left}
+.rx__list{display:none}
+/* the rail overlay (desktop): one set of cards shared by hero and this section */
+.rl{position:fixed;inset:0;z-index:2;pointer-events:none;perspective:900px;display:none;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)}
+.rl .rl-card{position:absolute;left:50%;top:0;--cw:300px;margin-left:calc(var(--cw) / -2);margin-top:calc(var(--cw) * -.45);backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform,opacity;opacity:0}
+html.rl-on .rl{display:block}
+/* mobile / iOS: swipeable list with captions */
+html:not(.rl-on) .rx__cap{display:none}
+html:not(.rl-on) .rx__list{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding:2rem var(--az-gutter) 1rem;scrollbar-width:none}
+html:not(.rl-on) .rx__list::-webkit-scrollbar{display:none}
+.rx-item{flex:none;width:min(78vw,320px);scroll-snap-align:center;margin:0}
+.rx-item .rx-card{position:relative;--cw:min(78vw,320px);width:100%}
+.rx-item figcaption{margin-top:1rem}
+.rx-item figcaption b{display:block;font-weight:500;font-size:1.05rem;letter-spacing:-.01em}
+.rx-item figcaption span{display:block;margin-top:.35rem;font-size:.85rem;line-height:1.5;color:#5E6963}
+html:not(.rl-on) .rx__stage{min-height:0}
+@media (max-width:1023px){.rx__head{flex-direction:column;align-items:flex-start}.az-home .rx__side{text-align:left}}
+.rl .hx-card--frost{transition:background .6s,color .6s,box-shadow .6s}
+.rl.is-flat .hx-card--frost{background:#fff;color:#1A231E;box-shadow:0 18px 36px -24px rgba(30,60,100,.45)}
+.rl.is-flat .hx-card--frost .hx-card__big small,.rl.is-flat .hx-card--frost .hx-card__cap{color:#8A948E}
+.rx-item .hx-card--frost{background:#fff;color:#1A231E}
+.rx-item .rx-card{left:0;top:0;margin:0}.rx-item{scroll-snap-align:start}
+html:not(.rl-on) .rx__list{scroll-padding-left:var(--az-gutter)}
