@@ -79,8 +79,8 @@
   const sizePerson = () => {
     const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
     const ctaB = cp.offsetTop + ct.offsetTop + ct.offsetHeight, Hh = hx.offsetHeight;
-    const hgt = Math.max(220, Math.min(Hh - ctaB - 40, Hh * 0.66));
-    ps.style.width = Math.round(Math.min(hgt * 1.403, innerWidth * (innerWidth < 900 ? 1.12 : 0.96))) + 'px';
+    const hgt = Math.max(240, Math.min(Hh - ctaB - 36, Hh * 0.7));
+    ps.style.width = Math.round(Math.min(hgt * 0.7137, innerWidth * 0.92)) + 'px';
   };
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
