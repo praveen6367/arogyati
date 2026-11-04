@@ -8,8 +8,9 @@ body.nocursor{cursor:none}
 .zone{position:fixed;top:0;bottom:0;width:18%;z-index:5;cursor:pointer}
 #zoneL{left:0}#zoneR{right:158px;width:calc(82% - 158px)}
 
-#bar{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:4px;padding:clamp(6px,1.6vh,14px) 8px;border-radius:40px;
-  background:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(182,242,60,.28);box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+#bar{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,14px)}
+.nav,#rail{display:flex;align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(182,242,60,.28);box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+#rail{flex-direction:column;gap:4px;padding:clamp(6px,1.6vh,14px) 8px;border-radius:40px;width:62px}
 #bar button{width:clamp(32px,5.2vh,48px);height:clamp(32px,5.2vh,48px);border:0;border-radius:50%;background:transparent;color:#EAFBD0;cursor:pointer;display:grid;place-items:center;transition:background .2s,transform .2s,color .2s}
 #bar button:hover{background:rgba(182,242,60,.25);transform:scale(1.08)}
 #bar button.off{color:#6f8a7c}
@@ -17,7 +18,7 @@ body.nocursor{cursor:none}
 #bar button.on{background:#B6F23C;color:#06261B}
 #bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #bPlay svg path{fill:none}#icPlay path{fill:currentColor}
-.nav{display:flex;align-items:center;gap:2px}.nav button{width:clamp(34px,5vh,44px)!important;height:clamp(34px,5vh,44px)!important}#bPlay{background:#B6F23C!important;color:#06261B!important}
+.nav{gap:2px;padding:6px 8px;border-radius:40px}.nav button{width:clamp(32px,4.8vh,40px)!important;height:clamp(32px,4.8vh,40px)!important}#bPlay{background:#B6F23C!important;color:#06261B!important}
 #scrub{position:relative;width:6px;height:clamp(36px,12vh,150px);margin:clamp(4px,1.4vh,12px) 0;background:rgba(255,255,255,.16);border-radius:6px}
 #scrubFill{position:absolute;left:0;right:0;top:0;height:0;border-radius:6px;background:linear-gradient(180deg,#1B9A4B,#B6F23C);box-shadow:0 0 10px rgba(182,242,60,.7)}
 #scrubIn{position:absolute;left:-12px;top:-6px;width:30px;height:calc(100% + 12px);margin:0;opacity:0;cursor:pointer;writing-mode:vertical-lr;direction:ltr}
