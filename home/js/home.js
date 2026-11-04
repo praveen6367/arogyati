@@ -71,7 +71,7 @@
   const radius = () => Math.min(innerWidth * 0.62, 1050);
   const STEP = 360 / hcards.length;
   let cw = 260;
-  const laneY = () => { const cp = $('.hx__copy'), ct = $('.hx__ctas'); return Math.round(cp.offsetTop + ct.offsetTop + ct.offsetHeight + 56 + cw * 0.45); };
+  const laneY = () => { const cp = $('.hx__copy'), ct = $('.hx__ctas'); return Math.round(cp.offsetTop + ct.offsetTop + ct.offsetHeight + 40 + cw * 0.45); };
   const applyR = () => hcards.forEach((c, i) => { c.style.transform = `rotateY(${(i * STEP).toFixed(2)}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
   const layout = () => { arc.R = radius(); cw = Math.max(220, Math.min(360, Math.round(arc.R * (STEP * Math.PI / 180) - 20))); hcards.forEach((c) => c.style.setProperty('--cw', cw + 'px')); hx.style.setProperty('--lane-y', laneY() + 'px'); applyR(); };
   const applyRing = () => { ring.style.transform = `translateZ(${(arc.R * 0.55).toFixed(1)}px) rotateY(${arc.ry.toFixed(2)}deg)`; };
@@ -80,7 +80,7 @@
   const sizePerson = () => {
     const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
     const ctaB = cp.offsetTop + ct.offsetTop + ct.offsetHeight, Hh = hx.offsetHeight;
-    const hgt = Math.max(260, Math.min(Hh - ctaB - 30, Hh * 0.7));
+    const hgt = Math.max(280, Math.min(Hh - ctaB - 22, Hh * 0.78));
     ps.style.width = Math.round(Math.min(hgt * 1.1492, innerWidth * 0.98)) + 'px';
   };
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
