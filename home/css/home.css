@@ -47,13 +47,13 @@ html.lenis,html.lenis body{height:auto}
 .az-lead{font-size:clamp(1.05rem,1rem + .35vw,1.3rem);line-height:1.55;color:var(--az-ink-2);max-width:38ch}
 .az-dark .az-lead{color:rgba(255,255,255,.72)}
 .az-btn{position:relative;display:inline-flex;align-items:center;gap:.75rem;height:56px;padding:0 1.6rem 0 1.75rem;border-radius:var(--az-pill);font-size:.95rem;font-weight:700;letter-spacing:.01em;white-space:nowrap;transition:background .4s var(--az-ease),color .4s var(--az-ease)}
-.az-btn--primary{background:var(--az-olive-700);color:#fff}
-.az-btn--primary:hover{background:var(--az-forest)}
+.az-home .az-btn--primary{background:var(--az-olive-700);color:#fff}
+.az-home .az-btn--primary:hover{background:var(--az-forest)}
 .az-btn--ghost{color:var(--az-ink);box-shadow:inset 0 0 0 1px var(--az-line)}
 .az-btn--ghost:hover{background:var(--az-ink);color:#fff}
 .az-dark .az-btn--ghost{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
 .az-dark .az-btn--ghost:hover{background:#fff;color:var(--az-forest)}
-.az-btn--light{background:var(--az-accent);color:var(--az-forest)}
+.az-home .az-btn--light{background:var(--az-accent);color:var(--az-forest)}
 .az-btn--light:hover{background:#fff}
 .az-btn__ic{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);transition:transform .5s var(--az-ease)}
 .az-btn--ghost .az-btn__ic{background:var(--az-olive-100)}
@@ -168,7 +168,7 @@ main,footer{position:relative;z-index:1}
 /* ---------- mission (scrubbed words) ---------- */
 .az-mission{padding:var(--az-s10) 0 var(--az-s9)}
 .az-mission__statement{font-family:var(--az-serif);font-size:clamp(2rem,4.6vw,4.6rem);line-height:1.08;letter-spacing:-.015em;max-width:22ch}
-.az-mission__statement .az-w{opacity:.16}
+.az-mission__statement .az-w{opacity:0}
 html.az-rm .az-mission__statement .az-w,html.az-nojs .az-mission__statement .az-w{opacity:1}
 .az-mission__row{display:grid;grid-template-columns:220px 1fr;gap:var(--az-s6);padding:var(--az-s7) 0;border-top:1px solid rgba(255,255,255,.14)}
 .az-mission__row:first-of-type{border-top:0}

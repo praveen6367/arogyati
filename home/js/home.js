@@ -127,14 +127,14 @@
 
     /* split headings */
     $$('[data-az-split]').forEach((el) => {
-      const sp = SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'az-split-line' });
+      const sp = SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'az-split-line', aria: 'none' });
       g.from(sp.lines, { yPercent: 110, duration: 1.2, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
     });
 
     /* mission words scrub */
     $$('[data-az-words]').forEach((el) => {
-      const sp = SplitText.create(el, { type: 'words', wordsClass: 'az-w' });
-      g.to(sp.words, { opacity: 1, stagger: 0.1, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 50%', scrub: true } });
+      const sp = SplitText.create(el, { type: 'words', wordsClass: 'az-w', aria: 'none' });
+      g.fromTo(sp.words, { opacity: 0, yPercent: 40 }, { opacity: 1, yPercent: 0, stagger: 0.1, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 50%', scrub: true } });
     });
 
     /* clip-path image reveals + parallax */
@@ -232,7 +232,7 @@
     if (RM) return;
     const title = $('[data-az-hero-title]'), media = $('[data-az-hero-media]');
     g.set(title, { opacity: 1 });
-    const sp = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'az-split-line' });
+    const sp = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'az-split-line', aria: 'none' });
     g.timeline()
       .from(sp.lines, { yPercent: 112, duration: 1.3, stagger: 0.12, ease: OUT }, 0)
       .fromTo(media, { clipPath: 'inset(100% 0% 0% 0% round 36px)' }, { clipPath: 'inset(0% 0% 0% 0% round 36px)', duration: 1.5, ease: 'az' }, 0.05)
