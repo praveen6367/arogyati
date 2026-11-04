@@ -65,7 +65,7 @@
     const v = active();
     if (v && v.duration) {
       const p = v.currentTime / v.duration;
-      $('#scrubFill').style.width = p * 100 + '%';
+      $('#scrubFill').style.height = p * 100 + '%';
       if (document.activeElement !== $('#scrubIn')) $('#scrubIn').value = Math.round(p * 1000);
     }
     requestAnimationFrame(loop);
@@ -155,7 +155,7 @@
     document.body.classList.remove('nocursor');
     clearTimeout(idle);
     idle = setTimeout(() => {
-      if (begun && !$('#ov').classList.contains('show')) { $('#bar').classList.add('hide'); document.body.classList.add('nocursor'); }
+      if (begun && !$('#ov').classList.contains('show')) { document.body.classList.add('nocursor'); }
     }, 2800);
   }
   addEventListener('mousemove', wake); addEventListener('keydown', wake); addEventListener('click', wake);
