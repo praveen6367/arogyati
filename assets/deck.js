@@ -391,12 +391,12 @@ function go(n, silent) {
   document.body.classList.toggle('back', n < prev);
   if (prev >= 0) {
     const o = els[prev]; o.classList.remove('on'); o.classList.add('out');
-    setTimeout(() => o.classList.remove('out'), 650);
+    setTimeout(() => { o.classList.remove('out'); if (!o.classList.contains('on')) o.classList.remove('pre'); }, 650);
   }
   const s = S[n], el = els[n];
   document.body.classList.toggle('lime', s.theme === 'lime'); document.body.classList.toggle('paper', s.theme === 'paper');
   place(blob, s.blob); place(orb, s.orb || O.none); setPhoto(s.photo);
-  void el.offsetWidth; setTimeout(() => el.classList.add('on'), 30);
+  el.classList.add('pre'); void el.offsetWidth; setTimeout(() => el.classList.add('on'), 30);
   el.querySelectorAll('.cnt').forEach(count);
   $('#cur').textContent = $('#pgc').textContent = String(n + 1).padStart(2, '0');
   $('#prog').style.width = ((n + 1) / N) * 100 + '%';

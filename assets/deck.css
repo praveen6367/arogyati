@@ -195,3 +195,15 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
   #ui .sep{margin:0 2px}
   #toast{top:calc(16px + env(safe-area-inset-top));white-space:nowrap;font-size:13px}
 }
+
+/* iPhone: only the current slide exists for rendering, flat 2D layers, no endless animations */
+.lite .slide{display:none}
+.lite .slide.pre,.lite .slide.on,.lite .slide.out{display:block}
+.lite .a{transform:translateY(46px)}
+.lite .slide.on .a{transform:none}
+.lite .slide.out .a{transform:translateY(-34px)}
+.lite body.back .slide.out .a{transform:translateY(34px)}
+.lite .cv-rings{display:none}
+.lite .slide.on .lg-shine,.lite .slide.on .lg-fig,.lite .chart .pulse{animation:none}
+.lite #blob .paper,.lite #photo .shade{transition:none}
+.lite .morph{transition:left var(--morph) var(--ease),top var(--morph) var(--ease),width var(--morph) var(--ease),height var(--morph) var(--ease),border-radius var(--morph) var(--ease)}
