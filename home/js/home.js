@@ -48,11 +48,31 @@
     else t.scrollIntoView({ behavior: RM ? 'auto' : 'smooth' });
   }));
 
-  /* active section in nav */
-  $$('.az-nav a').forEach((a) => {
+  /* active section in nav + sliding lime indicator (follows hover, settles on the active section) */
+  const nav = $('.az-nav'), ind = $('.az-nav__ind'), navLinks = $$('.az-nav a');
+  let activeLink = null;
+  const moveInd = (a) => {
+    navLinks.forEach((l) => l.classList.toggle('is-ind', l === a));
+    if (!a) { g.to(ind, { opacity: 0, duration: 0.3, overwrite: true }); return; }
+    if (+g.getProperty(ind, 'opacity') < 0.05) g.set(ind, { x: a.offsetLeft, width: a.offsetWidth });
+    g.to(ind, { x: a.offsetLeft, width: a.offsetWidth, opacity: 1, duration: RM ? 0 : 0.6, ease: OUT, overwrite: true });
+  };
+  navLinks.forEach((a) => {
+    if (FINE) a.addEventListener('mouseenter', () => moveInd(a));
     const sec = $(a.getAttribute('href')); if (!sec) return;
-    ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (s) => a.classList.toggle('is-active', s.isActive) });
+    ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (s) => { if (s.isActive) activeLink = a; else if (activeLink === a) activeLink = null; moveInd(activeLink); } });
   });
+  nav.addEventListener('mouseleave', () => moveInd(activeLink));
+
+  /* ---------- hero: 3D card arc state ---------- */
+  const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card'), hblob = $('.hx__blob');
+  const arc = { ry: 0, speed: 5, boost: 0, R: 0, mx: 0, my: 0 };
+  const radius = () => Math.min(innerWidth * 0.46, 860);
+  const applyR = () => hcards.forEach((c) => { c.style.transform = `rotateY(${c.dataset.a}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
+  const applyRing = () => { ring.style.transform = `rotateX(${(-5 + arc.my * 4).toFixed(2)}deg) rotateY(${(arc.ry + arc.mx * 10).toFixed(2)}deg)`; };
+  const ARC3D = !LITE && innerWidth >= 900;
+  g.set(hblob, { '--bi': 1, '--bs': 1 });
+  if (ARC3D) { arc.R = radius(); applyR(); applyRing(); }
 
   /* ---------- body map ---------- */
   const AREAS = JSON.parse($('#az-areas').textContent);
@@ -108,6 +128,41 @@
     if (RM) return;
     const mm = g.matchMedia();
 
+    /* HERO — cards orbit on a 3D arc, mouse parallax, then a pinned scroll where the lime orb floods the screen
+       and hands off to the lime marquee (the deck's morph continuity) */
+    if (ARC3D) {
+      let hxOn = true;
+      ScrollTrigger.create({ trigger: hx, start: 'top bottom', end: 'bottom top', onToggle: (s) => { hxOn = s.isActive; } });
+      g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry += (arc.speed + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
+      addEventListener('resize', () => { arc.R = radius(); applyR(); });
+      if (FINE) {
+        const px = g.quickTo('.hx__person', 'x', { duration: 1.2, ease: 'power3' }), bx = g.quickTo(hblob, 'x', { duration: 1.6, ease: 'power3' }), cx = g.quickTo('.hx__copy', 'x', { duration: 1.4, ease: 'power3' });
+        hx.addEventListener('mousemove', (e) => {
+          const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
+          g.to(arc, { mx: nx * 2, my: ny * 2, duration: 1.2, ease: 'power3.out', overwrite: 'auto' });
+          px(nx * -18); bx(nx * 30); cx(nx * -10);
+        });
+      }
+    }
+    mm.add('(min-width: 900px)', () => {
+      if (LITE) return;
+      const cover = () => {
+        const w = hblob.offsetWidth, cxp = hblob.offsetLeft + w / 2, cyp = hblob.offsetTop + w / 2, W = hx.offsetWidth, H = hx.offsetHeight;
+        const far = Math.max(Math.hypot(cxp, cyp), Math.hypot(W - cxp, cyp), Math.hypot(cxp, H - cyp), Math.hypot(W - cxp, H - cyp));
+        return (far / (w / 2)) * 1.04;
+      };
+      const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: hx, start: 'top top', end: '+=140%', pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 500, 90); } } });
+      tl.to('.hx__copy', { yPercent: -45, opacity: 0, duration: 0.35 }, 0)
+        .to('.hx__corners', { y: 70, opacity: 0, duration: 0.25 }, 0)
+        .to('.hx__rings', { scale: 1.5, opacity: 0, duration: 0.6 }, 0)
+        .to(arc, { R: () => radius() * 2, duration: 0.6, onUpdate: applyR }, 0)
+        .to('.hx__arc', { opacity: 0, duration: 0.3 }, 0.3)
+        .to('.hx__person', { scale: 1.16, yPercent: -3, duration: 0.6 }, 0)
+        .to('.hx__person', { opacity: 0, duration: 0.2 }, 0.55)
+        .fromTo(hblob, { '--bs': 1 }, { '--bs': () => cover(), duration: 0.8, ease: 'power1.in' }, 0.1)
+        .to('.hx__flood', { opacity: 1, duration: 0.1 }, 0.9);
+    });
+
     /* travelling orb — glides to a new spot per section (the deck's morph idea) */
     const orb = $('.az-orb');
     if (!LITE) {
@@ -148,11 +203,6 @@
     $$('[data-az-sheet]').forEach((el) => g.fromTo(el, { borderTopLeftRadius: '50vw 9vw', borderTopRightRadius: '50vw 9vw' },
       { borderTopLeftRadius: '2.5vw 2.5vw', borderTopRightRadius: '2.5vw 2.5vw', ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 35%', scrub: true } }));
 
-    /* hero drifts as you leave it */
-    if (!LITE) {
-      g.to('.az-hero__copy', { yPercent: -18, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '.az-hero', start: 'top top', end: 'bottom top', scrub: true } });
-      g.to('.az-hero__media img', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: '.az-hero', start: 'top top', end: 'bottom top', scrub: true } });
-    }
 
     /* services: sticky stack, earlier cards recede */
     const cards = $$('.az-card');
@@ -217,32 +267,42 @@
       const pre = $('.az-pre');
       if (RM || h.classList.contains('az-seen') || !pre) { pre && pre.remove(); return res(); }
       try { sessionStorage.setItem('az-seen', '1'); } catch (e) {}
-      const svg = $('.az-pre-svg');
+      const svg = $('.az-pre-svg'), pct = $('[data-az-pct]'), o = { v: 0 };
       const tl = g.timeline({ onComplete: () => pre.remove() });
       tl.from($$('.az-lg-l path', svg), { y: 26, opacity: 0, duration: 0.9, stagger: 0.045, ease: OUT })
         .from($('.az-lg-f', svg), { scale: 0, transformOrigin: '50% 100%', duration: 1, ease: 'back.out(1.7)' }, 0.3)
         .from($('.az-lg-t', svg), { opacity: 0, y: 6, duration: 0.6, ease: OUT }, 0.65)
-        .to('.az-pre__bar i', { scaleX: 1, duration: 1.15, ease: 'az' }, 0)
-        .to(pre, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.95, ease: 'az' }, '+=0.15')
-        .add(res, '<0.15');
+        .to('.az-pre__bar i', { scaleX: 1, duration: 1.45, ease: 'az' }, 0)
+        .to(o, { v: 100, duration: 1.45, ease: 'az', onUpdate: () => { pct.textContent = Math.round(o.v); } }, 0)
+        .to('.az-pre__logo,.az-pre__bar,.az-pre__pct,.az-pre__skip', { opacity: 0, y: -24, duration: 0.45, ease: 'power2.in' }, '+=0.05')
+        .to(pre, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.95, ease: 'az' }, '-=0.2')
+        .add(res, '<');
       pre.addEventListener('click', () => tl.progress(1));
     });
   }
   function heroIntro() {
     if (RM) return;
-    const title = $('[data-az-hero-title]'), media = $('[data-az-hero-media]');
+    const title = $('[data-hx-title]');
+    const blur = (n) => (LITE ? {} : { filter: `blur(${n}px)` });
     g.set(title, { opacity: 1 });
-    const sp = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'az-split-line', aria: 'none' });
-    g.timeline()
-      .from(sp.lines, { yPercent: 112, duration: 1.3, stagger: 0.12, ease: OUT }, 0)
-      .fromTo(media, { clipPath: 'inset(100% 0% 0% 0% round 36px)' }, { clipPath: 'inset(0% 0% 0% 0% round 36px)', duration: 1.5, ease: 'az' }, 0.05)
-      .from($('img', media), { scale: 1.3, duration: 2, ease: OUT }, 0.05)
-      .fromTo('[data-az-intro]', { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: OUT }, 0.35)
-      .from(head, { yPercent: -100, duration: 1, ease: OUT }, 0.25);
+    const sp = SplitText.create(title, { type: 'words,chars', charsClass: 'hx-ch' });
+    const tl = g.timeline();
+    tl.fromTo(hblob, { '--bi': 0.25, opacity: 0 }, { '--bi': 1, opacity: 1, duration: 1.9, ease: OUT }, 0)
+      .fromTo('.hx__person picture', { yPercent: 16, opacity: 0, ...blur(10) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.6, ease: OUT, clearProps: 'filter' }, 0.15)
+      .fromTo(sp.chars, { yPercent: 70, opacity: 0, ...blur(14) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.2, stagger: 0.035, ease: OUT, clearProps: 'filter' }, 0.25)
+      .fromTo('.hx__ring', { opacity: 0 }, { opacity: 1, duration: 1.2 }, 0.45)
+      .fromTo(arc, { speed: 70 }, { speed: 5, duration: 2.6, ease: 'power3.out' }, 0.45)
+      .fromTo('[data-hx-intro]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: OUT }, 0.6)
+      .from(head, { yPercent: -120, duration: 1.1, ease: OUT }, 0.4);
+    $$('[data-hx-count]').forEach((el) => {
+      const c = { v: 0 }, to = +el.dataset.hxCount; el.textContent = '0';
+      tl.to(c, { v: to, duration: 1.6, ease: 'power3.out', onUpdate: () => { el.textContent = Math.round(c.v); } }, 0.9);
+    });
   }
 
   const start = () => {
     motion();
+    ScrollTrigger.sort();
     preloader().then(heroIntro);
     window.__azReady = true;
     addEventListener('load', () => ScrollTrigger.refresh());
