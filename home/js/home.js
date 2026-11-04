@@ -277,6 +277,32 @@
       }
     }
 
+    /* SERVICES — panel opens from an inset frame, hills settle, title sharpens out of a frost, cards pop up in 3D */
+    {
+      const pnl = $('[data-sv-panel]');
+      if (pnl) {
+        if (!LITE) {
+          g.fromTo(pnl, { clipPath: 'inset(7% 5% 7% 5% round 60px)' }, { clipPath: 'inset(0% 0% 0% 0% round 34px)', ease: 'none', scrollTrigger: { trigger: pnl, start: 'top bottom', end: 'top 15%', scrub: true } });
+          g.fromTo('.sv__bg img', { scale: 1.22, yPercent: -4 }, { scale: 1, yPercent: 4, ease: 'none', scrollTrigger: { trigger: pnl, start: 'top bottom', end: 'bottom top', scrub: true } });
+        }
+        const tt = $('[data-sv-title]');
+        const sp = SplitText.create(tt, { type: 'words' });
+        const tl = g.timeline({ scrollTrigger: { trigger: pnl, start: 'top 62%', once: true } });
+        tl.from(sp.words, { opacity: 0, y: 20, ...(LITE ? {} : { filter: 'blur(10px)' }), duration: 1, stagger: 0.05, ease: OUT, clearProps: 'filter' }, 0)
+          .from('[data-sv-in]', { opacity: 0, y: 16, duration: 0.9, stagger: 0.1, ease: OUT }, 0.2)
+          .from('[data-sv-card]', { opacity: 0, y: 70, rotateX: LITE ? 0 : 22, transformOrigin: '50% 100%', duration: 1.1, stagger: 0.09, ease: OUT, clearProps: 'transform' }, 0.35)
+          .from('.sv-card__segs i', { scaleX: 0, duration: 0.9, stagger: 0.08, ease: 'power3.out' }, 0.9)
+          .from('.sv-card__chips li', { opacity: 0, y: 10, duration: 0.5, stagger: 0.04, ease: OUT }, 0.95)
+          .from('.sv-card__days i', { scale: 0, duration: 0.45, stagger: 0.07, ease: 'back.out(2.4)' }, 1.0)
+          .from('.sv-card__mini i', { scaleY: 0, duration: 0.7, stagger: 0.05, ease: 'power3.out' }, 1.0);
+        const cnt = $('[data-sv-count]');
+        if (cnt) { const o = { v: 0 }; cnt.textContent = '00'; tl.to(o, { v: 7, duration: 1.2, ease: 'power2.out', onUpdate: () => { cnt.textContent = String(Math.round(o.v)).padStart(2, '0'); } }, 0.8); }
+        const tg = $('[data-sv-toggle]');
+        if (tg) { const tr = $('.sv-toggle__track', tg); const kx = () => tr.offsetWidth - 38;
+          tl.to(tr, { '--kx': () => kx() + 'px', '--fill': 1, duration: 1.1, ease: 'power3.inOut' }, 1.6).to(tr, { '--ck': 1, duration: 0.3 }, 2.5); }
+      }
+    }
+
     /* fade-ups */
     ScrollTrigger.batch('[data-az-fade]', { start: 'top 90%', once: true, onEnter: (els) => g.to(els, { opacity: 1, y: 0, duration: 1.1, ease: OUT, stagger: 0.08, overwrite: true }) });
 
