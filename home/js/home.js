@@ -135,6 +135,77 @@
   }));
   const mq = $('.az-marquee'); if (mq) io.observe(mq); io.observe($('[data-az-quotes]'));
 
+
+  /* ---------- THE CARE PATH — one continuous line that follows you from the hero CTA down through every section ---------- */
+  const thread = (() => {
+    const main = $('main'), NS = 'http://www.w3.org/2000/svg';
+    const svg = d.createElementNS(NS, 'svg'); svg.setAttribute('class', 'az-thread'); svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<path class="az-thread__trail"/><path class="az-thread__glow"/><path class="az-thread__line"/><g class="az-thread__nodes"></g><g class="az-thread__tip"><circle class="az-thread__halo" r="16"/><circle class="az-thread__dot" r="6.5"/></g>';
+    main.prepend(svg);
+    const trail = $('.az-thread__trail', svg), glow = $('.az-thread__glow', svg), line = $('.az-thread__line', svg), nodesG = $('.az-thread__nodes', svg), tip = $('.az-thread__tip', svg);
+    /* anchor points: [selector, x-rule, y-rule] measured live so the path always connects the real elements */
+    const A = [
+      ['.hx__ctas', 'c', 'b+18'],
+      ['.hx__person', 'c', 'm'],
+      ['.ix__icons', 'r+46', 'm', 1],
+      ['.ix__stat--r .ix__faces', 'l-40', 'm', 1],
+      ['.ix-laurel:last-child', 'r+44', 't-10', 1],
+      ['.ix-laurel:last-child', 'r+44', 'b+30'],
+      ['.ix__logos ul', 'r-6', 'b+40'],
+      ['.ix__meta svg', 'l-30', 'm', 1],
+      ['.ix__proof', 'l-34', 'm', 1],
+      ['#why', 'c', 't+40'],
+    ];
+    let S = [], total = 0, nodes = [];
+    const pt = (sel, xr, yr) => {
+      const el = $(sel); if (!el || !el.offsetParent && el.tagName !== 'svg') return null;
+      const r = el.getBoundingClientRect(), m = main.getBoundingClientRect();
+      const X = (s) => { const k = s[0], o = +(s.slice(1) || 0); return (k === 'c' ? r.left + r.width / 2 : k === 'l' ? r.left : r.right) - m.left + o; };
+      const Y = (s) => { const k = s[0], o = +(s.slice(1) || 0); return (k === 't' ? r.top : k === 'b' ? r.bottom : r.top + r.height / 2) - m.top + o; };
+      return { x: Math.max(14, Math.min(main.offsetWidth - 14, X(xr))), y: Y(yr) };
+    };
+    const curve = (P) => { /* centripetal-ish Catmull-Rom -> cubic beziers */
+      let s = `M${P[0].x.toFixed(1)} ${P[0].y.toFixed(1)}`;
+      for (let i = 0; i < P.length - 1; i++) {
+        const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2, t = 0.5 / 1.5;
+        const c1 = { x: p1.x + (p2.x - p0.x) * t, y: p1.y + (p2.y - p0.y) * t }, c2 = { x: p2.x - (p3.x - p1.x) * t, y: p2.y - (p3.y - p1.y) * t };
+        s += ` C${c1.x.toFixed(1)} ${c1.y.toFixed(1)} ${c2.x.toFixed(1)} ${c2.y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      }
+      return s;
+    };
+    const build = () => {
+      const P = [], N = [];
+      A.forEach(([sel, xr, yr, node]) => { const p = pt(sel, xr, yr); if (p) { P.push(p); if (node) N.push(p); } });
+      if (P.length < 2) return;
+      const W = main.offsetWidth, Hh = Math.ceil(P[P.length - 1].y + 40);
+      svg.setAttribute('viewBox', `0 0 ${W} ${Hh}`); svg.style.height = Hh + 'px';
+      const dd = curve(P); [trail, glow, line].forEach((p) => p.setAttribute('d', dd));
+      total = line.getTotalLength(); line.style.strokeDasharray = glow.style.strokeDasharray = total;
+      S = []; for (let i = 0; i <= 600; i++) { const l = (total * i) / 600, q = line.getPointAtLength(l); S.push([l, q.x, q.y]); }
+      nodesG.innerHTML = N.map((p) => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5"/>`).join('');
+      nodes = [...nodesG.children].map((c, i) => ({ c, y: N[i].y }));
+      update(true);
+    };
+    let last = -1;
+    const update = (force) => {
+      if (!S.length) return;
+      const mTop = main.getBoundingClientRect().top + scrollY;
+      const target = RM ? 1e9 : scrollY + innerHeight * 0.62 - mTop;
+      if (!force && Math.abs(target - last) < 0.5) return; last = target;
+      let i = 0; while (i < S.length - 1 && S[i][2] < target) i++;
+      const [l, x, y] = S[i];
+      line.style.strokeDashoffset = glow.style.strokeDashoffset = (total - l).toFixed(1);
+      tip.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+      tip.style.opacity = l > 2 && l < total - 2 ? 1 : 0;
+      nodes.forEach((n) => n.c.classList.toggle('on', n.y <= y + 1));
+    };
+    let raf = 0;
+    addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); }, { passive: true });
+    addEventListener('resize', () => setTimeout(build, 120));
+    ScrollTrigger.addEventListener('refresh', build);
+    return { build, update };
+  })();
+
   /* ---------- motion ---------- */
   const motion = () => {
     if (RM) return;
@@ -150,14 +221,14 @@
     }
     mm.add('(min-width: 900px)', () => {
       if (LITE) return;
-      /* scroll: copy lifts into the sky, cards spread out, the couple rides off to the right */
-      const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: hx, start: 'top top', end: '+=120%', pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 500, 90); } } });
-      tl.to('.hx__copy', { yPercent: -60, opacity: 0, duration: 0.4 }, 0)
-        .to('.hx__sky', { yPercent: 8, scale: 1.08, duration: 1 }, 0)
-        .to(arc, { R: () => radius() * 1.6, duration: 0.6, onUpdate: applyR }, 0)
-        .to(hcards, { opacity: 0, duration: 0.35 }, 0.3)
-        .to('.hx__person', { scale: 1.06, transformOrigin: '50% 100%', duration: 0.8 }, 0)
-        .to('.hx__flood', { opacity: 1, duration: 0.12 }, 0.88);
+      /* hero leaves naturally (no pin, no flood): copy lifts, cards spread and fade, photo drifts slower than the page */
+      const st = { trigger: hx, start: 'top top', end: 'bottom top', scrub: true, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 600, 60); } };
+      const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: st });
+      tl.to('.hx__copy', { yPercent: -50, opacity: 0, duration: 0.5 }, 0)
+        .to('.hx__sky', { yPercent: 12, duration: 1 }, 0)
+        .to(arc, { R: () => radius() * 1.45, duration: 1, onUpdate: applyR }, 0)
+        .to(hcards, { opacity: 0, duration: 0.45 }, 0.4)
+        .to('.hx__person', { yPercent: 14, duration: 1 }, 0);
     });
 
     /* travelling orb — glides to a new spot per section (the deck's morph idea) */
@@ -328,7 +399,8 @@
     ScrollTrigger.sort();
     preloader().then(heroIntro);
     window.__azReady = true;
-    addEventListener('load', () => ScrollTrigger.refresh());
+    thread.build();
+    addEventListener('load', () => { ScrollTrigger.refresh(); thread.build(); });
   };
   Promise.race([d.fonts ? d.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 1500))]).then(start);
 })();
