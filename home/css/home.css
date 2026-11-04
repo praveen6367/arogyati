@@ -107,8 +107,10 @@ main,footer{position:relative;z-index:1}
 .az-head.is-hidden{transform:translateY(-120%)}
 .az-head__bar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:var(--az-s5);height:96px;transition:height .5s var(--az-ease)}
 .az-head.is-condensed .az-head__bar{height:78px}
-.az-head__logo{position:relative;display:flex;align-items:center;height:50px;padding:0 1.2rem;border-radius:999px;background:#fff;box-shadow:0 8px 24px -14px rgba(23,35,27,.35)}
-.az-head__logo svg{display:block;width:136px;height:auto}
+.az-head__logo{position:relative;display:flex;align-items:center;height:50px}
+.az-head__logo .az-lg-l,.az-head__logo .az-lg-t{fill:#fff;transition:fill .5s}
+.az-head.on-light .az-head__logo .az-lg-l{fill:#7D8E39}.az-head.on-light .az-head__logo .az-lg-t{fill:#231F20}
+.az-head__logo svg{display:block;width:158px;height:auto;filter:drop-shadow(0 2px 10px rgba(40,80,130,.25))}
 .az-nav{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:2px;padding:5px;border-radius:999px;background:#fff;box-shadow:0 8px 24px -14px rgba(23,35,27,.35)}
 .az-nav__ind{position:absolute;left:0;top:5px;height:calc(100% - 10px);width:0;border-radius:999px;background:var(--hx-green);opacity:0;pointer-events:none}
 .az-nav a{position:relative;z-index:1;padding:.62rem 1.1rem;border-radius:999px;font-size:.88rem;font-weight:500;color:#3A4540;transition:color .35s}
@@ -138,19 +140,19 @@ main,footer{position:relative;z-index:1}
 .az-menu__meta{margin-top:var(--az-s6);display:flex;flex-wrap:wrap;gap:var(--az-s4) var(--az-s6);font-size:var(--az-fs-small);color:var(--dk-mut)}
 
 /* ---------- HERO — sky, centered headline, single dark CTA, white card arc, couple on a cycle ---------- */
-.hx{position:relative;height:100svh;min-height:700px;overflow:hidden;background:#8FB3DA;color:#fff;isolation:isolate}
+.hx{position:relative;height:max(116svh,860px);min-height:700px;overflow:hidden;background:#8FB3DA;color:#fff;isolation:isolate}
 .hx__sky{position:absolute;inset:-4% 0 0 0}
 .hx__sky img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
 .hx__tint{position:absolute;inset:0;background:linear-gradient(180deg,rgba(98,146,204,.62) 0%,rgba(132,174,222,.42) 40%,rgba(196,218,240,.25) 70%,rgba(230,240,250,0) 90%)}
 .hx__haze{position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(0deg,rgba(244,248,251,.9) 0%,rgba(244,248,251,0));z-index:2;pointer-events:none}
-.hx__copy{position:absolute;left:0;right:0;top:0;padding-top:clamp(112px,14vh,150px);text-align:center;z-index:4}
+.hx__copy{position:absolute;left:0;right:0;top:0;padding-top:clamp(140px,19vh,200px);text-align:center;z-index:4}
 .az-home .hx__title{margin:0 auto;font-weight:600;font-size:clamp(2.5rem,4.9vw,5.4rem);line-height:1.04;letter-spacing:-.045em;color:#fff;text-shadow:0 2px 30px rgba(40,80,130,.25);max-width:16ch}
 .hx__title .hx-ch{display:inline-block}
 .az-home .hx__sub{margin:1.3rem auto 0;max-width:46ch;font-size:clamp(.92rem,.88rem + .2vw,1.05rem);line-height:1.5;color:rgba(255,255,255,.86)}
-.hx__ctas{display:flex;justify-content:center;margin-top:1.7rem}
-.hx__arc{position:absolute;inset:0;perspective:1500px;perspective-origin:50% var(--lane-y,60%);pointer-events:none;z-index:1;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%)}
+.hx__ctas{display:flex;justify-content:center;margin-top:2.2rem}
+.hx__arc{position:absolute;inset:0;perspective:820px;perspective-origin:50% var(--lane-y,60%);pointer-events:none;z-index:1;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%)}
 .hx__ring{position:absolute;left:50%;top:var(--lane-y,60%);width:0;height:0;transform-style:preserve-3d}
-.hx-card{--cw:260px;position:absolute;left:calc(var(--cw) / -2);top:calc(var(--cw) * -.42);width:var(--cw);height:calc(var(--cw) * .84);padding:calc(var(--cw) * .075);border-radius:calc(var(--cw) * .1);display:flex;flex-direction:column;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;color:#1A231E;box-shadow:0 18px 36px -24px rgba(30,60,100,.45);overflow:hidden;font-size:calc(var(--cw) / 260 * 16px)}
+.hx-card{--cw:260px;position:absolute;left:calc(var(--cw) / -2);top:calc(var(--cw) * -.42);width:var(--cw);height:calc(var(--cw) * .9);padding:calc(var(--cw) * .075);border-radius:calc(var(--cw) * .1);display:flex;flex-direction:column;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;color:#1A231E;box-shadow:0 18px 36px -24px rgba(30,60,100,.45);overflow:hidden;font-size:calc(var(--cw) / 260 * 16px)}
 .hx-card__t{font-size:1.05em;font-weight:500;line-height:1.22;letter-spacing:-.015em;max-width:9em}
 .hx-card__big{margin-top:auto;font-weight:500;font-size:2.7em;line-height:.95;letter-spacing:-.05em}
 .hx-card__big small{font-size:.36em;letter-spacing:0;margin-left:.25em;color:#8A948E;font-weight:500}
@@ -193,7 +195,7 @@ main,footer{position:relative;z-index:1}
 .hx__person picture,.hx__person img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom}
 .hx__flood{position:absolute;inset:0;z-index:6;background:var(--dk-lime);opacity:0;pointer-events:none}
 html.az-motion [data-hx-intro],html.az-motion .hx__title{opacity:0}
-html.az-motion .hx__person picture,html.az-motion .hx__ring{opacity:0}
+html.az-motion .hx__person picture,html.az-motion .hx-card{opacity:0}
 
 /* lite (iOS / low-power): flat fan, no 3D */
 html.az-lite .hx__arc{perspective:none}
@@ -480,3 +482,5 @@ html.az-lite .az-scrollcue i::after{animation:none}
 .az-foot__word{overflow:hidden}
 @media (max-width:900px){.az-body{max-width:250px}.az-cond__grid{gap:var(--az-s6)}.az-panel{min-height:0}}
 .hx-card--photo .hx-card__big{font-size:1.5em;letter-spacing:-.03em;top:auto;bottom:calc(var(--cw) * .2);left:calc(var(--cw) * .075);right:auto}
+@media (max-width:899px){.hx{height:100svh;min-height:600px}.hx__copy{padding-top:112px}}
+.hx-card--photo img{z-index:0}.hx-card--photo::before{z-index:1}.hx-card--photo>*:not(img){z-index:2}

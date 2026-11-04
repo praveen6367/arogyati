@@ -65,22 +65,23 @@
   nav.addEventListener('mouseleave', () => moveInd(activeLink));
 
   /* ---------- hero: 3D card arc state ---------- */
+  ScrollTrigger.create({ trigger: '.hx', start: 'bottom 80px', onEnter: () => head.classList.add('on-light'), onLeaveBack: () => head.classList.remove('on-light') });
   const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card');
   const arc = { ry: 0, speed: 6, boost: 0, R: 0 };
-  const radius = () => Math.min(innerWidth * 0.52, 820);
+  const radius = () => Math.min(innerWidth * 0.62, 1050);
   const STEP = 360 / hcards.length;
   let cw = 260;
-  const laneY = () => { const cp = $('.hx__copy'), ct = $('.hx__ctas'); return Math.round(cp.offsetTop + ct.offsetTop + ct.offsetHeight + 34 + cw * 0.42); };
+  const laneY = () => { const cp = $('.hx__copy'), ct = $('.hx__ctas'); return Math.round(cp.offsetTop + ct.offsetTop + ct.offsetHeight + 56 + cw * 0.45); };
   const applyR = () => hcards.forEach((c, i) => { c.style.transform = `rotateY(${(i * STEP).toFixed(2)}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
-  const layout = () => { arc.R = radius(); cw = Math.max(200, Math.min(290, Math.round(arc.R * (STEP * Math.PI / 180) - 22))); hcards.forEach((c) => c.style.setProperty('--cw', cw + 'px')); hx.style.setProperty('--lane-y', laneY() + 'px'); applyR(); };
-  const applyRing = () => { ring.style.transform = `rotateY(${arc.ry.toFixed(2)}deg)`; };
+  const layout = () => { arc.R = radius(); cw = Math.max(220, Math.min(360, Math.round(arc.R * (STEP * Math.PI / 180) - 20))); hcards.forEach((c) => c.style.setProperty('--cw', cw + 'px')); hx.style.setProperty('--lane-y', laneY() + 'px'); applyR(); };
+  const applyRing = () => { ring.style.transform = `translateZ(${(arc.R * 0.55).toFixed(1)}px) rotateY(${arc.ry.toFixed(2)}deg)`; };
   const ARC3D = !LITE && innerWidth >= 900;
   /* the photo fills all the space under the button (never overlapping it) and sits on the bottom edge */
   const sizePerson = () => {
     const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
     const ctaB = cp.offsetTop + ct.offsetTop + ct.offsetHeight, Hh = hx.offsetHeight;
-    const hgt = Math.max(240, Math.min(Hh - ctaB - 36, Hh * 0.62));
-    ps.style.width = Math.round(Math.min(hgt * 1.1492, innerWidth * 0.96)) + 'px';
+    const hgt = Math.max(260, Math.min(Hh - ctaB - 30, Hh * 0.7));
+    ps.style.width = Math.round(Math.min(hgt * 1.1492, innerWidth * 0.98)) + 'px';
   };
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
@@ -145,7 +146,7 @@
       let hxOn = true;
       ScrollTrigger.create({ trigger: hx, start: 'top bottom', end: 'bottom top', onToggle: (s) => { hxOn = s.isActive; } });
       g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry -= (arc.speed + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
-      addEventListener('resize', layout); d.fonts && d.fonts.ready.then(layout);
+      addEventListener('resize', () => { layout(); applyRing(); });
     }
     mm.add('(min-width: 900px)', () => {
       if (LITE) return;
@@ -154,7 +155,7 @@
       tl.to('.hx__copy', { yPercent: -60, opacity: 0, duration: 0.4 }, 0)
         .to('.hx__sky', { yPercent: 8, scale: 1.08, duration: 1 }, 0)
         .to(arc, { R: () => radius() * 1.6, duration: 0.6, onUpdate: applyR }, 0)
-        .to('.hx__arc', { opacity: 0, duration: 0.35 }, 0.3)
+        .to(hcards, { opacity: 0, duration: 0.35 }, 0.3)
         .to('.hx__person', { scale: 1.06, transformOrigin: '50% 100%', duration: 0.8 }, 0)
         .to('.hx__flood', { opacity: 1, duration: 0.12 }, 0.88);
     });
@@ -286,8 +287,8 @@
     tl.fromTo('.hx__sky img', { scale: 1.12 }, { scale: 1, duration: 2.4, ease: OUT }, 0)
       .fromTo('.hx__person picture', { yPercent: 14, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.6, ease: OUT }, 0.3)
       .fromTo(sp.chars, { yPercent: 70, opacity: 0, ...blur(14) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.2, stagger: 0.035, ease: OUT, clearProps: 'filter' }, 0.25)
-      .fromTo('.hx__ring', { opacity: 0 }, { opacity: 1, duration: 1.2 }, 0.45)
-      .fromTo(arc, { speed: 70 }, { speed: 5, duration: 2.6, ease: 'power3.out' }, 0.45)
+      .fromTo(hcards, { opacity: 0 }, { opacity: 1, duration: 1, stagger: 0.04 }, 0.45)
+      .fromTo(arc, { speed: 26 }, { speed: 6, duration: 2.6, ease: 'power3.out' }, 0.45)
       .fromTo('[data-hx-intro]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: OUT }, 0.6)
       .fromTo('.az-head__bar', { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, ease: OUT }, 0.4);
     $$('[data-hx-count]').forEach((el) => {
@@ -297,6 +298,7 @@
   }
 
   const start = () => {
+    sizePerson(); if (ARC3D) { layout(); applyRing(); }
     motion();
     ScrollTrigger.sort();
     preloader().then(heroIntro);
