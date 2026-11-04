@@ -295,6 +295,7 @@ function setPhoto(ph) {
     curSrc = ph.src; front ^= 1;
     const a = imgs[front], b = imgs[front ^ 1];
     a.src = ph.src; a.classList.remove('show'); void a.offsetWidth; a.classList.add('show'); b.classList.remove('show');
+    if (IOS) { clearTimeout(setPhoto.t); setPhoto.t = setTimeout(() => { if (!b.classList.contains('show')) b.removeAttribute('src'); }, 1200); }
   }
 }
 
@@ -339,6 +340,7 @@ let revealId = 0;
 function reveal(el) {
   const id = ++revealId, cv = el.querySelector('.cvp'), logo = el.querySelector('.cover-logo');
   if (!cv) return;
+  cv.width = 1920; cv.height = 1080;
   const g = cv.getContext('2d');
   ptsReady.then(() => {
     if (!PTS || id !== revealId) return;
@@ -374,7 +376,7 @@ function reveal(el) {
           g.fillRect(CX + Math.cos(a) * r - sz / 2, CY + Math.sin(a) * r * K - sz / 2, sz, sz);
         }
         requestAnimationFrame(frame);
-      }
+      } else { cv.width = 1; cv.height = 1; }
     })(performance.now());
   });
 }
@@ -408,14 +410,7 @@ const locked = () => document.body.classList.contains('intro');
 const next = () => { if (!locked()) go(cur + 1); }, prev = () => { if (!locked()) go(cur - 1); };
 
 /* ---------------- scale to screen ---------------- */
-function fit() {
-  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
-  if (IOS) {
-    /* iPhone: zoom lays the stage out at screen size, so Safari keeps small layers instead of full 1920px ones */
-    stage.style.transform = 'none'; stage.style.zoom = k;
-    stage.style.left = (innerWidth - 1920 * k) / 2 / k + 'px'; stage.style.top = (innerHeight - 1080 * k) / 2 / k + 'px';
-  } else stage.style.transform = `translate(-50%,-50%) scale(${k})`;
-}
+function fit() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(-50%,-50%) scale(${k})`; }
 addEventListener('resize', fit); fit();
 
 /* ---------------- controls ---------------- */
