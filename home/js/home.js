@@ -66,12 +66,24 @@
 
   /* ---------- hero: 3D card arc state ---------- */
   const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card');
-  const arc = { ry: 0, speed: 5, boost: 0, R: 0, mx: 0, my: 0 };
-  const radius = () => Math.min(innerWidth * 0.5, 900);
-  const applyR = () => hcards.forEach((c) => { c.style.transform = `rotateY(${c.dataset.a}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
-  const applyRing = () => { ring.style.transform = `rotateX(${(-5 + arc.my * 4).toFixed(2)}deg) rotateY(${(arc.ry + arc.mx * 10).toFixed(2)}deg)`; };
+  const arc = { ry: 0, speed: 6, boost: 0, R: 0 };
+  const radius = () => Math.min(innerWidth * 0.52, 820);
+  const STEP = 360 / hcards.length;
+  let cw = 260;
+  const laneY = () => { const cp = $('.hx__copy'), ct = $('.hx__ctas'); return Math.round(cp.offsetTop + ct.offsetTop + ct.offsetHeight + 34 + cw * 0.42); };
+  const applyR = () => hcards.forEach((c, i) => { c.style.transform = `rotateY(${(i * STEP).toFixed(2)}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
+  const layout = () => { arc.R = radius(); cw = Math.max(200, Math.min(290, Math.round(arc.R * (STEP * Math.PI / 180) - 22))); hcards.forEach((c) => c.style.setProperty('--cw', cw + 'px')); hx.style.setProperty('--lane-y', laneY() + 'px'); applyR(); };
+  const applyRing = () => { ring.style.transform = `rotateY(${arc.ry.toFixed(2)}deg)`; };
   const ARC3D = !LITE && innerWidth >= 900;
-  if (ARC3D) { arc.R = radius(); applyR(); applyRing(); }
+  /* the photo fills all the space under the button (never overlapping it) and sits on the bottom edge */
+  const sizePerson = () => {
+    const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
+    const ctaB = cp.offsetTop + ct.offsetTop + ct.offsetHeight, Hh = hx.offsetHeight;
+    const hgt = Math.max(220, Math.min(Hh - ctaB - 40, Hh * 0.66));
+    ps.style.width = Math.round(Math.min(hgt * 1.403, innerWidth * (innerWidth < 900 ? 1.12 : 0.96))) + 'px';
+  };
+  sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
+  if (ARC3D) { layout(); applyRing(); }
 
   /* ---------- body map ---------- */
   const AREAS = JSON.parse($('#az-areas').textContent);
@@ -132,16 +144,8 @@
     if (ARC3D) {
       let hxOn = true;
       ScrollTrigger.create({ trigger: hx, start: 'top bottom', end: 'bottom top', onToggle: (s) => { hxOn = s.isActive; } });
-      g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry += (arc.speed * 0.6 + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
-      addEventListener('resize', () => { arc.R = radius(); applyR(); });
-      if (FINE) {
-        const px = g.quickTo('.hx__person picture', 'x', { duration: 1.2, ease: 'power3' }), bx = g.quickTo('.hx__sky img', 'x', { duration: 1.8, ease: 'power3' }), cx = g.quickTo('.hx__copy', 'x', { duration: 1.4, ease: 'power3' });
-        hx.addEventListener('mousemove', (e) => {
-          const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
-          g.to(arc, { mx: nx * 2, my: ny * 2, duration: 1.2, ease: 'power3.out', overwrite: 'auto' });
-          px(nx * -16); bx(nx * 22); cx(nx * -8);
-        });
-      }
+      g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry -= (arc.speed + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
+      addEventListener('resize', layout); d.fonts && d.fonts.ready.then(layout);
     }
     mm.add('(min-width: 900px)', () => {
       if (LITE) return;
@@ -149,9 +153,9 @@
       const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: hx, start: 'top top', end: '+=120%', pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 500, 90); } } });
       tl.to('.hx__copy', { yPercent: -60, opacity: 0, duration: 0.4 }, 0)
         .to('.hx__sky', { yPercent: 8, scale: 1.08, duration: 1 }, 0)
-        .to(arc, { R: () => radius() * 1.8, duration: 0.6, onUpdate: applyR }, 0)
+        .to(arc, { R: () => radius() * 1.6, duration: 0.6, onUpdate: applyR }, 0)
         .to('.hx__arc', { opacity: 0, duration: 0.35 }, 0.3)
-        .to('.hx__person', { xPercent: -50, x: () => innerWidth * 0.75, y: -20, duration: 0.85, ease: 'power1.in' }, 0.1)
+        .to('.hx__person', { scale: 1.06, transformOrigin: '50% 100%', duration: 0.8 }, 0)
         .to('.hx__flood', { opacity: 1, duration: 0.12 }, 0.88);
     });
 
@@ -280,7 +284,7 @@
     const sp = SplitText.create(title, { type: 'words,chars', charsClass: 'hx-ch' });
     const tl = g.timeline();
     tl.fromTo('.hx__sky img', { scale: 1.12 }, { scale: 1, duration: 2.4, ease: OUT }, 0)
-      .fromTo('.hx__person picture', { xPercent: -70, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.8, ease: 'power3.out' }, 0.35)
+      .fromTo('.hx__person picture', { yPercent: 14, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.6, ease: OUT }, 0.3)
       .fromTo(sp.chars, { yPercent: 70, opacity: 0, ...blur(14) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.2, stagger: 0.035, ease: OUT, clearProps: 'filter' }, 0.25)
       .fromTo('.hx__ring', { opacity: 0 }, { opacity: 1, duration: 1.2 }, 0.45)
       .fromTo(arc, { speed: 70 }, { speed: 5, duration: 2.6, ease: 'power3.out' }, 0.45)
