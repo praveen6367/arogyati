@@ -457,7 +457,10 @@ addEventListener('touchend', (e) => {
 
 setSfx(!/mute/.test(location.search)); setMusic(false);
 const h = parseInt(location.hash.slice(1));
-document.fonts.ready.then(() => {
+let booted = false;
+const fontsOk = new Promise((r) => { try { (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(r, r); } catch (e) { r(); } setTimeout(r, 1200); });
+fontsOk.then(() => {
+  if (booted) return; booted = true; window.__deckBooted = true;
   const start = isNaN(h) ? 0 : h - 1;
   go(start, true);
   setTimeout(() => { document.body.classList.remove('intro'); $('#toast').classList.remove('gone'); wake(); setTimeout(() => $('#toast').classList.add('gone'), 4500); }, start === 0 ? 4600 : 0);

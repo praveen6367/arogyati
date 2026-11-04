@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#04150F">
 <title>AROGYATI</title>
 <link rel="preload" href="assets/fonts/Jakarta.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/deck.css">
+<link rel="stylesheet" href="assets/deck.css?v=3">
 </head>
 <body class="intro">
 <div id="bgfx"></div>
@@ -39,6 +39,18 @@
 <div id="toast" class="gone">Press <kbd>F</kbd> for full screen · <kbd>←</kbd> <kbd>→</kbd> to move</div>
 <div id="ov"><h3>ALL SLIDES</h3><div id="ovg"></div></div>
 <audio id="music" src="assets/music.mp3" loop preload="none"></audio>
-<script src="assets/deck.js"></script>
+<script>
+(function(){
+  function show(msg){
+    var d=document.getElementById('dbg');
+    if(!d){d=document.createElement('div');d.id='dbg';d.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:9999;background:#B00020;color:#fff;font:13px/1.4 -apple-system,sans-serif;padding:12px 14px;border-radius:10px;white-space:pre-wrap;word-break:break-word';(document.body||document.documentElement).appendChild(d);}
+    d.textContent+=(d.textContent?' | ':'')+msg;
+  }
+  window.addEventListener('error',function(e){show('Error: '+(e.message||e)+(e.filename?' @ '+e.filename.split('/').pop()+':'+e.lineno+':'+e.colno:'')+' | '+navigator.userAgent);});
+  window.addEventListener('unhandledrejection',function(e){show('Promise: '+(e.reason&&e.reason.message||e.reason));});
+  setTimeout(function(){ if(!window.__deckBooted) show('Deck did not start | '+navigator.userAgent); },7000);
+})();
+</script>
+<script src="assets/deck.js?v=3"></script>
 </body>
 </html>
