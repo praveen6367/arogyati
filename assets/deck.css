@@ -173,3 +173,21 @@ body.intro{cursor:none}
 body.intro #ui,body.intro #toast,body.intro #prog{opacity:0!important;pointer-events:none}
 body.intro .edge{pointer-events:none}
 body.intro .wm{opacity:0!important}
+
+/* ---------- touch / iPhone ---------- */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+.touch #eL{width:35%}.touch #eR{width:65%}
+.lite .morph{will-change:auto}
+.lite #bgfx:after,.lite #blob:after,.lite #photo .grain{display:none}
+.lite .a,.lite .slide.out .a{filter:none!important}
+.lite #ui{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(8,28,20,.92)}
+.lite #ov{backdrop-filter:none;-webkit-backdrop-filter:none}
+.lite .paper .glow{filter:none}
+@media (max-width:600px){
+  #ui{bottom:calc(14px + env(safe-area-inset-bottom));gap:2px;padding:6px 8px;max-width:calc(100vw - 20px)}
+  #ui button{width:38px;height:38px}
+  #ui svg{width:19px;height:19px}
+  #ui .ct{min-width:66px;font-size:12px;letter-spacing:.08em}#ui .ct b{font-size:14px}
+  #ui .sep{margin:0 2px}
+  #toast{top:calc(16px + env(safe-area-inset-top));white-space:nowrap;font-size:13px}
+}
