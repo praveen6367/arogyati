@@ -144,7 +144,7 @@
   const rail = (() => {
     const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE) return null;
     const cards = $$('.rl-card', el), N = cards.length, U = N / 2;
-    const head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
+    const sky = $('.hx__sky'), haze = $('.hx__haze'), head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
     const clamp = (v) => Math.max(0, Math.min(1, v)), mix = (a, b, t) => a + (b - a) * t;
     const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const mq = matchMedia('(min-width: 1024px)');
@@ -162,32 +162,39 @@
     };
     const render = (dt) => {
       const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
-      const a = io3(clamp(y / Math.max(1, (pin ? pin.start : heroH))));
+      const aRaw = clamp(y / Math.max(1, (pin ? pin.start : heroH))), a = io3(aRaw);
       const p = pin ? clamp((y - pin.start) / (pin.end - pin.start)) : 0;
       const after = pin ? Math.max(0, y - pin.end) : 0;
       if (after > vh * 1.2) { el.style.visibility = 'hidden'; return; } el.style.visibility = '';
+      /* the sky dissolves into the page and the hero's bottom haze lifts away, so nothing washes over the cards */
+      if (sky) sky.style.opacity = (1 - clamp(aRaw / 0.55)).toFixed(3);
+      if (haze) haze.style.opacity = (1 - clamp(aRaw / 0.12)).toFixed(3);
       off += (dt || 16) / 1000 * 26 * (1 - a);
-      const k = mix(1 / R0, 0, a), d = mix(0.45 * R0, 0, a);
-      const railY = mix(lane0, vh * 0.5, a) - after;
-      const sc = mix(1, 0.92, a);
-      el.style.perspectiveOrigin = `50% ${railY.toFixed(1)}px`;
+      const railY0 = mix(lane0, vh * 0.5, a) - after;
+      el.style.perspectiveOrigin = `50% ${railY0.toFixed(1)}px`;
       const total = off + p * sp * (U - 1) + sp * 0.5 * clamp(p * 4);
       const pf = clamp(p * 12);
       let best = 0, bi = 0;
       cards.forEach((c, i) => {
         let s = ((i * sp - total) % L + L) % L - L / 2;
+        const dist = Math.min(1, Math.abs(s) / (L / 2)), sg = s < 0 ? -1 : 1;
+        /* ribbon: the centre straightens first, the outer cards follow */
+        const ai = io3(clamp(aRaw * 1.45 - dist * 0.45)), wv = Math.sin(ai * Math.PI);
+        const k = mix(1 / R0, 0, ai), d = mix(0.45 * R0, 0, ai);
         const th = s * k, x = k ? Math.sin(th) / k : s, z0 = -d + (k ? (1 - Math.cos(th)) / k : 0);
-        const vis = k ? Math.abs(th) < 1.7 : Math.abs(x) < vw * 0.62 + cw;
+        const vis = k > 1e-6 ? Math.abs(th) < 1.7 : Math.abs(x) < vw * 0.62 + cw;
+        const yy = mix(lane0, vh * 0.5, ai) - after + wv * 70 * (0.35 + dist);
         let f = pf * Math.max(0, 1 - Math.abs(x) / (sp * 0.95));
         if (f > best) { best = f; bi = i % U; }
-        const z = z0 + 140 * f, scl = sc * (1 + 0.22 * f);
+        const z = z0 + 140 * f + wv * 60, scl = mix(1, 0.92, ai) * (1 + 0.22 * f);
+        const rx = wv * 16 * (0.4 + dist), rz = wv * 7 * sg * dist;
         const op = vis ? railIn.v * mix(1, 0.4 + 0.6 * Math.min(1, f * 1.6), pf) : 0;
         c.style.opacity = op.toFixed(3);
-        c.style.transform = `translate3d(${x.toFixed(1)}px,${railY.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${(-th * 180 / Math.PI).toFixed(2)}deg) scale(${scl.toFixed(4)})`;
+        c.style.transform = `translate3d(${x.toFixed(1)}px,${yy.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${(-th * 180 / Math.PI).toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${scl.toFixed(4)})`;
       });
       if (pin && p > 0 && p < 1) setCap(bi);
       el.classList.toggle('is-flat', a > 0.55);
-      if (head) head.style.opacity = clamp((a - 0.72) / 0.28).toFixed(3);
+      if (head) head.style.opacity = clamp((aRaw - 0.86) / 0.14).toFixed(3);
       if (cap) cap.style.opacity = pf.toFixed(3);
       if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
     };
@@ -228,7 +235,7 @@
         .to('.hx__sky', { yPercent: 12, duration: 1 }, 0)
         .to(arc, { R: () => radius() * 1.45, duration: 1, onUpdate: applyR }, 0)
         .to(hcards, { opacity: 0, duration: 0.45 }, 0.4)
-        .to('.hx__person', { yPercent: 14, duration: 1 }, 0);
+        .to('.hx__person', { yPercent: -8, opacity: 0.0, duration: 1 }, 0);
     });
 
     /* travelling orb — glides to a new spot per section (the deck's morph idea) */
