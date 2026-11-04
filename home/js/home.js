@@ -65,13 +65,12 @@
   nav.addEventListener('mouseleave', () => moveInd(activeLink));
 
   /* ---------- hero: 3D card arc state ---------- */
-  const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card'), hblob = $('.hx__blob');
+  const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card');
   const arc = { ry: 0, speed: 5, boost: 0, R: 0, mx: 0, my: 0 };
-  const radius = () => Math.min(innerWidth * 0.46, 860);
+  const radius = () => Math.min(innerWidth * 0.5, 900);
   const applyR = () => hcards.forEach((c) => { c.style.transform = `rotateY(${c.dataset.a}deg) translateZ(${(-arc.R).toFixed(1)}px)`; });
   const applyRing = () => { ring.style.transform = `rotateX(${(-5 + arc.my * 4).toFixed(2)}deg) rotateY(${(arc.ry + arc.mx * 10).toFixed(2)}deg)`; };
   const ARC3D = !LITE && innerWidth >= 900;
-  g.set(hblob, { '--bi': 1, '--bs': 1 });
   if (ARC3D) { arc.R = radius(); applyR(); applyRing(); }
 
   /* ---------- body map ---------- */
@@ -133,34 +132,27 @@
     if (ARC3D) {
       let hxOn = true;
       ScrollTrigger.create({ trigger: hx, start: 'top bottom', end: 'bottom top', onToggle: (s) => { hxOn = s.isActive; } });
-      g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry += (arc.speed + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
+      g.ticker.add((t, dt) => { if (!hxOn) return; arc.ry += (arc.speed * 0.6 + arc.boost) * Math.min(dt, 50) / 1000; arc.boost *= 0.94; applyRing(); });
       addEventListener('resize', () => { arc.R = radius(); applyR(); });
       if (FINE) {
-        const px = g.quickTo('.hx__person', 'x', { duration: 1.2, ease: 'power3' }), bx = g.quickTo(hblob, 'x', { duration: 1.6, ease: 'power3' }), cx = g.quickTo('.hx__copy', 'x', { duration: 1.4, ease: 'power3' });
+        const px = g.quickTo('.hx__person picture', 'x', { duration: 1.2, ease: 'power3' }), bx = g.quickTo('.hx__sky img', 'x', { duration: 1.8, ease: 'power3' }), cx = g.quickTo('.hx__copy', 'x', { duration: 1.4, ease: 'power3' });
         hx.addEventListener('mousemove', (e) => {
           const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
           g.to(arc, { mx: nx * 2, my: ny * 2, duration: 1.2, ease: 'power3.out', overwrite: 'auto' });
-          px(nx * -18); bx(nx * 30); cx(nx * -10);
+          px(nx * -16); bx(nx * 22); cx(nx * -8);
         });
       }
     }
     mm.add('(min-width: 900px)', () => {
       if (LITE) return;
-      const cover = () => {
-        const w = hblob.offsetWidth, cxp = hblob.offsetLeft + w / 2, cyp = hblob.offsetTop + w / 2, W = hx.offsetWidth, H = hx.offsetHeight;
-        const far = Math.max(Math.hypot(cxp, cyp), Math.hypot(W - cxp, cyp), Math.hypot(cxp, H - cyp), Math.hypot(W - cxp, H - cyp));
-        return (far / (w / 2)) * 1.04;
-      };
-      const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: hx, start: 'top top', end: '+=140%', pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 500, 90); } } });
-      tl.to('.hx__copy', { yPercent: -45, opacity: 0, duration: 0.35 }, 0)
-        .to('.hx__corners', { y: 70, opacity: 0, duration: 0.25 }, 0)
-        .to('.hx__rings', { scale: 1.5, opacity: 0, duration: 0.6 }, 0)
-        .to(arc, { R: () => radius() * 2, duration: 0.6, onUpdate: applyR }, 0)
-        .to('.hx__arc', { opacity: 0, duration: 0.3 }, 0.3)
-        .to('.hx__person', { scale: 1.16, yPercent: -3, duration: 0.6 }, 0)
-        .to('.hx__person', { opacity: 0, duration: 0.2 }, 0.55)
-        .fromTo(hblob, { '--bs': 1 }, { '--bs': () => cover(), duration: 0.8, ease: 'power1.in' }, 0.1)
-        .to('.hx__flood', { opacity: 1, duration: 0.1 }, 0.9);
+      /* scroll: copy lifts into the sky, cards spread out, the couple rides off to the right */
+      const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: hx, start: 'top top', end: '+=120%', pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 500, 90); } } });
+      tl.to('.hx__copy', { yPercent: -60, opacity: 0, duration: 0.4 }, 0)
+        .to('.hx__sky', { yPercent: 8, scale: 1.08, duration: 1 }, 0)
+        .to(arc, { R: () => radius() * 1.8, duration: 0.6, onUpdate: applyR }, 0)
+        .to('.hx__arc', { opacity: 0, duration: 0.35 }, 0.3)
+        .to('.hx__person', { xPercent: -50, x: () => innerWidth * 0.75, y: -20, duration: 0.85, ease: 'power1.in' }, 0.1)
+        .to('.hx__flood', { opacity: 1, duration: 0.12 }, 0.88);
     });
 
     /* travelling orb — glides to a new spot per section (the deck's morph idea) */
@@ -287,13 +279,13 @@
     g.set(title, { opacity: 1 });
     const sp = SplitText.create(title, { type: 'words,chars', charsClass: 'hx-ch' });
     const tl = g.timeline();
-    tl.fromTo(hblob, { '--bi': 0.25, opacity: 0 }, { '--bi': 1, opacity: 1, duration: 1.9, ease: OUT }, 0)
-      .fromTo('.hx__person picture', { yPercent: 16, opacity: 0, ...blur(10) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.6, ease: OUT, clearProps: 'filter' }, 0.15)
+    tl.fromTo('.hx__sky img', { scale: 1.12 }, { scale: 1, duration: 2.4, ease: OUT }, 0)
+      .fromTo('.hx__person picture', { xPercent: -70, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.8, ease: 'power3.out' }, 0.35)
       .fromTo(sp.chars, { yPercent: 70, opacity: 0, ...blur(14) }, { yPercent: 0, opacity: 1, ...blur(0), duration: 1.2, stagger: 0.035, ease: OUT, clearProps: 'filter' }, 0.25)
       .fromTo('.hx__ring', { opacity: 0 }, { opacity: 1, duration: 1.2 }, 0.45)
       .fromTo(arc, { speed: 70 }, { speed: 5, duration: 2.6, ease: 'power3.out' }, 0.45)
       .fromTo('[data-hx-intro]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: OUT }, 0.6)
-      .from(head, { yPercent: -120, duration: 1.1, ease: OUT }, 0.4);
+      .fromTo('.az-head__bar', { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, ease: OUT }, 0.4);
     $$('[data-hx-count]').forEach((el) => {
       const c = { v: 0 }, to = +el.dataset.hxCount; el.textContent = '0';
       tl.to(c, { v: to, duration: 1.6, ease: 'power3.out', onUpdate: () => { el.textContent = Math.round(c.v); } }, 0.9);
