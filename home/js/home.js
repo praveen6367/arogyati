@@ -66,7 +66,7 @@
 
   /* ---------- hero: 3D card arc state ---------- */
   ScrollTrigger.create({ trigger: '.hx', start: 'bottom 80px', onEnter: () => head.classList.add('on-light'), onLeaveBack: () => head.classList.remove('on-light') });
-  const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx-card');
+  const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx__ring .hx-card');
   const arc = { ry: 0, speed: 6, boost: 0, R: 0 };
   const radius = () => Math.min(innerWidth * 0.62, 1050);
   const STEP = 360 / hcards.length;
@@ -136,74 +136,57 @@
   const mq = $('.az-marquee'); if (mq) io.observe(mq); io.observe($('[data-az-quotes]'));
 
 
-  /* ---------- THE CARE PATH — one continuous line that follows you from the hero CTA down through every section ---------- */
-  const thread = (() => {
-    const main = $('main'), NS = 'http://www.w3.org/2000/svg';
-    const svg = d.createElementNS(NS, 'svg'); svg.setAttribute('class', 'az-thread'); svg.setAttribute('aria-hidden', 'true');
-    svg.innerHTML = '<path class="az-thread__trail"/><path class="az-thread__glow"/><path class="az-thread__line"/><g class="az-thread__nodes"></g><g class="az-thread__tip"><circle class="az-thread__halo" r="16"/><circle class="az-thread__dot" r="6.5"/></g>';
-    main.prepend(svg);
-    const trail = $('.az-thread__trail', svg), glow = $('.az-thread__glow', svg), line = $('.az-thread__line', svg), nodesG = $('.az-thread__nodes', svg), tip = $('.az-thread__tip', svg);
-    /* anchor points: [selector, x-rule, y-rule] measured live so the path always connects the real elements */
-    const A = [
-      ['.hx__ctas', 'c', 'b+18'],
-      ['.hx__person', 'c', 'm'],
-      ['.ix__icons', 'r+46', 'm', 1],
-      ['.ix__stat--r .ix__faces', 'l-40', 'm', 1],
-      ['.ix-laurel:last-child', 'r+44', 't-10', 1],
-      ['.ix-laurel:last-child', 'r+44', 'b+30'],
-      ['.ix__logos ul', 'r-6', 'b+40'],
-      ['.ix__meta svg', 'l-30', 'm', 1],
-      ['.ix__proof', 'l-34', 'm', 1],
-      ['#why', 'c', 't+40'],
-    ];
-    let S = [], total = 0, nodes = [];
-    const pt = (sel, xr, yr) => {
-      const el = $(sel); if (!el || !el.offsetParent && el.tagName !== 'svg') return null;
-      const r = el.getBoundingClientRect(), m = main.getBoundingClientRect();
-      const X = (s) => { const k = s[0], o = +(s.slice(1) || 0); return (k === 'c' ? r.left + r.width / 2 : k === 'l' ? r.left : r.right) - m.left + o; };
-      const Y = (s) => { const k = s[0], o = +(s.slice(1) || 0); return (k === 't' ? r.top : k === 'b' ? r.bottom : r.top + r.height / 2) - m.top + o; };
-      return { x: Math.max(14, Math.min(main.offsetWidth - 14, X(xr))), y: Y(yr) };
+
+  /* ---------- FLIGHT — hero cards gather into a deck, follow you down, fan out, and land in the three panels ---------- */
+  const sizeSlots = () => $$('.rx-slot').forEach((s) => s.style.setProperty('--k', (s.offsetWidth / 260).toFixed(4)));
+  sizeSlots(); addEventListener('resize', sizeSlots);
+  const flight = (() => {
+    const fx = $('.fx'), rx = $('.rx'); if (!fx || !rx || RM || LITE) return null;
+    const fcs = $$('.fx-card', fx), N = fcs.length, CW = 260, CH = 234;
+    const slotOf = (i) => $(`.rx-slot[data-card="${i}"]`);
+    const clamp = (v) => Math.max(0, Math.min(1, v)), mix = (a, b, t) => a + (b - a) * t;
+    const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), out3 = (t) => 1 - Math.pow(1 - t, 3);
+    let pin = null;
+    const render = () => {
+      if (!pin) return;
+      const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
+      const a = clamp((y - heroH * 0.18) / (pin.start - heroH * 0.18 || 1));
+      const p = clamp((y - pin.start) / (pin.end - pin.start));
+      const docked = p >= 0.999;
+      h.classList.toggle('fx-docked', docked);
+      if (docked) return;
+      const ea = out3(a), fan = io3(clamp((p - 0.06) / 0.3));
+      const R = vh * 1.25, pivX = vw / 2, pivY = vh * 0.56 + R;
+      fcs.forEach((el, i) => {
+        const c = i - (N - 1) / 2;
+        /* deck: rises from behind the hero photo, travels to the centre of the next screen */
+        const dS = mix(0.5, 0.78, ea);
+        let x = vw / 2 + c * 7, yy = mix(vh * 0.92, vh * 0.55, ea) + Math.abs(c) * 2.5, r = c * 2.4, s = dS;
+        /* fan arc */
+        const ang = (-30 + (i / (N - 1)) * 60) * Math.PI / 180;
+        const fx2 = pivX + R * Math.sin(ang), fy2 = pivY - R * Math.cos(ang), fr = ang * 180 / Math.PI, fs = 0.72;
+        x = mix(x, fx2, fan); yy = mix(yy, fy2, fan); r = mix(r, fr, fan); s = mix(s, fs, fan);
+        /* dock into its slot (live rect), staggered */
+        const sl = slotOf(el.dataset.card);
+        const dk = io3(clamp((p - 0.42 - i * 0.04) / 0.3));
+        if (sl && dk > 0) { const b = sl.getBoundingClientRect(); x = mix(x, b.left + b.width / 2, dk); yy = mix(yy, b.top + b.height / 2, dk); r = mix(r, 0, dk); s = mix(s, b.width / CW, dk); }
+        el.style.opacity = a > 0.02 || p > 0 ? Math.min(1, a * 3 + p * 10).toFixed(3) : 0;
+        el.style.zIndex = 20 - Math.round(Math.abs(c) * 2);
+        el.style.transform = `translate3d(${(x - CW / 2).toFixed(1)}px,${(yy - CH / 2).toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${s.toFixed(4)})`;
+      });
     };
-    const curve = (P) => { /* centripetal-ish Catmull-Rom -> cubic beziers */
-      let s = `M${P[0].x.toFixed(1)} ${P[0].y.toFixed(1)}`;
-      for (let i = 0; i < P.length - 1; i++) {
-        const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2, t = 0.5 / 1.5;
-        const c1 = { x: p1.x + (p2.x - p0.x) * t, y: p1.y + (p2.y - p0.y) * t }, c2 = { x: p2.x - (p3.x - p1.x) * t, y: p2.y - (p3.y - p1.y) * t };
-        s += ` C${c1.x.toFixed(1)} ${c1.y.toFixed(1)} ${c2.x.toFixed(1)} ${c2.y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
-      }
-      return s;
+    const mmq = matchMedia('(min-width: 1024px)');
+    const setup = () => {
+      if (pin) { pin.kill(true); pin = null; }
+      h.classList.remove('fx-on', 'fx-docked');
+      if (!mmq.matches) return;
+      h.classList.add('fx-on');
+      pin = ScrollTrigger.create({ trigger: rx, start: 'top top', end: '+=210%', pin: '.rx__stage', pinSpacing: true, onUpdate: render, onRefresh: render });
+      render();
     };
-    const build = () => {
-      const P = [], N = [];
-      A.forEach(([sel, xr, yr, node]) => { const p = pt(sel, xr, yr); if (p) { P.push(p); if (node) N.push(p); } });
-      if (P.length < 2) return;
-      const W = main.offsetWidth, Hh = Math.ceil(P[P.length - 1].y + 40);
-      svg.setAttribute('viewBox', `0 0 ${W} ${Hh}`); svg.style.height = Hh + 'px';
-      const dd = curve(P); [trail, glow, line].forEach((p) => p.setAttribute('d', dd));
-      total = line.getTotalLength(); line.style.strokeDasharray = glow.style.strokeDasharray = total;
-      S = []; for (let i = 0; i <= 600; i++) { const l = (total * i) / 600, q = line.getPointAtLength(l); S.push([l, q.x, q.y]); }
-      nodesG.innerHTML = N.map((p) => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5"/>`).join('');
-      nodes = [...nodesG.children].map((c, i) => ({ c, y: N[i].y }));
-      update(true);
-    };
-    let last = -1;
-    const update = (force) => {
-      if (!S.length) return;
-      const mTop = main.getBoundingClientRect().top + scrollY;
-      const target = RM ? 1e9 : scrollY + innerHeight * 0.62 - mTop;
-      if (!force && Math.abs(target - last) < 0.5) return; last = target;
-      let i = 0; while (i < S.length - 1 && S[i][2] < target) i++;
-      const [l, x, y] = S[i];
-      line.style.strokeDashoffset = glow.style.strokeDashoffset = (total - l).toFixed(1);
-      tip.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-      tip.style.opacity = l > 2 && l < total - 2 ? 1 : 0;
-      nodes.forEach((n) => n.c.classList.toggle('on', n.y <= y + 1));
-    };
-    let raf = 0;
-    addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); }, { passive: true });
-    addEventListener('resize', () => setTimeout(build, 120));
-    ScrollTrigger.addEventListener('refresh', build);
-    return { build, update };
+    addEventListener('scroll', render, { passive: true });
+    mmq.addEventListener('change', () => { setup(); ScrollTrigger.refresh(); });
+    return { setup, render };
   })();
 
   /* ---------- motion ---------- */
@@ -399,8 +382,8 @@
     ScrollTrigger.sort();
     preloader().then(heroIntro);
     window.__azReady = true;
-    thread.build();
-    addEventListener('load', () => { ScrollTrigger.refresh(); thread.build(); });
+    if (flight) { flight.setup(); ScrollTrigger.sort(); ScrollTrigger.refresh(); }
+    addEventListener('load', () => { sizeSlots(); ScrollTrigger.refresh(); });
   };
   Promise.race([d.fonts ? d.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 1500))]).then(start);
 })();

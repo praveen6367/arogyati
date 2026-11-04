@@ -195,25 +195,25 @@ main,footer{position:relative;z-index:1}
 .hx__person picture,.hx__person img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom}
 .hx__flood{position:absolute;inset:0;z-index:6;background:#F7F9FB;opacity:0;pointer-events:none}
 html.az-motion [data-hx-intro],html.az-motion .hx__title{opacity:0}
-html.az-motion .hx__person picture,html.az-motion .hx-card{opacity:0}
+html.az-motion .hx__person picture,html.az-motion .hx__ring .hx-card{opacity:0}
 
 /* lite (iOS / low-power): flat fan, no 3D */
 html.az-lite .hx__arc{perspective:none}
 html.az-lite .hx__ring{transform:none!important;transform-style:flat}
-html.az-lite .hx-card{display:none}
+html.az-lite .hx__ring .hx-card{display:none}
 @media (min-width:900px){
-  html.az-lite .hx-card:nth-child(-n+4){display:block}
-  html.az-lite .hx-card:nth-child(1){transform:translate(-560px,0)!important}
-  html.az-lite .hx-card:nth-child(2){transform:translate(-290px,-20px)!important}
-  html.az-lite .hx-card:nth-child(3){transform:translate(290px,-20px)!important}
-  html.az-lite .hx-card:nth-child(4){transform:translate(560px,0)!important}
+  html.az-lite .hx__ring .hx-card:nth-child(-n+4){display:block}
+  html.az-lite .hx__ring .hx-card:nth-child(1){transform:translate(-560px,0)!important}
+  html.az-lite .hx__ring .hx-card:nth-child(2){transform:translate(-290px,-20px)!important}
+  html.az-lite .hx__ring .hx-card:nth-child(3){transform:translate(290px,-20px)!important}
+  html.az-lite .hx__ring .hx-card:nth-child(4){transform:translate(560px,0)!important}
 }
 @media (max-width:1100px){.az-nav{display:none}.az-burger{display:block}.az-head__cta .hx-pill{display:none}}
 @media (max-width:899px){
   .hx{min-height:600px}
   .hx__copy{padding-top:112px}
   .az-home .hx__title{font-size:clamp(2.2rem,9.6vw,3.6rem)}
-  .hx-card{display:none}
+  .hx__ring .hx-card{display:none}
   .hx__person{width:min(96vw,44vh * 1.1492)}
 }
 @media (max-width:899px) and (max-height:700px){.az-home .hx__sub{display:none}}
@@ -237,7 +237,7 @@ html.az-lite .hx-card{display:none}
   .hx__ctas .dk-btn--ghost{display:none}
   .az-home .hx__sub{font-size:.95rem;max-width:34ch}
   .hx__copy{padding-top:96px}
-  .hx-card{display:none}
+  .hx__ring .hx-card{display:none}
   .hx__corner{max-width:46%}
   .hx__corner p{display:none}
   .hx__tiles{display:none}
@@ -540,18 +540,38 @@ html.az-rm .ix__big .ix-w,html.az-nojs .ix__big{color:var(--hx-ink)}
 .ix-laurel{width:clamp(132px,12vw,164px)}
 .ix-laurel__txt{font-size:.66rem}
 
-/* ---------- the care path (continuous connector) ---------- */
-.az-thread{position:absolute;left:0;top:0;width:100%;z-index:2;pointer-events:none;overflow:visible}
-.az-thread path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.az-thread__trail{stroke:rgba(79,138,63,.32);stroke-width:1.6;stroke-dasharray:2 9}
-.az-thread__glow{stroke:rgba(79,138,63,.16);stroke-width:12}
-.az-thread__line{stroke:#4F8A3F;stroke-width:2.4}
-.az-thread__nodes circle{fill:#F7F9FB;stroke:rgba(79,138,63,.5);stroke-width:1.6;transition:fill .4s,stroke .4s,r .4s}
-.az-thread__nodes circle.on{fill:#4F8A3F;stroke:#4F8A3F;r:6}
-.az-thread__dot{fill:#4F8A3F;stroke:#fff;stroke-width:3}
-.az-thread__halo{fill:rgba(79,138,63,.22);transform-box:fill-box;transform-origin:center;animation:az-halo 1.8s ease-out infinite}
-.az-thread__tip{transition:opacity .3s}
-@keyframes az-halo{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.6);opacity:0}}
-html.az-lite .az-thread__halo{animation:none;opacity:.6}
 .ix>.az-wrap{position:relative;z-index:3}
 .hx__flood{display:none}
+
+/* ---------- RANGE: three panels the hero cards land in ---------- */
+.rx{position:relative;background:#F7F9FB;color:var(--hx-ink)}
+.rx__stage{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:clamp(5rem,9vh,6.5rem) 0 clamp(2rem,5vh,3rem)}
+.rx__head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;margin-bottom:clamp(1.5rem,3.5vh,2.5rem)}
+.rx__label{display:block;font-size:.68rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#4B5650;margin-bottom:.7rem}
+.az-home .rx__h2{font-weight:500;font-size:clamp(1.8rem,3vw,2.8rem);line-height:1.05;letter-spacing:-.035em}
+.az-home .rx__side{max-width:30ch;text-align:right;font-size:.85rem;line-height:1.5;color:#7D8781}
+.rx__islands{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.8rem,1.4vw,1.4rem)}
+.rx-isl{border-radius:26px;padding:clamp(.9rem,1.3vw,1.3rem);display:flex;flex-direction:column}
+.rx-isl--sky{background:#E6EEF6}.rx-isl--sage{background:#E7EEE3}.rx-isl--sand{background:#F1ECE2}
+.rx-isl__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
+.az-home .rx-isl__head h3{font-weight:500;font-size:clamp(.95rem,1.1vw,1.1rem);letter-spacing:-.01em}
+.rx-isl__head a{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;border-radius:999px;background:#fff;font-size:.72rem;font-weight:600;color:var(--hx-ink)}
+.rx-isl__head a span{color:var(--hx-green)}
+.rx-isl__slots{display:grid;grid-template-columns:1fr 1fr;gap:clamp(.55rem,.9vw,.9rem)}
+.rx-slot{position:relative;aspect-ratio:1/.9;border-radius:clamp(14px,1.4vw,22px);background:rgba(255,255,255,.45);box-shadow:inset 0 0 0 1.5px rgba(23,35,27,.06)}
+.rx-slot .rx-card{position:absolute;left:0;top:0;--cw:260px;transform-origin:0 0;transform:scale(var(--k,1))}
+.rx-card{box-shadow:0 14px 30px -22px rgba(30,60,100,.5)}
+/* flight overlay (desktop): cards travel here, then hand over to the slots */
+.fx{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}
+.fx-card{position:absolute;left:0;top:0;width:260px;height:234px;will-change:transform;opacity:0}
+.fx-card .rx-card{position:absolute;inset:0;--cw:260px}
+html.fx-on .fx{display:block}
+html.fx-on .rx-slot .rx-card{visibility:hidden}
+html.fx-on.fx-docked .rx-slot .rx-card{visibility:visible}
+html.fx-on.fx-docked .fx{display:none}
+@media (max-width:1023px){
+  .rx__head{flex-direction:column;align-items:flex-start}
+  .az-home .rx__side{text-align:left}
+  .rx__islands{grid-template-columns:1fr}
+  .rx__stage{min-height:0}
+}
