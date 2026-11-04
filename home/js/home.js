@@ -133,7 +133,7 @@
     if (e.target.classList.contains('az-marquee')) e.target.classList.toggle('is-paused', !e.isIntersecting);
     if (e.target.hasAttribute('data-az-quotes')) { qVisible = e.isIntersecting; qVisible ? qPlay() : clearInterval(qTimer); }
   }));
-  io.observe($('.az-marquee')); io.observe($('[data-az-quotes]'));
+  const mq = $('.az-marquee'); if (mq) io.observe(mq); io.observe($('[data-az-quotes]'));
 
   /* ---------- motion ---------- */
   const motion = () => {
@@ -172,6 +172,31 @@
       secs.forEach((sec) => ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%', onToggle: (st) => st.isActive && setOrb(sec.dataset.azOrb, 1.8) }));
     } else {
       g.set(orb, { x: innerWidth * 0.45, y: -innerHeight * 0.1 });
+    }
+
+    /* IX motion — stats count up, laurels grow leaf by leaf, modalities fade in, mission words darken as you scroll */
+    {
+      const ix = $('.ix');
+      g.from('[data-ix-in]', { y: 34, opacity: 0, duration: 1.1, stagger: 0.12, ease: OUT, scrollTrigger: { trigger: ix, start: 'top 85%', once: true } });
+      g.from('.ix__icons span, .ix__stats .ix__faces span', { scale: 0, duration: 0.7, stagger: 0.06, ease: 'back.out(2)', scrollTrigger: { trigger: ix, start: 'top 80%', once: true } });
+      $$('[data-ix-count]').forEach((el) => {
+        const to = +el.dataset.ixCount, o = { v: 0 }; el.textContent = '0';
+        g.to(o, { v: to, duration: 2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true }, onUpdate: () => { el.textContent = Math.round(o.v); } });
+      });
+      $$('.ix-laurel').forEach((lw, i) => {
+        const tl = g.timeline({ scrollTrigger: { trigger: '.ix__laurels', start: 'top 85%', once: true }, delay: i * 0.18 });
+        const stems = $$('.ix-stem path', lw);
+        stems.forEach((p) => { const L = p.getTotalLength(); g.set(p, { strokeDasharray: L, strokeDashoffset: L }); });
+        tl.to(stems, { strokeDashoffset: 0, duration: 1, ease: 'power2.out' }, 0)
+          .from($$('.ix-leaf', lw), { scale: 0, transformOrigin: '50% 50%', duration: 0.5, stagger: { each: 0.035, from: 'start' }, ease: 'back.out(2.2)' }, 0.1)
+          .from($('.ix-laurel__txt', lw), { opacity: 0, y: 8, duration: 0.6, ease: OUT }, 0.5);
+      });
+      g.from('[data-ix-logo]', { y: 18, opacity: 0, duration: 0.9, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.ix__logos', start: 'top 88%', once: true } });
+      const big = $('[data-ix-words]');
+      if (big) {
+        const sp = SplitText.create(big, { type: 'words', wordsClass: 'ix-w' });
+        g.to(sp.words, { color: '#17231B', stagger: 0.12, ease: 'none', scrollTrigger: { trigger: big, start: 'top 82%', end: 'bottom 45%', scrub: true } });
+      }
     }
 
     /* fade-ups */
