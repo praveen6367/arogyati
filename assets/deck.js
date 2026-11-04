@@ -302,7 +302,7 @@ function setPhoto(ph) {
 let sfxOn = true, musicOn = false;
 const sfx = {};
 ['whoosh', 'pop', 'tick', 'swell', 'chime'].forEach((n) => { sfx[n] = new Audio(`assets/sfx/${n}.wav`); sfx[n].preload = 'auto'; });
-const play = (n, v) => { if (!sfxOn) return; const a = sfx[n].cloneNode(); a.volume = v; a.play().catch(() => {}); };
+const play = (n, v) => { if (!sfxOn) return; const a = IOS ? sfx[n] : sfx[n].cloneNode(); try { a.currentTime = 0; } catch (e) {} a.volume = v; const r = a.play(); if (r && r.catch) r.catch(() => {}); };
 const music = $('#music'); music.volume = 0.4;
 
 /* ---------------- counters ---------------- */
@@ -408,7 +408,14 @@ const locked = () => document.body.classList.contains('intro');
 const next = () => { if (!locked()) go(cur + 1); }, prev = () => { if (!locked()) go(cur - 1); };
 
 /* ---------------- scale to screen ---------------- */
-function fit() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(-50%,-50%) scale(${k})`; }
+function fit() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  if (IOS) {
+    /* iPhone: zoom lays the stage out at screen size, so Safari keeps small layers instead of full 1920px ones */
+    stage.style.transform = 'none'; stage.style.zoom = k;
+    stage.style.left = (innerWidth - 1920 * k) / 2 / k + 'px'; stage.style.top = (innerHeight - 1080 * k) / 2 / k + 'px';
+  } else stage.style.transform = `translate(-50%,-50%) scale(${k})`;
+}
 addEventListener('resize', fit); fit();
 
 /* ---------------- controls ---------------- */

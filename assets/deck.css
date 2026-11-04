@@ -183,6 +183,10 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
 .lite #ui{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(8,28,20,.92)}
 .lite #ov{backdrop-filter:none;-webkit-backdrop-filter:none}
 .lite .paper .glow{filter:none}
+.lite #photo,.lite #blob2{box-shadow:none}
+.lite .cover-logo .logo{animation-name:cvLogoInLite!important}
+@keyframes cvLogoInLite{from{opacity:0}to{opacity:1}}
+.lite #photo img{transition:opacity 1s var(--ease);transform:none!important}
 @media (max-width:600px){
   #ui{bottom:calc(14px + env(safe-area-inset-bottom));gap:2px;padding:6px 8px;max-width:calc(100vw - 20px)}
   #ui button{width:38px;height:38px}
