@@ -150,36 +150,60 @@ body.paper #blob .paper{opacity:1}
 body.paper #blob:after{opacity:.18}
 .paper .glow{position:absolute;border-radius:50%;filter:blur(40px)}
 .cover-logo{width:1160px}
-.cover-logo .logo{width:100%;height:auto;overflow:visible}
-.lg-l{fill-opacity:0;stroke:#7D8E39;stroke-width:.45;stroke-dasharray:1;stroke-dashoffset:1}
-.slide.on .lg-l{animation:lgDraw 1.1s var(--ease) forwards,lgFill .7s ease forwards;animation-delay:calc(var(--d) * 110ms + 300ms),calc(var(--d) * 110ms + 1000ms)}
-@keyframes lgDraw{to{stroke-dashoffset:0}}
-@keyframes lgFill{to{fill-opacity:1;stroke-width:0}}
+.cover-logo .logo{width:100%;height:auto}
+.slide.on .cover-logo{animation:cvZoom 5s var(--out) both}
+@keyframes cvZoom{from{transform:scale(1.07)}to{transform:none}}
+/* 1 · the dot appears and beats */
+.lg-h{transform-box:fill-box;transform-origin:50% 50%;opacity:0}
+.slide.on .lg-h{animation:lgDot 2.2s cubic-bezier(.65,0,.2,1) .2s forwards}
+@keyframes lgDot{0%{opacity:0;transform:translate(0,20.5px) scale(0)}12%{opacity:1;transform:translate(0,20.5px) scale(2.4)}20%{transform:translate(0,20.5px) scale(1.7)}30%{transform:translate(0,20.5px) scale(2.2)}38%{transform:translate(0,20.5px) scale(1.8)}62%{transform:translate(0,20.5px) scale(1.8)}86%{transform:translate(0,-1.5px) scale(.9)}100%{opacity:1;transform:none}}
+.lg-rip{transform-box:fill-box;transform-origin:50% 50%;opacity:0}
+.slide.on .lg-rip{animation:lgRip 1.3s ease-out .45s}
+.slide.on .lg-rip.r2{animation-delay:.85s}
+@keyframes lgRip{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(7)}}
+/* 2 · heartbeat line sweeps, letters rise out of it */
+.lg-ecg{stroke-dasharray:1;stroke-dashoffset:1;opacity:1}
+.slide.on .lg-ecg{animation:lgEcg 1s cubic-bezier(.7,0,.3,1) .85s forwards,lgFade .7s ease 2.3s forwards}
+@keyframes lgEcg{to{stroke-dashoffset:0}}
+@keyframes lgFade{to{opacity:0}}
+.lg-l{transform:translateY(44px)}
+.slide.on .lg-l{animation:lgRise 1s cubic-bezier(.16,1,.3,1) forwards;animation-delay:calc(var(--d) * 85ms + 1.05s)}
+@keyframes lgRise{to{transform:none}}
+/* 3 · the figure blooms */
 .lg-f{transform-box:fill-box;opacity:0}
-.lg-stem{transform-origin:50% 100%}.lg-pl{transform-origin:100% 100%}.lg-pr{transform-origin:0% 100%}.lg-h{transform-origin:50% 50%}
-.slide.on .lg-stem{animation:lgGrow .8s cubic-bezier(.34,1.56,.64,1) 1.05s forwards}
-.slide.on .lg-pl{animation:lgPetalL .9s cubic-bezier(.34,1.56,.64,1) 1.35s forwards}
-.slide.on .lg-pr{animation:lgPetalR .9s cubic-bezier(.34,1.56,.64,1) 1.45s forwards}
-.slide.on .lg-h{animation:lgHead .9s cubic-bezier(.34,1.7,.5,1) 1.75s forwards}
+.lg-stem{transform-origin:50% 100%}.lg-pl{transform-origin:100% 100%}.lg-pr{transform-origin:0% 100%}
+.slide.on .lg-stem{animation:lgGrow .7s cubic-bezier(.34,1.56,.64,1) 1.55s forwards}
+.slide.on .lg-pl{animation:lgPetalL 1s cubic-bezier(.34,1.7,.5,1) 1.8s forwards}
+.slide.on .lg-pr{animation:lgPetalR 1s cubic-bezier(.34,1.7,.5,1) 1.88s forwards}
 @keyframes lgGrow{from{opacity:0;transform:scaleY(0)}to{opacity:1;transform:none}}
-@keyframes lgPetalL{from{opacity:0;transform:rotate(-50deg) scale(0)}to{opacity:1;transform:none}}
-@keyframes lgPetalR{from{opacity:0;transform:rotate(50deg) scale(0)}to{opacity:1;transform:none}}
-@keyframes lgHead{from{opacity:0;transform:translateY(-14px) scale(.2)}to{opacity:1;transform:none}}
+@keyframes lgPetalL{from{opacity:0;transform:rotate(-80deg) scale(0)}to{opacity:1;transform:none}}
+@keyframes lgPetalR{from{opacity:0;transform:rotate(80deg) scale(0)}to{opacity:1;transform:none}}
+.lg-glow{transform-box:fill-box;transform-origin:50% 50%;opacity:0}
+.slide.on .lg-glow{animation:lgGlow 1.6s ease-out 1.95s forwards}
+@keyframes lgGlow{0%{opacity:0;transform:scale(.2)}25%{opacity:1}100%{opacity:0;transform:scale(2.4)}}
+.lg-pt{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.slide.on .lg-pt{animation:lgBurst 1.4s cubic-bezier(.1,.8,.3,1) forwards;animation-delay:calc(2.0s + var(--k) * 12ms)}
+@keyframes lgBurst{0%{opacity:0;transform:none}15%{opacity:1}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.4)}}
 .lg-fig{transform-box:fill-box;transform-origin:50% 100%}
-.slide.on .lg-fig{animation:lgBreath 4.5s ease-in-out 3s infinite}
-@keyframes lgBreath{0%,100%{transform:none}50%{transform:translateY(-1.2px) scale(1.025)}}
-.lg-t{opacity:0;transform:translateY(4px)}
-.slide.on .lg-t{animation:lgTag 1s var(--out) 2.05s forwards}
+.slide.on .lg-fig{animation:lgBreath 4.5s ease-in-out 4s infinite}
+@keyframes lgBreath{0%,100%{transform:none}50%{transform:translateY(-.8px) scale(1.02)}}
+/* 4 · light sweep and tagline */
+.lg-shine{transform:translateX(0)}
+.slide.on .lg-shine{animation:lgShine 1.3s cubic-bezier(.6,0,.3,1) 2.45s,lgShine 1.6s cubic-bezier(.6,0,.3,1) 8s infinite}
+@keyframes lgShine{from{transform:translateX(0) skewX(-20deg)}to{transform:translateX(330px) skewX(-20deg)}}
+.lg-tp{opacity:0;transform:translateY(3px)}
+.slide.on .lg-tp{animation:lgTag .5s var(--out) forwards;animation-delay:calc(2.6s + var(--k) * 28ms)}
 @keyframes lgTag{to{opacity:1;transform:none}}
-.cv-ecg path{transition-delay:2.2s}
+.cv-ecg path{transition-delay:3.3s}
 .cv-dot{offset-path:path('M0 60 H300 L330 60 L355 14 L390 106 L420 30 L445 60 H760');offset-distance:0%;opacity:0}
-.slide.on .cv-dot{animation:cvDot 3.2s var(--ease) 2.4s infinite}
+.slide.on .cv-dot{animation:cvDot 3.2s var(--ease) 4.2s infinite}
 @keyframes cvDot{0%{offset-distance:0%;opacity:0}8%{opacity:1}92%{opacity:1}100%{offset-distance:100%;opacity:0}}
-.cv-sub{font-size:44px;font-weight:800;letter-spacing:.18em;transition-delay:2.5s!important}
+.cv-sub{font-size:44px;font-weight:800;letter-spacing:.18em;transition-delay:3.5s!important}
 
-.cv-rings{opacity:0;transition:opacity 1.4s ease .6s}.slide.on .cv-rings{opacity:1}
+.cv-rings{opacity:0;transform:scale(.6);transform-origin:960px 470px;transition:opacity 1.6s ease 2.1s,transform 2.4s var(--out) 2s}.slide.on .cv-rings{transform:none}.slide.on .cv-rings{opacity:1}
 .cv-rings circle:nth-child(1){transform-origin:960px 470px;animation:spin 60s linear infinite}
 .cv-rings circle:nth-child(2){transform-origin:960px 470px;animation:spin 90s linear infinite reverse}
 .cv-sat{transform-origin:960px 470px;animation:spin 22s linear infinite}
 .cv-sat2{transform-origin:960px 470px;animation:spin 30s linear infinite reverse}
 @keyframes spin{to{transform:rotate(360deg)}}
+.noanim #blob .paper{transition:none!important}
