@@ -17,7 +17,7 @@
 <link rel="preload" href="/home/assets/fonts/InstrumentSerif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/home/assets/fonts/Jakarta.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/home/assets/img/hero-care3-1100.webp" type="image/webp" imagesrcset="/home/assets/img/hero-care3-640.webp 736w, /home/assets/img/hero-care3-1100.webp 1264w" imagesizes="(max-width:900px) 96vw, 44vw">
-<link rel="stylesheet" href="/home/css/home.css?v=42">
+<link rel="stylesheet" href="/home/css/home.css?v=45">
 <script>
 (function(d){var h=d.documentElement,c=h.classList;c.remove('az-nojs');
 var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -285,21 +285,23 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
   </div>
 </section>
 
-<!-- CONTACT -->
-<section class="az-contact" id="contact" data-az-orb="55,10,1.3">
-  <div class="az-wrap">
-    <span class="az-label" data-az-fade>Contact Us</span>
-    <h2 class="az-contact__big" data-az-split>Schedule <em>Appointment</em></h2>
-    <div class="az-contact__grid">
-      <div data-az-fade><h3>Call</h3><a href="tel:+919420294219">+91 94202 94219</a><a href="tel:+912312651225">+91 231 265 12 25</a></div>
-      <div data-az-fade><h3>Email</h3><a href="mailto:info@arogyati.com">info@arogyati.com</a></div>
-      <div data-az-fade><h3>Visit</h3><a href="https://www.google.com/maps/search/?api=1&amp;query=Arogyati+Mahalaxmi+Arcade+Shahupuri+Kolhapur" target="_blank" rel="noopener">766 E Mahalaxmi Arcade, Opp. Naik &amp; Co., Near Wilson Bridge, Shahupuri Main Road, Kolhapur</a></div>
-      <div data-az-fade><h3>Hours</h3><p>Monday to Saturday<br>10.00 Am – 02.00 Pm<br>04.00 Pm – 07.00 Pm<br>Sunday Closed</p></div>
+<!-- CONTACT: closing panel -->
+<section class="ct" id="contact">
+  <div class="ct__panel" data-ct-panel>
+    <div class="ct__bg" aria-hidden="true"><img src="/home/assets/img/svc-hills-1200.webp" srcset="/home/assets/img/svc-hills-1200.webp 1200w, /home/assets/img/svc-hills-2400.webp 2400w" sizes="100vw" alt="" loading="lazy"></div>
+    <div class="ct__head">
+      <span class="ct__lab">Contact Us</span>
+      <h2 class="ct__h2" data-ct-title>Schedule Appointment</h2>
+      <p class="ct__sub">Feel free to connect with us on email or phone. Begin your recovery at Arogyati, Kolhapur.</p>
+      <div class="ct__ctas"><a class="hx-pill hx-pill--dark" href="tel:+919420294219" data-az-magnetic>Call to book<span class="hx-pill__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span></a><a class="hx-pill hx-pill--white" href="https://wa.me/919420294219" target="_blank" rel="noopener" data-az-magnetic>WhatsApp<span class="hx-pill__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span></a></div>
     </div>
-    <div class="az-contact__ctas" data-az-fade>
-      <a class="az-btn az-btn--primary" href="tel:+919420294219" data-az-magnetic>Call to book<span class="az-btn__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span></a>
-      <a class="az-btn az-btn--ghost" href="https://wa.me/919420294219" target="_blank" rel="noopener" data-az-magnetic>WhatsApp<span class="az-btn__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span></a>
-      <a class="az-btn az-btn--ghost" href="https://www.google.com/maps/search/?api=1&amp;query=Arogyati+Mahalaxmi+Arcade+Shahupuri+Kolhapur" target="_blank" rel="noopener" data-az-magnetic>Get directions<span class="az-btn__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span></a>
+    <div class="ct__grid">
+      <a class="ct-card" href="tel:+919420294219" data-ct-card><span class="ct-card__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span><span class="ct-card__lab">Call</span><b>+91 94202 94219</b><small>+91 231 265 12 25</small></a>
+      <a class="ct-card" href="mailto:info@arogyati.com" data-ct-card><span class="ct-card__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><span class="ct-card__lab">Email</span><b>info@arogyati.com</b><small>Corporate inquiries &amp; careers</small></a>
+      <a class="ct-card ct-card--map" href="https://www.google.com/maps/search/?api=1&amp;query=Arogyati+Mahalaxmi+Arcade+Shahupuri+Kolhapur" target="_blank" rel="noopener" data-ct-card><span class="ct-card__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="ct-card__lab">Visit</span><b>766 E Mahalaxmi Arcade</b><small>Opp. Naik &amp; Co., Near Wilson Bridge, Shahupuri Main Road, Kolhapur</small><span class="ct-card__go">Get directions <svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+      <div class="ct-card ct-card--hours" data-ct-card><div class="ct-card__row"><span class="ct-card__lab" style="margin:0">Hours</span><span class="ct-open" data-ct-open>Monday to Saturday</span></div>
+        <b>10.00 Am – 02.00 Pm</b><b>04.00 Pm – 07.00 Pm</b><small>Monday to Saturday · Sunday Closed</small>
+        <ul class="ct-days"><li class="" data-d="0">M</li><li class="" data-d="1">T</li><li class="" data-d="2">W</li><li class="" data-d="3">T</li><li class="" data-d="4">F</li><li class="" data-d="5">S</li><li class="off" data-d="6">S</li></ul></div>
     </div>
   </div>
 </section>
@@ -330,7 +332,7 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
 <script src="/home/vendor/SplitText.min.js" defer></script>
 <script src="/home/vendor/CustomEase.min.js" defer></script>
 <script src="/home/vendor/lenis.min.js" defer></script>
-<script src="/home/js/home.js?v=42" defer></script>
+<script src="/home/js/home.js?v=44" defer></script>
 <script>setTimeout(function(){if(!window.__azReady)document.documentElement.classList.remove('az-motion')},4000)</script>
 </body>
 </html>

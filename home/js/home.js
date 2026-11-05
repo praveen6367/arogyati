@@ -163,6 +163,28 @@
       .to('.rs-meter b', { scaleX: 1, duration: 1.6, stagger: 0.15, ease: 'power2.inOut' }, 0.8)
       .from('.rs-card__chips li', { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: OUT }, 1.2);
   } else $$('.rs-meter b').forEach((b) => { b.style.transform = 'scaleX(1)'; });
+  /* ---------- CONTACT: live open status (Kolhapur time), panel + cards reveal ---------- */
+  {
+    const op = $('[data-ct-open]');
+    if (op) {
+      const ist = new Date(Date.now() + (new Date().getTimezoneOffset() + 330) * 60000), dw = (ist.getDay() + 6) % 7, m = ist.getHours() * 60 + ist.getMinutes();
+      const open = dw < 6 && ((m >= 600 && m < 840) || (m >= 960 && m < 1140));
+      op.textContent = open ? 'Open now' : 'Closed now'; op.classList.toggle('is-closed', !open);
+      const t = $(`.ct-days li[data-d="${dw}"]`); if (t) t.classList.add('is-today');
+    }
+    if ($('.ct') && !RM) {
+      if (!LITE) {
+        g.fromTo('[data-ct-panel]', { clipPath: 'inset(6% 4% 6% 4% round 60px)' }, { clipPath: 'inset(0% 0% 0% 0% round 34px)', ease: 'none', scrollTrigger: { trigger: '.ct', start: 'top bottom', end: 'top 15%', scrub: true } });
+        g.fromTo('.ct__bg img', { scale: 1.2 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.ct', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+      }
+      const sp = SplitText.create('[data-ct-title]', { type: 'words,chars', wordsClass: 'ct-wd' });
+      const tl = g.timeline({ scrollTrigger: { trigger: '.ct', start: 'top 55%', once: true } });
+      tl.from(sp.chars, { yPercent: 60, opacity: 0, ...(LITE ? {} : { filter: 'blur(10px)' }), duration: 1, stagger: 0.03, ease: OUT, clearProps: 'filter' }, 0)
+        .from('.ct__sub, .ct__ctas', { y: 20, opacity: 0, duration: 0.9, stagger: 0.1, ease: OUT }, 0.4)
+        .from('[data-ct-card]', { y: 70, opacity: 0, duration: 1.1, stagger: 0.09, ease: OUT, clearProps: 'transform' }, 0.55)
+        .from('.ct-days li', { scale: 0, duration: 0.4, stagger: 0.05, ease: 'back.out(2.4)' }, 1.1);
+    }
+  }
   const mq = $('.az-marquee'); if (mq) { const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting))); io.observe(mq); }
 
 
