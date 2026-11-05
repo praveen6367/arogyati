@@ -17,7 +17,7 @@
 <link rel="preload" href="/home/assets/fonts/InstrumentSerif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/home/assets/fonts/Jakarta.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/home/assets/img/hero-care3-1100.webp" type="image/webp" imagesrcset="/home/assets/img/hero-care3-640.webp 736w, /home/assets/img/hero-care3-1100.webp 1264w" imagesizes="(max-width:900px) 96vw, 44vw">
-<link rel="stylesheet" href="/home/css/home.css?v=37">
+<link rel="stylesheet" href="/home/css/home.css?v=39">
 <script>
 (function(d){var h=d.documentElement,c=h.classList;c.remove('az-nojs');
 var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -240,23 +240,19 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
   <svg class="cd__link" aria-hidden="true"><path d=""/><circle r="4"/></svg>
 </section>
 
-<!-- HISTORY -->
-<section class="az-section az-hist" data-az-orb="70,30,.9">
-  <div class="az-wrap">
-    <span class="az-label" data-az-fade>About</span>
-    <h2 class="az-h2" data-az-split style="margin-top:1.5rem;max-width:16ch">Clinic <em>History</em></h2>
-    <div class="az-hist__wrap">
-      <svg class="az-hist__path" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true"><path class="az-hist__base" d="M7 7 C 120 7, 120 157, 207 157 S 300 7, 407 7 S 500 157, 607 157 S 700 7, 807 7 S 900 157, 1000 157"/><path class="az-hist__line" d="M7 7 C 120 7, 120 157, 207 157 S 300 7, 407 7 S 500 157, 607 157 S 700 7, 807 7 S 900 157, 1000 157"/></svg>
-      <ol class="az-hist__list">
-        <li class="az-hist__item"><span class="az-hist__dot"></span><p class="az-hist__year">2007</p><p>Mentamove</p></li>
-        <li class="az-hist__item"><span class="az-hist__dot"></span><p class="az-hist__year">2009</p><p>Matrix Rhythm Therapy</p></li>
-        <li class="az-hist__item"><span class="az-hist__dot"></span><p class="az-hist__year">2016</p><p>Magnetodyn</p></li>
-        <li class="az-hist__item"><span class="az-hist__dot"></span><p class="az-hist__year">2019</p><p>Class IV Laser</p></li>
-        <li class="az-hist__item"><span class="az-hist__dot"></span><p class="az-hist__year">2024</p><p>Super Induction System</p></li>
-      </ol>
+<!-- HISTORY: rolling year timeline -->
+<section class="hi" id="history">
+  <div class="hi__stage">
+    <div class="az-wrap hi__head">
+      <div><span class="rx__label">Clinic History</span><h2 class="hi__h2">Advanced modalities, <span>year by year.</span></h2></div>
+      <p class="hi__note">First Private Rehab Center In Kolhapur, with advanced modalities inaugurated on 16 Nov.</p>
     </div>
-    <p class="az-hist__ph" data-az-fade>[PLACEHOLDER: confirm which milestone belongs to each year]</p>
-    <p class="az-hist__note" data-az-fade>First Private Rehab Center In Kolhapur, with advanced modalities inaugurated on 16 Nov.</p>
+    <div class="hi__year" aria-hidden="true"><span data-hi-year>2007</span></div>
+    <div class="az-wrap hi__track">
+      <div class="hi__line"><i data-hi-fill></i></div>
+      <ol class="hi__list"><li class="hi-m is-on" data-y="2007"><span class="hi-m__dot"></span><span class="hi-m__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><b>2007</b><span class="hi-m__t">Mentamove</span></li><li class="hi-m" data-y="2009"><span class="hi-m__dot"></span><span class="hi-m__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h1M8 8v8M12 5v14M16 8v8M20 12h0"/></svg></span><b>2009</b><span class="hi-m__t">Matrix Rhythm Therapy</span></li><li class="hi-m" data-y="2016"><span class="hi-m__dot"></span><span class="hi-m__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v7a6 6 0 0 0 12 0V4h-4v7a2 2 0 0 1-4 0V4zM6 8h4M14 8h4"/></svg></span><b>2016</b><span class="hi-m__t">Magnetodyn</span></li><li class="hi-m" data-y="2019"><span class="hi-m__dot"></span><span class="hi-m__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span><b>2019</b><span class="hi-m__t">Class IV Laser</span></li><li class="hi-m" data-y="2024"><span class="hi-m__dot"></span><span class="hi-m__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg></span><b>2024</b><span class="hi-m__t">Super Induction System</span></li></ol>
+      <p class="hi__ph">[PLACEHOLDER: confirm which milestone belongs to each year]</p>
+    </div>
   </div>
 </section>
 
@@ -341,7 +337,7 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
 <script src="/home/vendor/SplitText.min.js" defer></script>
 <script src="/home/vendor/CustomEase.min.js" defer></script>
 <script src="/home/vendor/lenis.min.js" defer></script>
-<script src="/home/js/home.js?v=36" defer></script>
+<script src="/home/js/home.js?v=38" defer></script>
 <script>setTimeout(function(){if(!window.__azReady)document.documentElement.classList.remove('az-motion')},4000)</script>
 </body>
 </html>

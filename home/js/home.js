@@ -431,13 +431,24 @@
       }
     }
 
-    /* history: drawn path + milestones light up */
-    const line = $('.az-hist__line');
-    if (line) {
-      const len = line.getTotalLength();
-      g.fromTo(line, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.az-hist__wrap', start: 'top 75%', end: 'bottom 55%', scrub: true } });
-    }
-    $$('.az-hist__item').forEach((it, i) => ScrollTrigger.create({ trigger: '.az-hist__wrap', start: () => `top+=${i * 40} 70%`, onEnter: () => it.classList.add('is-on'), onLeaveBack: () => it.classList.remove('is-on') }));
+    /* history: pinned rolling year — the counter runs 2007 → 2024, the track fills, milestones light up */
+    mm.add('(min-width: 900px)', () => {
+      const hi = $('.hi'); if (!hi) return;
+      const yEl = $('[data-hi-year]'), fill = $('[data-hi-fill]'), ms = $$('.hi-m'), Y = ms.map((m) => +m.dataset.y), y0 = Y[0], y1 = Y[Y.length - 1];
+      const st = ScrollTrigger.create({ trigger: hi, start: 'top top', end: '+=180%', pin: '.hi__stage', scrub: true,
+        onUpdate: (s) => {
+          const p = s.progress, yr = Math.round(y0 + (y1 - y0) * p);
+          yEl.textContent = yr;
+          /* track spans first..last dot; position by year along the evenly spaced dots */
+          let seg = 0; for (let k = 0; k < Y.length - 1; k++) if (yr >= Y[k]) seg = k;
+          const f = Y.length > 1 ? (seg + Math.min(1, (yr - Y[seg]) / Math.max(1, Y[seg + 1] - Y[seg] || 1))) / (Y.length - 1) : 1;
+          fill.style.transform = `scaleX(${Math.min(1, f).toFixed(4)})`;
+          ms.forEach((m, k) => m.classList.toggle('is-on', yr >= Y[k]));
+        } });
+      g.from('.hi__head > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: hi, start: 'top 70%', once: true } });
+      g.from('.hi__year span', { yPercent: 30, opacity: 0, duration: 1.4, ease: OUT, scrollTrigger: { trigger: hi, start: 'top 60%', once: true } });
+      return () => st.kill();
+    });
 
     /* counters (only real numbers) */
     $$('[data-az-count]').forEach((el) => {
