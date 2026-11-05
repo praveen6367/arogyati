@@ -1342,3 +1342,9 @@ html.az-lite .hx3__year span{animation:none}
 .hx3__txt small{display:none}
 .hx3__txt .hx2-pane__no{order:3;margin-left:auto;padding:.3rem .6rem;border-radius:999px;background:rgba(255,255,255,.12);color:#B6F23C}
 @media (max-width:899px){.hx3__info{min-width:0;width:calc(100% - 2*var(--az-gutter));margin:0}.hx3__txt b{white-space:normal;font-size:1rem}.hx3__txt .hx2-pane__ic{display:none}}
+/* ===== 3D hero variant (/home/3d/) ===== */
+.hx3d{position:absolute;left:0;right:0;bottom:0;top:52%;z-index:4;pointer-events:none}
+.hx3d canvas{display:block;opacity:0;transition:none}
+html.az-3d.az-3d-ready .hx__person{visibility:hidden}
+html.az-3d.az-3d-fail .hx3d{display:none}
+html.az-3d .hx__haze{height:16%}
