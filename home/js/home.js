@@ -138,48 +138,31 @@
     }
   }
 
-  /* ---------- team rows + entrance ---------- */
-  $$('.tm-row__btn').forEach((b) => b.addEventListener('click', () => {
-    const m = b.parentElement, open = !m.classList.contains('is-open');
-    m.classList.toggle('is-open', open); b.setAttribute('aria-expanded', open);
-    setTimeout(() => ScrollTrigger.refresh(), 650);
-  }));
-  if (!RM && $('.tm')) {
-    g.fromTo('[data-tm-photo]', { clipPath: 'inset(18% 14% 18% 14% round 30px)' }, { clipPath: 'inset(0% 0% 0% 0% round 30px)', duration: 1.6, ease: 'az', scrollTrigger: { trigger: '.tm', start: 'top 70%', once: true } });
-    g.from('[data-tm-photo] img', { scale: 1.25, duration: 2, ease: OUT, scrollTrigger: { trigger: '.tm', start: 'top 70%', once: true } });
-    g.from('[data-tm-in]', { y: 28, opacity: 0, duration: 1, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.tm', start: 'top 65%', once: true } });
-    g.from('.tm-row', { y: 20, opacity: 0, duration: 0.8, stagger: 0.05, ease: OUT, scrollTrigger: { trigger: '.tm__list', start: 'top 85%', once: true } });
-    const yc = $('[data-tm-count]'); if (yc) { const o = { v: 0 }; yc.textContent = '0'; g.to(o, { v: 24, duration: 1.8, ease: 'power3.out', scrollTrigger: { trigger: '.tm', start: 'top 55%', once: true }, onUpdate: () => { yc.textContent = Math.round(o.v); } }); }
+  /* ---------- TEAM card deck: pinned horizontal scroll, cards flip to bios ---------- */
+  $$('[data-tq-card]').forEach((c) => $('.tq-card__in', c).addEventListener('click', () => c.classList.toggle('is-flip')));
+  if ($('.tq')) {
+    const tqm = g.matchMedia();
+    tqm.add('(min-width: 1024px)', () => {
+      if (RM) return;
+      const tr = $('.tq__track'), bar = $('.tq__bar i');
+      const dist = () => Math.max(0, tr.scrollWidth - innerWidth);
+      const tw = g.to(tr, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '.tq', start: 'top top', end: () => '+=' + dist(), pin: '.tq__stage', scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => bar.style.setProperty('--p', s.progress.toFixed(4)) } });
+      g.from('.tq-card', { y: 80, opacity: 0, rotate: (k) => (k % 2 ? 3 : -3), duration: 1.1, stagger: 0.06, ease: OUT, scrollTrigger: { trigger: '.tq', start: 'top 70%', once: true } });
+      return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); g.set(tr, { x: 0 }); };
+    });
+    if (!RM) g.from('.tq__head > *', { y: 28, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.tq', start: 'top 75%', once: true } });
   }
 
-  /* ---------- testimonials: featured quote with word reveal, auto-advancing picker ---------- */
-  {
-    const TS = $('#ts-data') ? JSON.parse($('#ts-data').textContent) : null;
-    if (TS) {
-      const qEl = $('[data-ts-q]'), nEl = $('[data-ts-n]'), tEl = $('[data-ts-t]'), btns = $$('.ts__pick button'), bars = $$('.ts__pn i b');
-      let qi = 0, vis = false, t0 = 0, DUR = 8000;
-      const render = (i, anim) => {
-        qi = i; const d = TS[i];
-        btns.forEach((b, k) => b.setAttribute('aria-selected', k === i));
-        const fill = () => { qEl.innerHTML = d.q.split(' ').map((w) => `<span class="ts-w">${w.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`).join(' '); nEl.textContent = d.n; tEl.textContent = d.t; };
-        if (!anim || RM) { fill(); return; }
-        g.timeline({ overwrite: true }).to([qEl, nEl.parentElement], { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }).add(fill)
-          .set([qEl, nEl.parentElement], { opacity: 1, y: 0 })
-          .from(() => $$('.ts-w', qEl), { opacity: 0, y: 14, ...(LITE ? {} : { filter: 'blur(6px)' }), duration: 0.6, stagger: 0.018, ease: OUT, clearProps: 'filter' })
-          .from(nEl.parentElement, { opacity: 0, y: 10, duration: 0.5, ease: OUT }, '-=0.4');
-        t0 = performance.now();
-      };
-      btns.forEach((b) => b.addEventListener('click', () => render(+b.dataset.tsI, true)));
-      render(0, false);
-      g.ticker.add(() => {
-        if (!vis || RM) return; const p = Math.min(1, (performance.now() - t0) / DUR);
-        bars.forEach((b, k) => { b.style.transform = `scaleX(${k === qi ? p : 0})`; });
-        if (p >= 1) render((qi + 1) % TS.length, true);
-      });
-      ScrollTrigger.create({ trigger: '.ts', start: 'top 70%', end: 'bottom 20%', onToggle: (s) => { vis = s.isActive; if (vis) t0 = performance.now(); } });
-      if (!RM) g.from('[data-ts-in], .ts__stage, .ts__pick', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.ts', start: 'top 70%', once: true } });
-    }
-  }
+  /* ---------- RECOVERY STORIES: panel opens, cards rise, pain→relief meters sweep ---------- */
+  if ($('.rs') && !RM) {
+    if (!LITE) g.fromTo('[data-rs-panel]', { clipPath: 'inset(6% 4% 6% 4% round 60px)' }, { clipPath: 'inset(0% 0% 0% 0% round 34px)', ease: 'none', scrollTrigger: { trigger: '.rs', start: 'top bottom', end: 'top 20%', scrub: true } });
+    const sp = SplitText.create('[data-rs-title]', { type: 'words' });
+    const tl = g.timeline({ scrollTrigger: { trigger: '.rs', start: 'top 60%', once: true } });
+    tl.from(sp.words, { opacity: 0, y: 18, ...(LITE ? {} : { filter: 'blur(8px)' }), duration: 0.9, stagger: 0.04, ease: OUT, clearProps: 'filter' }, 0)
+      .from('[data-rs-card]', { y: 70, opacity: 0, rotateX: LITE ? 0 : 18, transformOrigin: '50% 100%', duration: 1.1, stagger: 0.1, ease: OUT, clearProps: 'transform' }, 0.25)
+      .to('.rs-meter b', { scaleX: 1, duration: 1.6, stagger: 0.15, ease: 'power2.inOut' }, 0.8)
+      .from('.rs-card__chips li', { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: OUT }, 1.2);
+  } else $$('.rs-meter b').forEach((b) => { b.style.transform = 'scaleX(1)'; });
   const mq = $('.az-marquee'); if (mq) { const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting))); io.observe(mq); }
 
 
