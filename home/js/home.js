@@ -185,6 +185,97 @@
         .from('.ct-days li', { scale: 0, duration: 0.4, stagger: 0.05, ease: 'back.out(2.4)' }, 1.1);
     }
   }
+  /* ===================== GLASS PASS motion ===================== */
+  {
+    const gm = g.matchMedia();
+    /* HISTORY glass deck: front pane drops away, next steps forward */
+    const panes = $$('[data-hx2-pane]');
+    if (panes.length) {
+      const N = panes.length, fillEl = $('[data-hx2-fill]'), yrs = $$('[data-hx2-y]');
+      const lay = (f) => {
+        panes.forEach((p, i) => {
+          const d = i - f, ad = Math.abs(d);
+          let y, sc, op;
+          if (d >= 0) { y = -d * 11; sc = 1 - d * 0.08; op = d > 2.2 ? 0 : 1 - d * 0.42; }
+          else { y = -d * 120; sc = 1 - d * 0.05; op = Math.max(0, 1 + d * 2.4); }
+          p.style.transform = `translate3d(0,${y.toFixed(1)}%,0) scale(${sc.toFixed(4)}) rotateX(${(d > 0 ? Math.min(d, 2) * 4 : d * -12).toFixed(2)}deg)`;
+          p.style.opacity = op.toFixed(3); p.style.zIndex = String(100 - Math.round(d * 10));
+          p.style.visibility = op <= 0.01 ? 'hidden' : '';
+        });
+        if (fillEl) fillEl.style.transform = `scaleX(${(f / (N - 1)).toFixed(4)})`;
+        yrs.forEach((l, k) => l.classList.toggle('is-on', k <= Math.round(f)));
+      };
+      gm.add('(min-width: 900px)', () => {
+        if (RM) { lay(N - 1); return; }
+        lay(0);
+        const st = ScrollTrigger.create({ trigger: '.hx2', start: 'top top', end: '+=' + (N * 70) + '%', pin: '.hx2__stage', scrub: 1, onUpdate: (s) => lay(s.progress * (N - 1)) });
+        g.from('.hx2__head > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.hx2', start: 'top 70%', once: true } });
+        return () => { st.kill(); panes.forEach((p) => { p.style.cssText = ''; }); };
+      });
+      gm.add('(max-width: 899px)', () => { if (!RM) g.from(panes, { y: 50, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.hx2__deck', start: 'top 85%', once: true } }); });
+    }
+    /* TEAM people index: masked name reveals, glass lens follows the cursor */
+    const rows = $$('[data-tx-row]');
+    if (rows.length) {
+      rows.forEach((r) => $('.tx-row__btn', r).addEventListener('click', () => { const o = !r.classList.contains('is-open'); r.classList.toggle('is-open', o); $('.tx-row__btn', r).setAttribute('aria-expanded', o); setTimeout(() => ScrollTrigger.refresh(), 650); }));
+      if (!RM) {
+        g.from('.tx-row__n span', { yPercent: 110, duration: 1.1, stagger: 0.05, ease: OUT, scrollTrigger: { trigger: '.tx__list', start: 'top 80%', once: true } });
+        g.from('.tx-row__no, .tx-row__r, .tx-row__plus', { opacity: 0, duration: 0.8, stagger: 0.02, ease: 'power2.out', scrollTrigger: { trigger: '.tx__list', start: 'top 80%', once: true } });
+        g.fromTo('.tx__img', { clipPath: 'inset(20% 20% 20% 20% round 26px)' }, { clipPath: 'inset(0% 0% 0% 0% round 26px)', duration: 1.4, ease: 'az', scrollTrigger: { trigger: '.tx', start: 'top 70%', once: true } });
+        g.from('.tx__h2, .tx__cap', { y: 30, opacity: 0, duration: 1, stagger: 0.12, ease: OUT, scrollTrigger: { trigger: '.tx', start: 'top 70%', once: true } });
+      }
+      const lens = $('.tx__lens');
+      if (lens && FINE && !LITE) {
+        const lx = g.quickTo(lens, 'x', { duration: 0.5, ease: 'power3' }), ly = g.quickTo(lens, 'y', { duration: 0.5, ease: 'power3' });
+        const sI = $('[data-tx-ini]'), sS = $('[data-tx-stat]'), sU = $('[data-tx-unit]'), sR = $('[data-tx-role]');
+        const list = $('.tx__list');
+        list.addEventListener('mousemove', (e) => { lx(e.clientX + 150); ly(e.clientY); });
+        list.addEventListener('mouseenter', (e) => { g.set(lens, { x: e.clientX + 150, y: e.clientY }); g.to(lens, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(1.6)' }); });
+        list.addEventListener('mouseleave', () => g.to(lens, { opacity: 0, scale: 0.6, duration: 0.3 }));
+        rows.forEach((r) => r.addEventListener('mouseenter', () => {
+          sI.textContent = r.dataset.ini; sS.textContent = r.dataset.stat; sU.textContent = r.dataset.unit; sR.innerHTML = r.dataset.role;
+          g.fromTo([sS, sR], { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, stagger: 0.04, ease: OUT, overwrite: true });
+        }));
+      }
+    }
+    /* REVIEWS stacking: earlier cards shrink and dim as the next slides over */
+    const cards = $$('[data-sx-card]');
+    if (cards.length) {
+      const cnt = $('[data-sx-i]');
+      cards.forEach((c, i) => {
+        const b = $('.rs-meter b', c);
+        ScrollTrigger.create({ trigger: c, start: 'top 60%', onEnter: () => { cnt.textContent = String(i + 1).padStart(2, '0'); if (b) g.to(b, { scaleX: 1, duration: 1.6, ease: 'power2.inOut' }); }, onLeaveBack: () => { cnt.textContent = String(Math.max(1, i)).padStart(2, '0'); } });
+        if (RM || i === cards.length - 1) return;
+        g.to(c, { scale: 0.9, opacity: 0.45, ease: 'none', scrollTrigger: { trigger: cards[i + 1], start: 'top bottom', end: 'top 30%', scrub: true } });
+      });
+      if (RM) $$('.sx .rs-meter b').forEach((b) => { b.style.transform = 'scaleX(1)'; });
+      if (!RM) g.from('.sx__side > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.sx', start: 'top 70%', once: true } });
+    }
+    /* CONTACT: marquee drifts and reacts to scroll velocity; console tilts with the mouse */
+    const t1 = $('[data-cx-track]'), t2 = $('[data-cx-track2]');
+    if (t1 && t2 && !RM) {
+      let x1 = 0, x2 = 0, boost = 0;
+      const w = () => t1.scrollWidth / 2;
+      ScrollTrigger.create({ trigger: '.cx', start: 'top bottom', end: 'bottom top', onUpdate: (s) => { boost = Math.max(-30, Math.min(30, s.getVelocity() / 120)); } });
+      let on = false; ScrollTrigger.create({ trigger: '.cx', start: 'top bottom', end: 'bottom top', onToggle: (s) => { on = s.isActive; } });
+      g.ticker.add((t, dt) => {
+        if (!on) return; const v = (0.6 + Math.abs(boost)) * (dt / 16); boost *= 0.92;
+        x1 -= v; x2 += v * 0.8; const W = w();
+        if (x1 <= -W) x1 += W; if (x2 >= 0) x2 -= W;
+        t1.style.transform = `translate3d(${x1.toFixed(1)}px,0,0) skewX(${(-boost * 0.4).toFixed(2)}deg)`;
+        t2.style.transform = `translate3d(${x2.toFixed(1)}px,0,0) skewX(${(boost * 0.4).toFixed(2)}deg)`;
+      });
+      x2 = -w();
+      g.from('[data-cx-card]', { y: 90, opacity: 0, rotateX: LITE ? 0 : 14, duration: 1.3, ease: OUT, scrollTrigger: { trigger: '.cx', start: 'top 70%', once: true } });
+      g.from('.cx-btn, .cx-cell', { y: 20, opacity: 0, duration: 0.8, stagger: 0.06, ease: OUT, scrollTrigger: { trigger: '.cx', start: 'top 55%', once: true } });
+      const card = $('[data-cx-card]');
+      if (FINE && !LITE && card) {
+        const rx = g.quickTo(card, 'rotateX', { duration: 0.8, ease: 'power3' }), ry = g.quickTo(card, 'rotateY', { duration: 0.8, ease: 'power3' });
+        $('.cx').addEventListener('mousemove', (e) => { const r = card.getBoundingClientRect(); rx(-((e.clientY - r.top) / r.height - 0.5) * 6); ry(((e.clientX - r.left) / r.width - 0.5) * 8); });
+        $('.cx').addEventListener('mouseleave', () => { rx(0); ry(0); });
+      }
+    }
+  }
   const mq = $('.az-marquee'); if (mq) { const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting))); io.observe(mq); }
 
 
