@@ -837,3 +837,49 @@ html.az-lite .cd-spot__ring{animation:none;opacity:.5}
   .hi__ph{margin-left:0}
 }
 @media (min-width:900px){.hi__ph{display:table;margin:1.6rem auto 0}}
+
+/* ---------- TEAM ---------- */
+.tm{position:relative;padding:clamp(5rem,9vw,7rem) 0;background:linear-gradient(180deg,#EEF4EF 0%,#F7F9FB 40%);color:var(--hx-ink)}
+.tm__grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:start}
+.tm__media{position:sticky;top:96px}
+.tm__photo{border-radius:30px;overflow:hidden;aspect-ratio:4/4.4;background:#DDE6E0;box-shadow:0 40px 70px -46px rgba(20,40,30,.55)}
+.tm__photo img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.tm__badge{position:absolute;left:-18px;top:28px;display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-radius:20px;background:linear-gradient(160deg,rgba(128,170,112,.96),rgba(79,138,63,.96));color:#fff;box-shadow:0 20px 40px -24px rgba(40,90,40,.7);max-width:240px}
+.tm__badge b{font-weight:500;font-size:1.9rem;letter-spacing:-.05em;line-height:1}
+.tm__badge span{font-size:.72rem;line-height:1.35;opacity:.92}
+.tm__founder{position:absolute;right:-18px;bottom:28px;display:flex;align-items:center;gap:.8rem;padding:.9rem 1rem;border-radius:22px;background:rgba(255,255,255,.92);box-shadow:0 1px 0 #fff inset,0 24px 44px -28px rgba(25,45,70,.55);max-width:340px}
+.tm__founder b{display:block;font-weight:500;font-size:.98rem;letter-spacing:-.01em}
+.tm__founder small{display:block;font-size:.7rem;color:#7D8781;margin-top:.15rem}
+.tm__yrs{margin-left:auto;padding-left:.9rem;border-left:1px solid rgba(26,35,30,.1);text-align:center}
+.tm__yrs b{font-size:1.7rem;font-weight:500;letter-spacing:-.05em;color:#4F8A3F;line-height:1}
+.tm__yrs small{display:block;font-size:.66rem;color:#7D8781}
+.az-home .tm__h2{margin-top:.8rem;font-weight:500;font-size:clamp(2rem,3.4vw,3.2rem);line-height:1.04;letter-spacing:-.045em}
+.tm__h2 span{color:#9AA39D}
+.az-home .tm__lead{margin-top:1rem;max-width:52ch;font-size:.92rem;line-height:1.6;color:#55615A}
+.tm__group{margin-top:2.4rem;font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8A948E}
+.tm__list{margin-top:.6rem;border-top:1px solid rgba(26,35,30,.08)}
+.tm-row{border-bottom:1px solid rgba(26,35,30,.08)}
+.tm-row__btn{width:100%;display:grid;grid-template-columns:42px 1fr 34px;gap:.9rem;align-items:center;padding:.85rem 0;text-align:left}
+.tm-row__av{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#EAF2EC;color:#2E4A33;font-size:.74rem;font-weight:700;letter-spacing:.02em;transition:background .4s,color .4s}
+.tm-row__av--lg{width:48px;height:48px;background:var(--hx-green);color:#fff;font-size:.8rem;flex:none}
+.tm-row__n{font-weight:500;font-size:1.02rem;letter-spacing:-.015em;transition:transform .5s var(--az-out)}
+.tm-row__n small{display:block;margin-top:.1rem;font-size:.74rem;font-weight:500;color:#8A948E}
+.tm-row__plus{position:relative;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(26,35,30,.14);transition:background .4s}
+.tm-row__plus::before,.tm-row__plus::after{content:"";position:absolute;left:50%;top:50%;width:11px;height:1.5px;background:#1A231E;transform:translate(-50%,-50%);transition:transform .5s var(--az-ease),background .4s}
+.tm-row__plus::after{transform:translate(-50%,-50%) rotate(90deg)}
+.tm-row:hover .tm-row__n{transform:translateX(6px)}
+.tm-row:hover .tm-row__av,.tm-row.is-open .tm-row__av{background:var(--hx-green);color:#fff}
+.tm-row.is-open .tm-row__plus{background:#14201A}
+.tm-row.is-open .tm-row__plus::before,.tm-row.is-open .tm-row__plus::after{background:#fff}
+.tm-row.is-open .tm-row__plus::after{transform:translate(-50%,-50%) rotate(0)}
+.tm-row__bio{display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s var(--az-ease)}
+.tm-row.is-open .tm-row__bio{grid-template-rows:1fr}
+.tm-row__bio>div{overflow:hidden}
+.az-home .tm-row__bio p{padding:0 0 .9rem calc(42px + .9rem);max-width:62ch;font-size:.86rem;line-height:1.6;color:#55615A}
+@media (max-width:899px){
+  .tm__grid{grid-template-columns:minmax(0,1fr)}
+  .tm__media{position:relative;top:0}
+  .tm__badge{left:12px;top:12px}
+  .tm__founder{right:12px;left:12px;bottom:12px;max-width:none}
+  .az-home .tm-row__bio p{padding-left:0}
+}

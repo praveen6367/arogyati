@@ -138,12 +138,19 @@
     }
   }
 
-  /* ---------- team accordion ---------- */
-  $$('.az-member__btn').forEach((b) => b.addEventListener('click', () => {
+  /* ---------- team rows + entrance ---------- */
+  $$('.tm-row__btn').forEach((b) => b.addEventListener('click', () => {
     const m = b.parentElement, open = !m.classList.contains('is-open');
     m.classList.toggle('is-open', open); b.setAttribute('aria-expanded', open);
-    setTimeout(() => ScrollTrigger.refresh(), 760);
+    setTimeout(() => ScrollTrigger.refresh(), 650);
   }));
+  if (!RM && $('.tm')) {
+    g.fromTo('[data-tm-photo]', { clipPath: 'inset(18% 14% 18% 14% round 30px)' }, { clipPath: 'inset(0% 0% 0% 0% round 30px)', duration: 1.6, ease: 'az', scrollTrigger: { trigger: '.tm', start: 'top 70%', once: true } });
+    g.from('[data-tm-photo] img', { scale: 1.25, duration: 2, ease: OUT, scrollTrigger: { trigger: '.tm', start: 'top 70%', once: true } });
+    g.from('[data-tm-in]', { y: 28, opacity: 0, duration: 1, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.tm', start: 'top 65%', once: true } });
+    g.from('.tm-row', { y: 20, opacity: 0, duration: 0.8, stagger: 0.05, ease: OUT, scrollTrigger: { trigger: '.tm__list', start: 'top 85%', once: true } });
+    const yc = $('[data-tm-count]'); if (yc) { const o = { v: 0 }; yc.textContent = '0'; g.to(o, { v: 24, duration: 1.8, ease: 'power3.out', scrollTrigger: { trigger: '.tm', start: 'top 55%', once: true }, onUpdate: () => { yc.textContent = Math.round(o.v); } }); }
+  }
 
   /* ---------- testimonials ---------- */
   const qs = $$('.az-quote'), qCount = $('[data-az-qcount]');
