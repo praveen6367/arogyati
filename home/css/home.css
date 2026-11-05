@@ -1632,3 +1632,14 @@ html.m3-on .az-head__logo svg,html.m3-on .az-head__logo svg *{fill:#fff!importan
   .az-menu-open .az-burger span:first-child,.az-menu-open .az-burger span:last-child{top:25px;right:17px}
   .az-menu-open .az-burger::after{opacity:0}
 }
+/* hamburger mirrors the CTA pill: white circle, green inner disc, white lines */
+@media (min-width:1101px){
+  .az-burger,.az-burger:hover,.az-menu-open .az-burger{background:#fff}
+  .az-burger::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--hx-green);transition:transform .5s var(--az-out)}
+  .az-burger:hover::before{transform:scale(1.08)}
+  .az-burger::after{display:none}
+  .az-burger span,.az-burger:hover span{z-index:1;left:19px;right:19px;background:#fff}
+  .az-burger span:first-child{top:22px}.az-burger span:last-child{top:28.5px;right:23px}
+  .az-burger:hover span:last-child{right:19px}
+  .az-menu-open .az-burger span:first-child,.az-menu-open .az-burger span:last-child{top:25.3px;right:19px}
+}
