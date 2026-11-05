@@ -65,6 +65,59 @@ function run(renderer) {
   let arc = new THREE.Mesh(new THREE.RingGeometry(0.965, 1.0, 120, 1, 0, 0.001), arcMat); arc.rotation.x = -Math.PI / 2; arc.position.y = 0.003; plat.add(arc);
   let arcV = -1;
   const setArc = (v) => { if (Math.abs(v - arcV) < 0.004) return; arcV = v; arc.geometry.dispose(); arc.geometry = new THREE.RingGeometry(0.965, 1.0, 120, 1, Math.PI / 2, Math.max(0.001, v * Math.PI * 2)); };
+  plat.visible = false;
+  ground.position.y = 0.06; ground.material.opacity = 0.2;
+  /* meadow floor: instanced grass blades with layered wind, natural colour variation, grown in as the scene arrives */
+  const GN = LITE ? 9000 : 46000, GR = LITE ? 2.2 : 3.4;
+  const blade = new THREE.InstancedBufferGeometry(), bp = [], bi = [], SEG = 4;
+  for (let s = 0; s < SEG; s++) { const y = s / SEG, w = Math.pow(1 - y, 0.8) * 0.5; bp.push(-w, y, 0, w, y, 0); }
+  bp.push(0, 1, 0);
+  for (let s = 0; s < SEG - 1; s++) { const a = s * 2; bi.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  bi.push((SEG - 1) * 2, (SEG - 1) * 2 + 1, SEG * 2);
+  blade.setAttribute('position', new THREE.Float32BufferAttribute(bp, 3)); blade.setIndex(bi);
+  const gOff = new Float32Array(GN * 4), gSz = new Float32Array(GN * 2);
+  for (let k = 0; k < GN; k++) {
+    const rr = GR * Math.pow(Math.random(), 0.62), a = Math.random() * Math.PI * 2;
+    gOff.set([Math.cos(a) * rr, Math.sin(a) * rr, Math.random() * Math.PI, Math.random()], k * 4);
+    gSz.set([0.045 + Math.random() * 0.075 + (Math.random() < 0.08 ? 0.05 : 0), 0.011 + Math.random() * 0.011], k * 2);
+  }
+  blade.setAttribute('aOff', new THREE.InstancedBufferAttribute(gOff, 4)); blade.setAttribute('aSz', new THREE.InstancedBufferAttribute(gSz, 2));
+  blade.instanceCount = GN;
+  const GU = { uT: { value: 0 }, uGrow: { value: 0 }, uR: { value: GR } };
+  const grassMat = new THREE.ShaderMaterial({
+    uniforms: GU, side: THREE.DoubleSide,
+    vertexShader: `attribute vec4 aOff; attribute vec2 aSz; uniform float uT, uGrow, uR; varying float vY, vR, vL;
+      void main(){
+        float d = length(aOff.xy), edge = smoothstep(uR, uR * 0.55, d);
+        float h = aSz.x * uGrow * edge * (0.75 + 0.25 * smoothstep(0.0, 0.5, d));
+        vec3 p = position; p.x *= aSz.y; p.y *= h;
+        float c = cos(aOff.z), s = sin(aOff.z); p = vec3(p.x * c, p.y, p.x * s);
+        float gust = sin(uT * 0.7 + aOff.x * 0.9 - aOff.y * 0.4) * 0.5 + 0.5;
+        float w = (sin(uT * 1.9 + aOff.x * 2.3 + aOff.y * 1.7 + aOff.w * 6.0) * 0.5 + 0.5) * (0.35 + gust * 0.65);
+        float bend = position.y * position.y * h;
+        p.x += (0.35 + w * 0.9) * bend * 0.55; p.z += sin(aOff.w * 9.0 + uT * 1.3) * bend * 0.18; p.y -= bend * w * 0.12;
+        p.xz += aOff.xy;
+        vY = position.y; vR = aOff.w; vL = 0.62 + 0.38 * dot(normalize(vec2(c, s)), normalize(vec2(0.6, 0.8))) * 0.5 + 0.19;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: `varying float vY, vR, vL;
+      void main(){
+        vec3 base = vec3(0.016, 0.036, 0.008), tipA = vec3(0.17, 0.30, 0.045), tipB = vec3(0.33, 0.34, 0.09);
+        vec3 tip = mix(tipA, tipB, smoothstep(0.55, 1.0, vR));
+        vec3 col = mix(base, tip, smoothstep(0.0, 0.9, vY)) * vL * (0.8 + 0.4 * fract(vR * 37.0));
+        col += vec3(0.10, 0.09, 0.03) * pow(vY, 6.0) * 0.6;
+        gl_FragColor = vec4(col, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  const grass = new THREE.Mesh(blade, grassMat); grass.frustumCulled = false; rig.add(grass);
+  const sc = d.createElement('canvas'); sc.width = sc.height = 256; const sx = sc.getContext('2d');
+  const sg = sx.createRadialGradient(128, 128, 0, 128, 128, 128); sg.addColorStop(0, 'rgba(58,78,34,1)'); sg.addColorStop(0.6, 'rgba(70,90,42,.85)'); sg.addColorStop(1, 'rgba(90,110,60,0)');
+  sx.fillStyle = sg; sx.fillRect(0, 0, 256, 256);
+  const soilTex = new THREE.CanvasTexture(sc); soilTex.colorSpace = THREE.SRGBColorSpace;
+  const soil = new THREE.Mesh(new THREE.PlaneGeometry(GR * 2.1, GR * 2.1), new THREE.MeshBasicMaterial({ map: soilTex, transparent: true, depthWrite: false, opacity: 0 }));
+  soil.rotation.x = -Math.PI / 2; soil.position.y = 0.0005; soil.renderOrder = -1; rig.add(soil);
   const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 60);
 
   /* body-part highlight: a soft thermal red → yellow bloom painted onto the skin/fabric around the chapter's point */
@@ -143,6 +196,9 @@ function run(renderer) {
   const tabBar = $('.m3__tabs'); let ind = null, indFill = null;
   if (tabBar) { ind = d.createElement('span'); ind.className = 'm3__ind'; ind.innerHTML = '<i></i>'; tabBar.prepend(ind); indFill = $('i', ind); }
   const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), tints = $$('.m3fx__bg i');
+  /* hand-drawn line scenes: each stroke draws itself on, staggered */
+  const scenes = $$('.m3fx__scene');
+  scenes.forEach((s) => $$('path', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.035).toFixed(3) + 's')));
   const placeInd = () => {
     if (!ind) return; const tb = tabs[curCh - 1];
     if (!tb) { ind.style.opacity = 0; return; }
@@ -157,6 +213,7 @@ function run(renderer) {
     chs.forEach((c, i) => c.classList.toggle('is-on', i === k));
     tabs.forEach((t, i) => t.classList.toggle('is-on', i + 1 === k));
     tints.forEach((t, i) => { if (i > 0) t.classList.toggle('is-on', i === k); });
+    scenes.forEach((s) => s.classList.toggle('is-on', +s.dataset.k === k)); fx.dataset.k = k;
     if (dialN) dialN.textContent = String(Math.max(1, k)).padStart(2, '0');
     if (chip) chip.innerHTML = CHIP[k] || '';
     placeInd();
@@ -206,9 +263,11 @@ function run(renderer) {
     cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + y, mobile ? Hh * 0.2 : 0, t), W, Hh);
     const look = new THREE.Vector3(T.x * t, mix(H * 0.5, T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
-    plat.rotation.y = rig.rotation.y; plat.visible = t > 0.02;
-    const po = clamp((t - 0.35) / 0.5); disc.material.opacity = po; ringMat.opacity = 0.22 * po; arcMat.opacity = 0.95 * po;
-    setArc(t > 0.98 ? smooth : 0);
+    const po = clamp((t - 0.35) / 0.5);
+    GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(po); soil.material.opacity = po; grass.visible = po > 0.001;
+    /* true horizon (eye level) on screen: the drawn panorama and the far meadow sit on it */
+    cam.updateMatrixWorld(); cam.getWorldDirection(tmp); tmp.y = 0; tmp.normalize().multiplyScalar(300).add(cam.position).project(cam);
+    fx.style.setProperty('--hz', ((-tmp.y * 0.5 + 0.5) * Hh).toFixed(1) + 'px'); fx.style.setProperty('--po', po.toFixed(3));
     renderer.domElement.style.opacity = intro.v.toFixed(3);
     renderer.render(scene, cam);
 
