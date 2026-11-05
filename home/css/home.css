@@ -644,3 +644,49 @@ html:not(.rl-on) .rx__list{scroll-padding-left:var(--az-gutter)}
 }
 @media (max-width:600px){.sv__bento{grid-template-columns:1fr}.sv-card--list,.sv-card--week,.sv-card--plus,.sv-card--home,.sv-card--doc{grid-column:1}.sv__panel{border-radius:24px}}
 .sv-card--plus{background:rgba(30,60,95,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);text-shadow:0 1px 10px rgba(20,40,70,.35)}.sv-card__mini{height:52px}
+
+/* ---------- TECHNOLOGY: a device at the centre, facts floating around it, scroll steps through five machines ---------- */
+.tc{position:relative;background:#F7F9FB;color:var(--hx-ink)}
+.tc__stage{position:relative;min-height:100svh;overflow:hidden;display:flex;flex-direction:column;padding:clamp(5rem,10vh,6.5rem) 0 2rem}
+.tc__fog{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 62%,rgba(205,224,240,.75),rgba(247,249,251,0) 70%),radial-gradient(40% 30% at 20% 30%,rgba(228,238,224,.7),rgba(247,249,251,0) 70%),radial-gradient(35% 28% at 82% 35%,rgba(222,233,246,.8),rgba(247,249,251,0) 70%)}
+.tc__head{position:relative;text-align:center}
+.tc__head .rx__label{margin-bottom:.8rem}
+.az-home .tc__h2{font-weight:500;font-size:clamp(1.7rem,2.8vw,2.7rem);line-height:1.1;letter-spacing:-.035em}
+.tc__h2 span{color:#9AA39D}
+.tc__scene{position:relative;flex:1;display:grid;place-items:center;margin-top:clamp(1rem,3vh,2rem)}
+.tc__device{position:relative;width:min(300px,23vw);aspect-ratio:9/18.5;border-radius:44px;background:#141815;padding:10px;box-shadow:0 40px 70px -40px rgba(20,40,60,.55),inset 0 0 0 2px #2A302B}
+.tc__screens{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:linear-gradient(180deg,#F4F8FB,#E3EEE0)}
+.tc-scr{position:absolute;inset:0;margin:0;display:grid;place-items:center;padding:16% 10% 28%;clip-path:inset(100% 0 0 0);transition:none}
+.tc-scr.is-on{clip-path:inset(0 0 0 0)}
+.tc-scr img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(20,40,30,.18))}
+.tc__island{position:absolute;left:50%;top:20px;width:30%;height:22px;border-radius:20px;background:#141815;transform:translateX(-50%);z-index:2}
+.tc__caption{position:absolute;left:18px;right:18px;bottom:24px;z-index:2;padding:.7rem .9rem;border-radius:16px;background:rgba(255,255,255,.85);font-size:.78rem;font-weight:600;text-align:center;box-shadow:0 10px 20px -14px rgba(20,40,30,.4)}
+.tc-float{position:absolute;border-radius:22px;background:#fff;box-shadow:0 22px 44px -30px rgba(20,40,60,.5);color:#1A231E}
+.tc-float--l{left:calc(50% - min(300px,23vw) / 2 - clamp(260px,22vw,340px) - 3vw);top:14%;width:clamp(260px,22vw,340px);padding:1.4rem}
+.tc-float__idx{font-size:.75rem;font-weight:600;color:#9AA39D}
+.tc-float__idx b{font-size:1.6rem;font-weight:500;color:#1A231E;letter-spacing:-.04em;margin-right:.1em}
+.az-home .tc-float--l h3{margin-top:.5rem;font-weight:500;font-size:1.25rem;letter-spacing:-.02em}
+.az-home .tc-float--l p{margin-top:.5rem;font-size:.85rem;line-height:1.5;color:#5E6963}
+.tc-float--r{left:calc(50% + min(300px,23vw) / 2 + 3vw);top:18%;width:clamp(200px,15vw,240px);background:none;box-shadow:none;perspective:800px}
+.tc-flip{border-radius:22px;padding:1.4rem;background:linear-gradient(160deg,#6E9E5E,#4F8A3F);color:#fff;box-shadow:0 22px 44px -26px rgba(40,90,40,.6);transform-style:preserve-3d}
+.tc-flip b{display:block;font-weight:500;font-size:clamp(2.4rem,3.6vw,3.4rem);letter-spacing:-.05em;line-height:1}
+.tc-flip span{display:block;margin-top:.5rem;font-size:.8rem;opacity:.85}
+.tc-float--n{left:calc(50% + min(300px,23vw) / 2 + 1.5vw);bottom:12%;width:clamp(240px,19vw,300px);padding:1.1rem 1.2rem;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 22px 44px -30px rgba(20,40,60,.45)}
+.az-home .tc-float--n p{font-size:.82rem;line-height:1.45;color:#33403A}
+.tc-float--list{left:calc(50% - min(300px,23vw) / 2 - 2vw - 230px);bottom:10%;width:230px;padding:1rem 1.1rem;list-style:none;display:flex;flex-direction:column;gap:.15rem}
+.tc-float--list li{display:flex;align-items:center;gap:.6rem;padding:.4rem .2rem;font-size:.8rem;font-weight:500;color:#A3ACA6;transition:color .4s}
+.tc-float--list li i{width:8px;height:8px;border-radius:50%;background:#D9DFDB;transition:background .4s,transform .4s}
+.tc-float--list li.is-on{color:#1A231E}
+.tc-float--list li.is-on i{background:var(--hx-green);transform:scale(1.4)}
+.tc__list{display:none}
+@media (max-width:1023px){
+  .tc__stage{display:none}
+  .tc__list{display:flex;flex-direction:column;gap:1rem;padding-top:clamp(3rem,8vw,5rem);padding-bottom:3rem}
+  .tc__list::before{content:"Ultra modern German technologies, first time in Kolhapur.";font-weight:500;font-size:clamp(1.6rem,6vw,2.2rem);line-height:1.1;letter-spacing:-.035em;margin-bottom:.5rem}
+  .tc-item{display:flex;gap:1rem;align-items:center;padding:1rem;border-radius:20px;background:#fff;box-shadow:0 18px 36px -28px rgba(20,40,60,.45)}
+  .tc-item img{width:96px;height:96px;object-fit:contain;flex:none}
+  .az-home .tc-item h3{font-weight:500;font-size:1.05rem;letter-spacing:-.01em;margin:.3rem 0}
+  .tc-item h3 b{color:var(--hx-green);font-weight:600}
+  .az-home .tc-item p{font-size:.82rem;line-height:1.45;color:#5E6963}
+}
+.tc-scr{padding:0}.tc-scr img{width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;filter:none}.tc-scr::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,24,21,.25) 0%,rgba(20,24,21,0) 22%,rgba(20,24,21,0) 70%,rgba(20,24,21,.35) 100%)}

@@ -339,21 +339,35 @@
       if (img) g.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'top 20%', scrub: true } });
     });
 
-    /* technology rail: pinned horizontal on desktop, native swipe elsewhere */
-    const tech = $('.az-tech'), rail = $('.az-tech__rail'), bar = $('.az-tech__progress i');
-    const native = () => {
-      tech.classList.add('is-native');
-      rail.addEventListener('scroll', () => g.set(bar, { scaleX: rail.scrollLeft / Math.max(1, rail.scrollWidth - rail.clientWidth) }), { passive: true });
-    };
-    if (LITE) native();
-    else {
+    /* TECHNOLOGY — pinned device story: each step wipes the next machine into the screen, flips the fact card, swaps the copy */
+    {
+      const tcS = $('.tc'), D = $('#tc-data') ? JSON.parse($('#tc-data').textContent) : null;
       mm.add('(min-width: 1024px)', () => {
-        tech.classList.remove('is-native');
-        const dist = () => Math.max(0, rail.scrollWidth - innerWidth);
-        const tw = g.to(rail, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: tech, start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 1, invalidateOnRefresh: true, onUpdate: (s) => g.set(bar, { scaleX: s.progress }) } });
-        return () => { tw.scrollTrigger && tw.scrollTrigger.kill(); tw.kill(); g.set(rail, { x: 0 }); };
+        if (!tcS || !D) return;
+        const scr = $$('.tc-scr'), li = $$('.tc-float--list li'), flip = $('[data-tc-flip]');
+        const nI = $('[data-tc-i]'), nN = $('[data-tc-name]'), nD = $('[data-tc-desc]'), nF = $('[data-tc-fact]'), nU = $('[data-tc-unit]'), nX = $('[data-tc-note]'), nC = $('[data-tc-cap]');
+        let cur = 0;
+        const go = (i) => {
+          if (i === cur) return; const dir = i > cur ? 1 : -1, prev = scr[cur], next = scr[i]; cur = i; const d = D[i];
+          g.killTweensOf(scr);
+          scr.forEach((s) => { if (s !== prev && s !== next) { s.classList.remove('is-on'); g.set(s, { clipPath: 'inset(100% 0% 0% 0%)' }); } });
+          next.classList.add('is-on');
+          g.fromTo(next, { clipPath: dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.8, ease: 'power3.inOut' });
+          g.fromTo($('img', next), { scale: 1.25, yPercent: 10 * dir }, { scale: 1, yPercent: 0, duration: 1, ease: OUT });
+          g.to(prev, { clipPath: dir > 0 ? 'inset(0% 0% 100% 0%)' : 'inset(100% 0% 0% 0%)', duration: 0.8, ease: 'power3.inOut', onComplete: () => prev.classList.remove('is-on') });
+          li.forEach((l, k) => l.classList.toggle('is-on', k === i));
+          g.timeline().to(flip, { rotateY: 90 * dir, duration: 0.28, ease: 'power2.in', onComplete: () => { nF.textContent = d.f; nU.textContent = d.u; } }).fromTo(flip, { rotateY: -90 * dir }, { rotateY: 0, duration: 0.45, ease: 'back.out(1.6)' });
+          g.fromTo([nN, nD, nX, nC], { y: 14 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.05, ease: OUT, onStart: () => { nI.textContent = String(i + 1).padStart(2, '0'); nN.innerHTML = d.n; nD.innerHTML = d.d; nX.innerHTML = d.x; nC.innerHTML = d.n; } });
+        };
+        const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 75) + '%', pin: '.tc__stage', onUpdate: (s) => go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))) });
+        /* entrance: device rises, floats glide in from the sides */
+        g.from('[data-tc-device]', { y: 120, scale: 0.86, opacity: 0, duration: 1.3, ease: OUT, scrollTrigger: { trigger: tcS, start: 'top 70%', once: true } });
+        g.from('[data-tc-float]', { opacity: 0, x: (k) => (k % 2 ? 60 : -60), y: 30, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: tcS, start: 'top 60%', once: true } });
+        const sp = SplitText.create('[data-tc-title]', { type: 'words' });
+        g.from(sp.words, { opacity: 0, y: 18, filter: 'blur(8px)', duration: 0.9, stagger: 0.04, ease: OUT, clearProps: 'filter', scrollTrigger: { trigger: tcS, start: 'top 75%', once: true } });
+        if (!LITE) $$('[data-tc-float]').forEach((f, k) => g.to(f, { y: '+=10', duration: 2.6 + k * 0.4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: k * 0.3 }));
+        return () => { st.kill(); };
       });
-      mm.add('(max-width: 1023px)', native);
     }
 
     /* history: drawn path + milestones light up */

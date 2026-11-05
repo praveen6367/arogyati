@@ -17,7 +17,7 @@
 <link rel="preload" href="/home/assets/fonts/InstrumentSerif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/home/assets/fonts/Jakarta.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/home/assets/img/hero-care3-1100.webp" type="image/webp" imagesrcset="/home/assets/img/hero-care3-640.webp 736w, /home/assets/img/hero-care3-1100.webp 1264w" imagesizes="(max-width:900px) 96vw, 44vw">
-<link rel="stylesheet" href="/home/css/home.css?v=26">
+<link rel="stylesheet" href="/home/css/home.css?v=28">
 <script>
 (function(d){var h=d.documentElement,c=h.classList;c.remove('az-nojs');
 var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -172,16 +172,34 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
   </div>
 </section>
 
-<!-- TECHNOLOGY -->
-<section class="az-tech az-dark az-sheet" id="technology" data-az-sheet data-az-orb="20,60,1.1">
-  <div class="az-tech__pin">
-    <div class="az-wrap az-tech__head">
-      <div><span class="az-label" data-az-fade>Additional Facilities</span><h2 class="az-h2" data-az-split style="margin-top:1.5rem">Ultra modern <em>German</em><br>technologies.</h2></div>
-      <p class="az-lead" data-az-fade>First Time In Kolhapur.</p>
+<!-- TECHNOLOGY: device story -->
+<section class="tc" id="technology">
+  <div class="tc__stage">
+    <div class="tc__fog" aria-hidden="true"></div>
+    <div class="az-wrap tc__head">
+      <span class="rx__label">Additional Facilities</span>
+      <h2 class="tc__h2" data-tc-title>Ultra modern German technologies, <span>first time in Kolhapur.</span></h2>
     </div>
-    <div class="az-tech__rail"><article class="az-tcard"><div class="az-tcard__media"><picture><source type="image/webp" srcset="/home/assets/img/sis-800.webp 800w" sizes="440px"><img src="/home/assets/img/sis-800.webp" alt="Super Inductive System (SIS) equipment" width="716" height="404" loading="lazy" decoding="async"></picture></div><div class="az-tcard__body"><span class="az-num">01</span><h3>Super Inductive System (SIS)</h3><p>It gives the effect of a strong pulsed electromagnetic field in human tissue.</p><p class="az-tcard__fact">It has intensity of 0.85 Tesla</p></div></article><article class="az-tcard"><div class="az-tcard__media"><picture><source type="image/webp" srcset="/home/assets/img/mrt-800.webp 800w" sizes="440px"><img src="/home/assets/img/mrt-800.webp" alt="Matrix Rhythm Therapy equipment" width="750" height="396" loading="lazy" decoding="async"></picture></div><div class="az-tcard__body"><span class="az-num">02</span><h3>Matrix Rhythm Therapy</h3><p>Our cells oscillate rhythmically. Once this rhythmic pulsation is disturbed in any way, slowing down of healthy processes and congestion in the normal flow of fluid is seen.</p><p class="az-tcard__fact">Frequency &amp; amplitude spectrum between 8 &amp; 12 Hz</p></div></article><article class="az-tcard"><div class="az-tcard__media"><picture><source type="image/webp" srcset="/home/assets/img/magneto-800.webp 800w" sizes="440px"><img src="/home/assets/img/magneto-800.webp" alt="Magnetodyn equipment" width="455" height="330" loading="lazy" decoding="async"></picture></div><div class="az-tcard__body"><span class="az-num">03</span><h3>Magnetodyn</h3><p>Unique feature is the combination of magnetic therapy &amp; electrotherapy.</p><p class="az-tcard__fact">Magnetic fields 100 times stronger than Earth’s magnetic field</p></div></article><article class="az-tcard"><div class="az-tcard__media"><picture><source type="image/webp" srcset="/home/assets/img/laser-800.webp 800w" sizes="440px"><img src="/home/assets/img/laser-800.webp" alt="Class IV Laser equipment" width="750" height="750" loading="lazy" decoding="async"></picture></div><div class="az-tcard__body"><span class="az-num">04</span><h3>Class IV Laser</h3><p>Non-invasive use of laser energy to generate a photochemical response in damaged/dysfunctional tissue.</p><p class="az-tcard__fact">Penetrates deep into the tissue &amp; stimulates healing at a cellular level</p></div></article><article class="az-tcard"><div class="az-tcard__media"><picture><source type="image/webp" srcset="/home/assets/img/osteo-800.webp 800w" sizes="440px"><img src="/home/assets/img/osteo-800.webp" alt="Osteopathy equipment" width="622" height="418" loading="lazy" decoding="async"></picture></div><div class="az-tcard__body"><span class="az-num">05</span><h3>Osteopathy</h3><p>It is an alternative medicine where physiotherapist realign the body by moving, stretching and massaging a persons muscle &amp; joints.</p><p class="az-tcard__fact">Fellowship In Osteopathy And Manipulative Therapy (FOMT)</p></div></article></div>
-    <div class="az-tech__progress" aria-hidden="true"><i></i></div>
+    <div class="tc__scene">
+      <div class="tc-float tc-float--l" data-tc-float>
+        <span class="tc-float__idx"><b data-tc-i>01</b> / 05</span>
+        <h3 data-tc-name>Super Inductive System</h3>
+        <p data-tc-desc>It gives the effect of a strong pulsed electromagnetic field in human tissue.</p>
+      </div>
+      <div class="tc__device" data-tc-device>
+        <div class="tc__screens"><figure class="tc-scr is-on"><img src="/home/assets/img/sis-800.webp" alt="Super Inductive System equipment" loading="lazy"></figure><figure class="tc-scr"><img src="/home/assets/img/mrt-800.webp" alt="Matrix Rhythm Therapy equipment" loading="lazy"></figure><figure class="tc-scr"><img src="/home/assets/img/magneto-800.webp" alt="Magnetodyn equipment" loading="lazy"></figure><figure class="tc-scr"><img src="/home/assets/img/laser-800.webp" alt="Class IV Laser equipment" loading="lazy"></figure><figure class="tc-scr"><img src="/home/assets/img/osteo-800.webp" alt="Osteopathy equipment" loading="lazy"></figure></div>
+        <span class="tc__island" aria-hidden="true"></span>
+        <div class="tc__caption"><span data-tc-cap>Super Inductive System</span></div>
+      </div>
+      <div class="tc-float tc-float--r" data-tc-float>
+        <div class="tc-flip" data-tc-flip><b data-tc-fact>0.85</b><span data-tc-unit>Tesla intensity</span></div>
+      </div>
+      <div class="tc-float tc-float--n" data-tc-float><p data-tc-note>Triggers strong muscle contractions &amp; contributes to pain management.</p></div>
+      <ul class="tc-float tc-float--list" data-tc-float><li class="is-on"><i></i>Super Inductive System</li><li class=""><i></i>Matrix Rhythm Therapy</li><li class=""><i></i>Magnetodyn</li><li class=""><i></i>Class IV Laser</li><li class=""><i></i>Osteopathy</li></ul>
+    </div>
   </div>
+  <div class="az-wrap tc__list"><article class="tc-item"><img src="/home/assets/img/sis-800.webp" alt="" loading="lazy"><div><span class="rx__label">01 · Tesla intensity</span><h3>Super Inductive System <b>0.85</b></h3><p>It gives the effect of a strong pulsed electromagnetic field in human tissue.</p></div></article><article class="tc-item"><img src="/home/assets/img/mrt-800.webp" alt="" loading="lazy"><div><span class="rx__label">02 · Hz resonance</span><h3>Matrix Rhythm Therapy <b>8–12</b></h3><p>A specially developed resonator produces vibration between 8 &amp; 12 Hz, equal &amp; similar to the normal cells in human body.</p></div></article><article class="tc-item"><img src="/home/assets/img/magneto-800.webp" alt="" loading="lazy"><div><span class="rx__label">03 · Hz magnetic field</span><h3>Magnetodyn <b>2–20</b></h3><p>Unique feature is the combination of magnetic therapy &amp; electrotherapy.</p></div></article><article class="tc-item"><img src="/home/assets/img/laser-800.webp" alt="" loading="lazy"><div><span class="rx__label">04 · Class laser</span><h3>Class IV Laser <b>IV</b></h3><p>Non-invasive use of laser energy to generate a photochemical response in damaged/dysfunctional tissue.</p></div></article><article class="tc-item"><img src="/home/assets/img/osteo-800.webp" alt="" loading="lazy"><div><span class="rx__label">05 · Fellowship</span><h3>Osteopathy <b>FOMT</b></h3><p>Physiotherapist realign the body by moving, stretching and massaging a persons muscle &amp; joints.</p></div></article></div>
+  <script type="application/json" id="tc-data">[{"n": "Super Inductive System", "f": "0.85", "u": "Tesla intensity", "d": "It gives the effect of a strong pulsed electromagnetic field in human tissue.", "x": "Triggers strong muscle contractions &amp; contributes to pain management."}, {"n": "Matrix Rhythm Therapy", "f": "8\u201312", "u": "Hz resonance", "d": "A specially developed resonator produces vibration between 8 &amp; 12 Hz, equal &amp; similar to the normal cells in human body.", "x": "Our cells oscillate rhythmically."}, {"n": "Magnetodyn", "f": "2\u201320", "u": "Hz magnetic field", "d": "Unique feature is the combination of magnetic therapy &amp; electrotherapy.", "x": "100 times stronger than Earth\u2019s magnetic field, which improves the cellular metabolism."}, {"n": "Class IV Laser", "f": "IV", "u": "Class laser", "d": "Non-invasive use of laser energy to generate a photochemical response in damaged/dysfunctional tissue.", "x": "Penetrates deep into the tissue &amp; stimulates healing at a cellular level."}, {"n": "Osteopathy", "f": "FOMT", "u": "Fellowship", "d": "Physiotherapist realign the body by moving, stretching and massaging a persons muscle &amp; joints.", "x": "Fellowship In Osteopathy And Manipulative Therapy \u2014 Dr. Pranjali Dhamane."}]</script>
 </section>
 
 <!-- CONDITIONS -->
@@ -306,7 +324,7 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
 <script src="/home/vendor/SplitText.min.js" defer></script>
 <script src="/home/vendor/CustomEase.min.js" defer></script>
 <script src="/home/vendor/lenis.min.js" defer></script>
-<script src="/home/js/home.js?v=25" defer></script>
+<script src="/home/js/home.js?v=27" defer></script>
 <script>setTimeout(function(){if(!window.__azReady)document.documentElement.classList.remove('az-motion')},4000)</script>
 </body>
 </html>
