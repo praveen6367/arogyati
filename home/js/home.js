@@ -314,6 +314,7 @@
     const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE) return null;
     const cards = $$('.rl-card', el), N = cards.length, U = N / 2;
     const sky = $('.hx__sky'), haze = $('.hx__haze'), head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
+    let segs = null; if (cap) { const sg = document.createElement('div'); sg.className = 'rx__segs'; sg.innerHTML = '<i></i>'.repeat(U); cap.appendChild(sg); segs = [...sg.children]; }
     const clamp = (v) => Math.max(0, Math.min(1, v)), mix = (a, b, t) => a + (b - a) * t;
     const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const mq = matchMedia('(min-width: 1024px)');
@@ -370,6 +371,7 @@
       if (head) head.style.opacity = clamp((aRaw - 0.86) / 0.14).toFixed(3);
       if (cap) cap.style.opacity = pf.toFixed(3);
       if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
+      if (segs && pin) segs.forEach((s, k) => s.classList.toggle('is-on', p > 0 && k <= active));
     };
     const tick = (t, dt) => { if (on) render(dt); };
     const setup = () => {
@@ -377,7 +379,7 @@
       on = mq.matches; h.classList.toggle('rl-on', on);
       if (!on) return;
       measure();
-      pin = ScrollTrigger.create({ trigger: rx, start: 'top top', end: '+=' + Math.round(U * 70) + '%', pin: '.rx__stage', pinSpacing: true });
+      pin = ScrollTrigger.create({ trigger: rx, start: 'top top', end: '+=' + Math.round(U * 42) + '%', pin: '.rx__stage', pinSpacing: true });
       setCap(0); render(0);
     };
     g.ticker.add(tick);

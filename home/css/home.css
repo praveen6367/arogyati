@@ -1673,3 +1673,29 @@ html.m3-on .az-head__logo svg,html.m3-on .az-head__logo svg *{fill:#fff!importan
   @keyframes m3cue{0%{background-position:0 -12px,0 0}100%{background-position:0 44px,0 0}}
 }
 html.az-rm .m3__stage::after{animation:none}
+
+/* ===== rail v2: centred caption under the active card, segmented progress ===== */
+@media (min-width:1024px){
+  .rx__cap{position:absolute;left:50%;bottom:clamp(2rem,6vh,4rem);transform:translateX(-50%);width:min(620px,86vw);display:flex;flex-direction:column;align-items:center;text-align:center;gap:.2rem;margin:0}
+  .rx__idx{font-size:.68rem;letter-spacing:.2em;color:#9AA39D}
+  .rx__idx b{font-size:.68rem;font-weight:700;color:var(--hx-green);margin-right:.2em;letter-spacing:.2em}
+  .az-home .rx__txt h3{margin-top:.35rem;font-size:clamp(1.25rem,1.7vw,1.7rem)}
+  .az-home .rx__txt p{margin:.45rem auto 0;max-width:54ch;font-size:.9rem;min-height:3em}
+  .rx__bar{display:none}
+  .rx__segs{display:flex;gap:6px;margin-top:1.1rem}
+  .rx__segs i{width:22px;height:3px;border-radius:3px;background:#DCE3DE;transition:background .5s var(--az-ease)}
+  .rx__segs i.is-on{background:var(--hx-green)}
+}
+
+/* rail: the 3D scene dissolves into the section (soft top edge on the 3D page) */
+html.az-3d .rx{background:linear-gradient(180deg,rgba(247,249,251,0) 0,rgba(247,249,251,.85) 22vh,#F7F9FB 40vh)}
+/* rail on phones: compact cards, tighter rhythm, caption clamped */
+@media (max-width:1023px){
+  .rx__stage{padding:4.2rem 0 1.2rem}
+  html:not(.rl-on) .rx__list{gap:.8rem;padding:1.4rem var(--az-gutter) .4rem}
+  .rx-item{width:min(72vw,290px)}
+  .rx-item .rx-card{--cw:min(72vw,290px);height:200px;min-height:0}
+  .rx-item figcaption{margin-top:.8rem}
+  .rx-item figcaption b{font-size:.98rem}
+  .rx-item figcaption span{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+}

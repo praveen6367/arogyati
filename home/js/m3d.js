@@ -253,8 +253,11 @@ function run(renderer) {
     if (!ready) return;
     const y = scrollY, after = pin ? Math.max(0, y - pin.end) : 0;
     const on = y >= secTop - Hh * 0.2 && after < Hh * 0.55; if (on !== h.classList.contains('m3-on')) h.classList.toggle('m3-on', on);
-    if (after > Hh * 1.05) { fx.style.visibility = 'hidden'; return; }
-    fx.style.visibility = ''; fx.style.transform = after ? `translate3d(0,${-after}px,0)` : '';
+    /* exit: the scene drifts up slowly and dissolves into the next section (cross-fade, no hard edge) */
+    const ex = Math.min(1, after / (Hh * 0.75));
+    if (ex >= 1) { if (fx.style.visibility !== 'hidden') fx.style.visibility = 'hidden'; return; }
+    const so = ex ? Math.max(0, 1 - ex * 2.2).toFixed(3) : ''; if (stage.style.opacity !== so) stage.style.opacity = so;
+    fx.style.visibility = ''; fx.style.opacity = ex ? (1 - ex * ex * (3 - 2 * ex)).toFixed(3) : ''; fx.style.transform = after ? `translate3d(0,${(-after * 0.45).toFixed(1)}px,0)` : '';
     const dt = Math.min(clock.getDelta(), 0.05), e = RM ? 1 : 1 - Math.pow(0.0006, dt);
     const tRaw = clamp(y / Math.max(1, secTop)); tS += (tRaw - tS) * e; smooth += (prog - smooth) * e;
     mx += (tmx - mx) * e * 0.5; my += (tmy - my) * e * 0.5;
