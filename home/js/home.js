@@ -331,13 +331,17 @@
     };
     const render = (dt) => {
       const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
-      const aRaw = clamp(y / Math.max(1, (pin ? pin.start : heroH))), a = io3(aRaw);
+      const SPLIT = window.__railSplit && pin;
+      /* split mode (3D page): the loop fades out with the hero, then reappears and flattens just before the filmstrip */
+      const aRaw = SPLIT ? clamp((y - (pin.start - vh)) / vh) : clamp(y / Math.max(1, (pin ? pin.start : heroH))), a = io3(aRaw);
+      const heroP = clamp(y / heroH), visMul = SPLIT ? Math.max(1 - clamp(y / (heroH * 0.45)), clamp((y - (pin.start - vh * 0.7)) / (vh * 0.5))) : 1;
       const p = pin ? clamp((y - pin.start) / (pin.end - pin.start)) : 0;
       const after = pin ? Math.max(0, y - pin.end) : 0;
       if (after > vh * 1.2) { el.style.visibility = 'hidden'; return; } el.style.visibility = '';
       /* the sky dissolves into the page and the hero's bottom haze lifts away, so nothing washes over the cards */
-      if (sky) sky.style.opacity = (1 - clamp(aRaw / 0.55)).toFixed(3);
-      if (haze) haze.style.opacity = (1 - clamp(aRaw / 0.12)).toFixed(3);
+      const sk = SPLIT ? heroP : aRaw;
+      if (sky) sky.style.opacity = (1 - clamp(sk / 0.55)).toFixed(3);
+      if (haze) haze.style.opacity = (1 - clamp(sk / 0.12)).toFixed(3);
       off += (dt || 16) / 1000 * 26 * (1 - a);
       const railY0 = mix(lane0, vh * 0.5, a) - after;
       el.style.perspectiveOrigin = `50% ${railY0.toFixed(1)}px`;
@@ -357,7 +361,7 @@
         if (f > best) { best = f; bi = i % U; }
         const z = z0 + 140 * f + wv * 60, scl = mix(1, 0.92, ai) * (1 + 0.22 * f);
         const rx = wv * 16 * (0.4 + dist), rz = wv * 7 * sg * dist;
-        const op = vis ? railIn.v * mix(1, 0.4 + 0.6 * Math.min(1, f * 1.6), pf) : 0;
+        const op = vis ? railIn.v * visMul * mix(1, 0.4 + 0.6 * Math.min(1, f * 1.6), pf) : 0;
         c.style.opacity = op.toFixed(3);
         c.style.transform = `translate3d(${x.toFixed(1)}px,${yy.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${(-th * 180 / Math.PI).toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${scl.toFixed(4)})`;
       });
