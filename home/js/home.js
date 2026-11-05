@@ -367,18 +367,17 @@
         const vis = ScrollTrigger.create({ trigger: tcS, start: 'top 80%', end: 'bottom top', onToggle: (s) => { live = s.isActive; playOnly(cur); } });
         mm.add('(min-width: 1024px)', () => {
           /* connection: a wide hills panel (like Services above) shrinks into the phone */
-          const pwPx = () => Math.min(330, innerWidth * 0.25, (innerHeight - 230) * 0.487), phH = () => pwPx() * 2.05;
+          const pwPx = () => Math.min(380, innerWidth * 0.28, (innerHeight - 240) / 2.06), phH = () => pwPx() * 2.06;
           const wide = () => Math.min(innerWidth - 2 * 24, 1400);
-          tcS.style.setProperty('--pw2', (pwPx() / 2) + 'px');
-          const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
-          morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.72, borderRadius: 34, padding: 0 }, { width: pwPx, height: phH, borderRadius: 46, padding: 10, ease: 'power2.inOut', duration: 1 }, 0)
-            .fromTo('.tc__screens', { borderRadius: 34 }, { borderRadius: 36, duration: 1 }, 0)
+                    const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
+          morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.72, borderRadius: 34 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, ease: 'power2.inOut', duration: 1 }, 0)
+            .fromTo('.tc__screens', { borderRadius: 30 }, { borderRadius: () => pwPx() * 0.135, duration: 1 }, 0)
             .fromTo(intro, { opacity: 1 }, { opacity: 0, duration: 0.25, ease: 'none' }, 0.75)
             .fromTo('[data-tc-float]', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }, 0.68)
             .fromTo('[data-tc-head]', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3 }, 0.6);
           const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 80) + '%', pin: '.tc__stage',
             onUpdate: (s) => { setSegs(s.progress); go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))); } });
-          return () => { st.kill(); morph.kill(); g.set(dev, { clearProps: 'width,height,borderRadius,padding' }); g.set(intro, { opacity: 0 }); };
+          return () => { st.kill(); morph.kill(); g.set(dev, { clearProps: 'width,height,borderRadius' }); g.set('.tc__screens', { clearProps: 'borderRadius' }); g.set(intro, { opacity: 0 }); };
         });
         mm.add('(max-width: 1023px)', () => {
           g.set(intro, { opacity: 0 });
