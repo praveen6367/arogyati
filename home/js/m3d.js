@@ -252,6 +252,7 @@ function run(renderer) {
     requestAnimationFrame(tick);
     if (!ready) return;
     const y = scrollY, after = pin ? Math.max(0, y - pin.end) : 0;
+    const on = y >= secTop - Hh * 0.2 && after < Hh * 0.55; if (on !== h.classList.contains('m3-on')) h.classList.toggle('m3-on', on);
     if (after > Hh * 1.05) { fx.style.visibility = 'hidden'; return; }
     fx.style.visibility = ''; fx.style.transform = after ? `translate3d(0,${-after}px,0)` : '';
     const dt = Math.min(clock.getDelta(), 0.05), e = RM ? 1 : 1 - Math.pow(0.0006, dt);
