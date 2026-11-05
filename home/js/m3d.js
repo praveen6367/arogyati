@@ -28,7 +28,7 @@ if (fx && box && sec && hx) {
 }
 
 function run(renderer) {
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LITE ? 1.25 : 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LITE ? 1.2 : 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.AgXToneMapping;            // natural skin and fabric tones
   renderer.toneMappingExposure = 1.15;
@@ -40,7 +40,7 @@ function run(renderer) {
   scene.environmentIntensity = 0.75;
   scene.add(new THREE.HemisphereLight(0xf2f6ff, 0xcbbd9f, 0.7));        // sky / warm floor bounce
   const key = new THREE.DirectionalLight(0xfff0dc, 2.6); key.position.set(2.4, 3.8, 3); key.castShadow = !LITE;
-  key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -1.6, right: 1.6, top: 2.1, bottom: -1.6, near: 0.5, far: 12 });
+  key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -1.6, right: 1.6, top: 2.1, bottom: -1.6, near: 0.5, far: 12 });
   key.shadow.bias = -0.0003; key.shadow.normalBias = 0.025; key.shadow.radius = 8; scene.add(key);
   const rim = new THREE.DirectionalLight(0xcfe2ff, 2.0); rim.position.set(-3.2, 2.6, -2.8); scene.add(rim);
   const kick = new THREE.DirectionalLight(0xffe9d6, 0.9); kick.position.set(3.2, 1.4, -2.2); scene.add(kick);
@@ -68,7 +68,7 @@ function run(renderer) {
   plat.visible = false;
   ground.position.y = 0.06; ground.material.opacity = 0.2;
   /* meadow floor: instanced grass blades with layered wind, natural colour variation, grown in as the scene arrives */
-  const GN = LITE ? 22000 : 160000, GR = LITE ? 6 : 18;
+  const GN = LITE ? 14000 : 72000, GR = LITE ? 6 : 14;
   const blade = new THREE.InstancedBufferGeometry(), bp = [], bi = [], SEG = 4;
   for (let s = 0; s < SEG; s++) { const y = s / SEG, w = Math.pow(1 - y, 0.8) * 0.5; bp.push(-w, y, 0, w, y, 0); }
   bp.push(0, 1, 0);
@@ -90,7 +90,7 @@ function run(renderer) {
       void main(){
         float d = length(aOff.xy), edge = smoothstep(uR, uR * 0.45, d);
         float h = aSz.x * uGrow * edge * (0.75 + 0.25 * smoothstep(0.0, 0.5, d));
-        vec3 p = position; p.x *= aSz.y * (1.0 + d * 0.2); p.y *= h;
+        vec3 p = position; p.x *= aSz.y * (1.0 + d * 0.28); p.y *= h;
         float c = cos(aOff.z), s = sin(aOff.z); p = vec3(p.x * c, p.y, p.x * s);
         float gust = sin(uT * 0.7 + aOff.x * 0.9 - aOff.y * 0.4) * 0.5 + 0.5;
         float w = (sin(uT * 1.9 + aOff.x * 2.3 + aOff.y * 1.7 + aOff.w * 6.0) * 0.5 + 0.5) * (0.35 + gust * 0.65);
@@ -156,7 +156,7 @@ function run(renderer) {
 
   const intro = { v: 0 };
   let H = 1.9, ready = false;
-  new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(LITE ? '/home/assets/3d/model-lite.glb' : '/home/assets/3d/model-hq.glb', (g) => {
+  new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(LITE ? '/home/assets/3d/model-lite.glb' : '/home/assets/3d/model-mid.glb', (g) => {
     const m = g.scene, aniso = renderer.capabilities.getMaxAnisotropy();
     m.traverse((o) => {
       if (!o.isMesh) return; o.castShadow = !LITE;
@@ -190,6 +190,7 @@ function run(renderer) {
     heroTop = cp && ct ? cp.offsetTop + ct.offsetTop + ct.offsetHeight + 14 : Hh * 0.45;
     heroR = Math.max(200, Hh - heroTop);
     secTop = sec.getBoundingClientRect().top + scrollY;
+    const sb = $('.m3fx__scenes'); scH = sb ? sb.offsetHeight : 1; lastHz = -1;
   };
   let fq = 0; const qfit = () => { cancelAnimationFrame(fq); fq = requestAnimationFrame(fit); };
   addEventListener('resize', qfit);
@@ -199,21 +200,15 @@ function run(renderer) {
   const svg = $('.m3fx__line');
   if (svg) svg.innerHTML = '<defs><linearGradient id="m3lg" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".75"/><stop offset=".8" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="0" x2="0" y2="0" stroke="url(#m3lg)"/>';
   const line = svg && $('line', svg), lg = svg && $('#m3lg', svg);
-  /* motion-graphics scenery (rendered with Remotion) behind the model */
-  const bg = $('.m3fx__bg');
-  if (bg && !$('.m3fx__vid', bg)) {
-    const v = d.createElement('video'); v.className = 'm3fx__vid'; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
-    v.poster = '/home/assets/3d/scenery.webp'; v.preload = LITE ? 'none' : 'auto';
-    if (!LITE && !RM) { v.autoplay = true; v.innerHTML = '<source src="/home/assets/3d/scenery.webm" type="video/webm"><source src="/home/assets/3d/scenery.mp4" type="video/mp4">'; }
-    bg.appendChild(v); if (!LITE && !RM) v.play().catch(() => {});
-  }
   /* tabs: one sliding indicator with an in-chapter progress hairline */
   const tabBar = $('.m3__tabs'); let ind = null, indFill = null;
   if (tabBar) { ind = d.createElement('span'); ind.className = 'm3__ind'; ind.innerHTML = '<i></i>'; tabBar.prepend(ind); indFill = $('i', ind); }
   const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), tints = $$('.m3fx__bg i');
   /* hand-drawn line scenes: each stroke draws itself on, staggered */
   const scenes = $$('.m3fx__scene');
-  scenes.forEach((s) => $$('g.e', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.07).toFixed(3) + 's')));
+  scenes.forEach((s) => $$('path', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.03).toFixed(3) + 's')));
+  const scBox = $('.m3fx__scenes'), land = $('.m3fx__land'); let scH = 1, lastHz = -1, lastPo = -1, lastOp = -1, lastT0 = -1, ttlRead = 0, ttlR = null;
+  addEventListener('resize', () => { ttlRead = 40; });
   const placeInd = () => {
     if (!ind) return; const tb = tabs[curCh - 1];
     if (!tb) { ind.style.opacity = 0; return; }
@@ -231,7 +226,7 @@ function run(renderer) {
     scenes.forEach((s) => s.classList.toggle('is-on', +s.dataset.k === k)); fx.dataset.k = k;
     if (dialN) dialN.textContent = String(Math.max(1, k)).padStart(2, '0');
     if (chip) chip.innerHTML = CHIP[k] || '';
-    placeInd();
+    placeInd(); ttlRead = 70;
   };
   let pin = null, prog = 0;
   if (window.ScrollTrigger) {
@@ -248,7 +243,8 @@ function run(renderer) {
 
   const V = (a) => new THREE.Vector3(a[0], a[1], a[2]), tmp = new THREE.Vector3(), clock = new THREE.Clock();
   let smooth = 0, tS = 0;
-  const SURF = {}, ray = new THREE.Raycaster();
+  /* highlight centres pre-snapped to the model surface (measured once; no runtime raycasts) */
+  const SURF = { shoulder: V([-0.104, 1.375, 0.066]), knee: V([-0.351, 0.722, 0.107]), back: V([-0.199, 1.049, -0.137]), steth: V([0.243, 1.405, 0.107]) }, ray = new THREE.Raycaster();
   const N = K.length;
   const kf = (p) => { const t = p * (N - 1), i = Math.min(N - 2, Math.floor(t)), f = t - i, hold = 0.28; return { i, u: ss(clamp((f - hold) / (1 - 2 * hold))) }; };
 
@@ -262,7 +258,7 @@ function run(renderer) {
     const tRaw = clamp(y / Math.max(1, secTop)); tS += (tRaw - tS) * e; smooth += (prog - smooth) * e;
     mx += (tmx - mx) * e * 0.5; my += (tmy - my) * e * 0.5;
     const t = ss(tS);
-    if (tints[0]) tints[0].style.opacity = t.toFixed(3);
+    const t0 = Math.round(t * 200) / 200; if (tints[0] && t0 !== lastT0) { tints[0].style.opacity = t0; lastT0 = t0; }
     h.classList.toggle('m3-scene', t > 0.9);
 
     /* hero framing → chapter framing */
@@ -282,8 +278,11 @@ function run(renderer) {
     GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(po); MU.uA.value = po; MU.uCam.value.copy(cam.position); grass.visible = po > 0.001;
     /* true horizon (eye level) on screen: the drawn panorama and the far meadow sit on it */
     cam.updateMatrixWorld(); cam.getWorldDirection(tmp); tmp.y = 0; tmp.normalize().multiplyScalar(300).add(cam.position).project(cam);
-    fx.style.setProperty('--hz', ((-tmp.y * 0.5 + 0.5) * Hh).toFixed(1) + 'px'); fx.style.setProperty('--po', po.toFixed(3));
-    renderer.domElement.style.opacity = intro.v.toFixed(3);
+    /* compositor-only writes, and only when the value actually moves */
+    const hz = Math.round((-tmp.y * 0.5 + 0.5) * Hh);
+    if (hz !== lastHz) { lastHz = hz; if (scBox) scBox.style.transform = `translate3d(0,${hz - scH + 3}px,0)`; if (land) land.style.transform = `translate3d(0,${hz}px,0)`; }
+    const pr = Math.round(po * 50) / 50; if (land && pr !== lastPo) { land.style.opacity = pr; lastPo = pr; }
+    const op = Math.round(intro.v * 100) / 100; if (op !== lastOp) { renderer.domElement.style.opacity = op; lastOp = op; }
     renderer.render(scene, cam);
 
     /* hotspot + callout chip + connector to the chapter title */
@@ -310,9 +309,9 @@ function run(renderer) {
       tmp.copy(V(PTS[sk])).applyMatrix4(rig.matrixWorld).project(cam);
       const x = (tmp.x * 0.5 + 0.5) * W, yy = (-tmp.y * 0.5 + 0.5) * Hh;
       spot.style.transform = `translate(${x.toFixed(1)}px,${yy.toFixed(1)}px)`; spot.style.opacity = fade.toFixed(3);
-      const ttl = $('.m3-ch.is-on .m3-ch__t');
-      if (ttl && line && !mobile) {
-        const rr = ttl.getBoundingClientRect(), x1 = rr.right + 24, y1 = rr.top + rr.height * 0.55, x2 = x - 26, y2 = yy;
+      if (ttlRead > 0 || !ttlR) { const ttl = $('.m3-ch.is-on .m3-ch__t'); ttlR = ttl ? ttl.getBoundingClientRect() : null; ttlRead--; }
+      if (ttlR && line && !mobile) {
+        const rr = ttlR, x1 = rr.right + 24, y1 = rr.top + rr.height * 0.55, x2 = x - 26, y2 = yy;
         line.setAttribute('x1', x1.toFixed(1)); line.setAttribute('y1', y1.toFixed(1)); line.setAttribute('x2', x2.toFixed(1)); line.setAttribute('y2', y2.toFixed(1));
         lg.setAttribute('x1', x1.toFixed(1)); lg.setAttribute('y1', y1.toFixed(1)); lg.setAttribute('x2', x2.toFixed(1)); lg.setAttribute('y2', y2.toFixed(1));
         line.style.opacity = (x2 > x1 + 40 ? fade : 0).toFixed(3);

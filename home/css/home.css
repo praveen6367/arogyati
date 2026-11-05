@@ -1555,3 +1555,26 @@ html.m3-scene .m3fx__scene.is-on{opacity:.8}
   .az-home .m3-ch__t em{background:linear-gradient(180deg,#F2FAE6 0%,#CDE9B0 58%,#EAF6DA 100%);-webkit-background-clip:text;background-clip:text}
 }
 .m3fx__land::before{opacity:.45}
+
+/* ===== 3D v10: performance + pencil scenery + legible type ===== */
+/* positions are driven by JS transforms (compositor only) */
+.m3fx__scenes{top:0;height:34vh;will-change:transform}
+.m3fx__land{top:0;bottom:auto;height:100%;will-change:transform}
+.m3fx__land::before{display:none}
+/* pencil line drawings, drawn on the sky */
+.m3fx__scene{stroke:rgba(16,32,46,.55);stroke-width:1.3;fill:none;filter:none}
+html.m3-scene .m3fx__scene.is-on{opacity:1}
+/* no live blur over the WebGL canvas: it re-samples every frame */
+.az-home .m3-ch__chips li,.az-home .m3-ch__k,.m3fx__chip,.az-home .m3__tabs{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.m3fx__chip{background:rgba(255,255,255,.94)}
+.m3fx__clouds::before{display:none}
+/* deeper zenith-blue sky behind the copy (natural sky gradient, not a dark wash) */
+.m3fx__clouds::after{background:radial-gradient(70% 80% at 12% 38%,rgba(18,58,112,.42),rgba(18,58,112,0) 70%),linear-gradient(180deg,rgba(26,72,132,.46) 0,rgba(30,80,140,.22) 40%,rgba(255,255,255,0) 62%)}
+@media (min-width:900px){
+  .az-home .m3-ch__t{filter:drop-shadow(0 1px 2px rgba(6,26,52,.35)) drop-shadow(0 10px 28px rgba(6,26,52,.35))}
+  .az-home .m3-ch__k{background:rgba(10,36,70,.35);border-color:rgba(255,255,255,.35)}
+  .az-home .m3-ch__chips li{background:rgba(10,36,70,.32);border-color:rgba(255,255,255,.45)}
+  .az-home .m3-ch__d{text-shadow:0 1px 2px rgba(6,26,52,.45),0 6px 20px rgba(6,26,52,.45)}
+}
+html.az-lite .m3fx__clouds{width:100%;animation:none;background-size:cover}
+@media (max-width:899px){.m3fx__scenes{height:22vh}}
