@@ -339,55 +339,62 @@
       if (img) g.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'top 20%', scrub: true } });
     });
 
-    /* TECHNOLOGY — the story plays inside the phone. Desktop: the section enters as a wide hills panel that shrinks into the
-       phone, then pins and scroll steps through five real clips. Mobile: the phone story auto-advances. */
+    /* TECHNOLOGY — editorial phone story: mood tint, giant word, number roll, drawn callouts, phone tilt, stepper, real clips */
     {
       const tcS = $('.tc'), D = $('#tc-data') ? JSON.parse($('#tc-data').textContent) : null;
       if (tcS && D) {
-        const dev = $('[data-tc-device]'), scr = $$('.tc-scr'), vids = scr.map((s) => $('video', s)), segs = $$('.tc__segs b'), li = $$('.tc-float--list li'), flip = $('[data-tc-flip]'), intro = $('.tc__intro');
-        const nI = $('[data-tc-i]'), nN = $('[data-tc-name]'), nD = $('[data-tc-desc]'), nF = $('[data-tc-fact]'), nU = $('[data-tc-unit]'), nX = $('[data-tc-note]'), nC = $('[data-tc-cap]');
+        const dev = $('[data-tc-device]'), scr = $$('.tc-scr'), vids = scr.map((s) => $('video', s)), segs = $$('.tc__segs b'), intro = $('.tc__intro');
+        const tints = $$('.tc__tints i'), word = $('[data-tc-word]'), steps = $$('.tc__steps li'), stepBars = $$('.tc__steps i em');
+        const nI = $('[data-tc-i]'), nN = $('[data-tc-name]'), nD = $('[data-tc-desc]'), nF = $('[data-tc-fact]'), nU = $('[data-tc-unit]'), nC = $('[data-tc-cap]'), cA = $('[data-tc-ca]'), cB = $('[data-tc-cb]');
+        const lines = $$('.tc-call i'), chips = $$('.tc-call span');
+        const TILT = [-9, 7, -6, 9, -4];
         let cur = 0, live = false;
         const playOnly = (i) => vids.forEach((v, k) => { if (k === i && live) { if (v.preload === 'none') v.preload = 'auto'; const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else v.pause(); });
-        const go = (i, force) => {
-          if (i === cur && !force) return; const dir = i >= cur ? 1 : -1, prev = scr[cur], next = scr[i]; cur = i; const d = D[i];
-          if (prev !== next) {
-            scr.forEach((s) => { if (s !== prev && s !== next) { s.classList.remove('is-on'); g.set(s, { clipPath: 'inset(100% 0% 0% 0%)' }); } });
-            next.classList.add('is-on');
-            g.fromTo(next, { clipPath: dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'power3.inOut', overwrite: true });
-            g.fromTo($('video', next), { scale: 1.18 }, { scale: 1, duration: 1.4, ease: OUT });
-            g.fromTo($('.tc-o', next), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, delay: 0.35, ease: OUT });
-            g.to(prev, { clipPath: dir > 0 ? 'inset(0% 0% 100% 0%)' : 'inset(100% 0% 0% 0%)', duration: 0.9, ease: 'power3.inOut', onComplete: () => prev.classList.remove('is-on') });
-            if (flip) g.timeline().to(flip, { rotateY: 90 * dir, duration: 0.26, ease: 'power2.in', onComplete: () => { nF.textContent = d.f; nU.textContent = d.u; } }).fromTo(flip, { rotateY: -90 * dir }, { rotateY: 0, duration: 0.45, ease: 'back.out(1.6)' });
-          }
-          li.forEach((l, k) => l.classList.toggle('is-on', k === i));
-          g.fromTo([nN, nD, nX], { y: 12 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: OUT, overwrite: true, onStart: () => { nI.textContent = String(i + 1).padStart(2, '0'); nN.innerHTML = d.n; nD.innerHTML = d.d; nX.innerHTML = d.x; nC.innerHTML = d.n; } });
+        const go = (i) => {
+          if (i === cur) return; const dir = i > cur ? 1 : -1, prev = scr[cur], next = scr[i]; cur = i; const d = D[i];
+          tints.forEach((t, k) => t.classList.toggle('is-on', k === i));
+          steps.forEach((s, k) => s.classList.toggle('is-on', k === i));
+          scr.forEach((s) => { if (s !== prev && s !== next) { s.classList.remove('is-on'); g.set(s, { clipPath: 'inset(100% 0% 0% 0%)' }); } });
+          next.classList.add('is-on');
+          g.fromTo(next, { clipPath: dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'power3.inOut', overwrite: true });
+          g.fromTo($('video', next), { scale: 1.2 }, { scale: 1, duration: 1.4, ease: OUT });
+          g.fromTo($('.tc-o', next), { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay: 0.4, ease: OUT });
+          g.to(prev, { clipPath: dir > 0 ? 'inset(0% 0% 100% 0%)' : 'inset(100% 0% 0% 0%)', duration: 0.9, ease: 'power3.inOut', onComplete: () => prev.classList.remove('is-on') });
+          if (!LITE) g.to(dev, { rotateY: TILT[i], rotateX: 2, duration: 1.4, ease: 'power3.out', overwrite: 'auto' });
+          g.timeline({ overwrite: true })
+            .to([word, nF, nU], { yPercent: -40 * dir, opacity: 0, duration: 0.3, ease: 'power2.in' })
+            .add(() => { word.textContent = d.w; nF.textContent = d.f; nU.textContent = d.u; })
+            .fromTo([word, nF, nU], { yPercent: 40 * dir, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.7, stagger: 0.05, ease: OUT });
+          g.fromTo([nN, nD], { y: 14 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.06, ease: OUT, overwrite: true, onStart: () => { nI.textContent = String(i + 1).padStart(2, '0'); nN.innerHTML = d.n; nD.innerHTML = d.d; nC.innerHTML = d.n; } });
+          g.timeline({ overwrite: true }).to(chips, { opacity: 0, duration: 0.2 }).to(lines, { scaleX: 0, duration: 0.2 }, 0)
+            .add(() => { cA.innerHTML = d.a; cB.innerHTML = d.b; })
+            .to(lines, { scaleX: 1, duration: 0.6, stagger: 0.12, ease: 'power3.out' }).to(chips, { opacity: 1, duration: 0.4, stagger: 0.12 }, '-=0.35');
           playOnly(i);
         };
-        const setSegs = (pAll) => segs.forEach((b, k) => { b.style.transform = `scaleX(${Math.max(0, Math.min(1, pAll * D.length - k)).toFixed(3)})`; });
-        const vis = ScrollTrigger.create({ trigger: tcS, start: 'top 80%', end: 'bottom top', onToggle: (s) => { live = s.isActive; playOnly(cur); } });
+        const progress = (pAll) => {
+          segs.forEach((b, k) => { b.style.transform = `scaleX(${Math.max(0, Math.min(1, pAll * D.length - k)).toFixed(3)})`; });
+          stepBars.forEach((b, k) => { b.style.transform = `scaleX(${Math.max(0, Math.min(1, pAll * D.length - k)).toFixed(3)})`; });
+        };
+        ScrollTrigger.create({ trigger: tcS, start: 'top 80%', end: 'bottom top', onToggle: (s) => { live = s.isActive; playOnly(cur); } });
         mm.add('(min-width: 1024px)', () => {
-          /* connection: a wide hills panel (like Services above) shrinks into the phone */
-          const pwPx = () => Math.min(380, innerWidth * 0.28, (innerHeight - 240) / 2.06), phH = () => pwPx() * 2.06;
-          const wide = () => Math.min(innerWidth - 2 * 24, 1400);
-                    const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
-          morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.72, borderRadius: 34 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, ease: 'power2.inOut', duration: 1 }, 0)
+          const pwPx = () => Math.min(390, innerWidth * 0.26, (innerHeight - 130) / 2.06), phH = () => pwPx() * 2.06;
+          const wide = () => Math.min(innerWidth - 48, 1400);
+          const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
+          morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.74, borderRadius: 34, rotateY: 0 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, rotateY: TILT[0], ease: 'power2.inOut', duration: 1 }, 0)
             .fromTo('.tc__screens', { borderRadius: 30 }, { borderRadius: () => pwPx() * 0.135, duration: 1 }, 0)
             .fromTo(intro, { opacity: 1 }, { opacity: 0, duration: 0.25, ease: 'none' }, 0.75)
-            .fromTo('[data-tc-float]', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }, 0.68)
-            .fromTo('[data-tc-head]', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3 }, 0.6);
-          const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 80) + '%', pin: '.tc__stage',
-            onUpdate: (s) => { setSegs(s.progress); go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))); } });
-          return () => { st.kill(); morph.kill(); g.set(dev, { clearProps: 'width,height,borderRadius' }); g.set('.tc__screens', { clearProps: 'borderRadius' }); g.set(intro, { opacity: 0 }); };
+            .fromTo('[data-tc-float], .tc__word, [data-tc-call]', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }, 0.68);
+          const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 85) + '%', pin: '.tc__stage',
+            onUpdate: (s) => { progress(s.progress); g.set('.tc__word', { xPercent: (0.5 - s.progress) * 18 }); go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))); } });
+          return () => { st.kill(); morph.kill(); g.set(dev, { clearProps: 'width,height,borderRadius,transform' }); g.set('.tc__screens', { clearProps: 'borderRadius' }); g.set(intro, { opacity: 0 }); };
         });
         mm.add('(max-width: 1023px)', () => {
           g.set(intro, { opacity: 0 });
-          let t0 = performance.now(), on = true;
-          const tick = () => { if (!live) { t0 = performance.now() - ((cur + segP) * 5000); return; } const e = (performance.now() - t0) / 5000; const i = Math.floor(e) % D.length; segP = e % 1; setSegs((i + segP) / D.length); if (i !== cur) go(i); };
-          let segP = 0;
+          let t0 = performance.now(), segP = 0;
+          const tick = () => { if (!live) { t0 = performance.now() - ((cur + segP) * 5000); return; } const e = (performance.now() - t0) / 5000; const i = Math.floor(e) % D.length; segP = e % 1; progress((i + segP) / D.length); if (i !== cur) go(i); };
           g.ticker.add(tick);
-          return () => { g.ticker.remove(tick); };
+          return () => g.ticker.remove(tick);
         });
-        if (!LITE) { const sp = SplitText.create('[data-tc-title]', { type: 'words' }); g.from(sp.words, { opacity: 0, y: 18, filter: 'blur(8px)', duration: 0.9, stagger: 0.04, ease: OUT, clearProps: 'filter', scrollTrigger: { trigger: tcS, start: 'top 40%', once: true } }); }
       }
     }
 
