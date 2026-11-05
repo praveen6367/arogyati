@@ -339,36 +339,77 @@
       if (img) g.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'top 20%', scrub: true } });
     });
 
-    /* TECHNOLOGY — pinned device story: each step wipes the next machine into the screen, flips the fact card, swaps the copy */
-    {
-      const tcS = $('.tc'), D = $('#tc-data') ? JSON.parse($('#tc-data').textContent) : null;
-      mm.add('(min-width: 1024px)', () => {
-        if (!tcS || !D) return;
-        const scr = $$('.tc-scr'), li = $$('.tc-float--list li'), flip = $('[data-tc-flip]');
-        const nI = $('[data-tc-i]'), nN = $('[data-tc-name]'), nD = $('[data-tc-desc]'), nF = $('[data-tc-fact]'), nU = $('[data-tc-unit]'), nX = $('[data-tc-note]'), nC = $('[data-tc-cap]');
-        let cur = 0;
-        const go = (i) => {
-          if (i === cur) return; const dir = i > cur ? 1 : -1, prev = scr[cur], next = scr[i]; cur = i; const d = D[i];
-          g.killTweensOf(scr);
-          scr.forEach((s) => { if (s !== prev && s !== next) { s.classList.remove('is-on'); g.set(s, { clipPath: 'inset(100% 0% 0% 0%)' }); } });
-          next.classList.add('is-on');
-          g.fromTo(next, { clipPath: dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.8, ease: 'power3.inOut' });
-          g.fromTo($('img', next), { scale: 1.25, yPercent: 10 * dir }, { scale: 1, yPercent: 0, duration: 1, ease: OUT });
-          g.to(prev, { clipPath: dir > 0 ? 'inset(0% 0% 100% 0%)' : 'inset(100% 0% 0% 0%)', duration: 0.8, ease: 'power3.inOut', onComplete: () => prev.classList.remove('is-on') });
-          li.forEach((l, k) => l.classList.toggle('is-on', k === i));
-          g.timeline().to(flip, { rotateY: 90 * dir, duration: 0.28, ease: 'power2.in', onComplete: () => { nF.textContent = d.f; nU.textContent = d.u; } }).fromTo(flip, { rotateY: -90 * dir }, { rotateY: 0, duration: 0.45, ease: 'back.out(1.6)' });
-          g.fromTo([nN, nD, nX, nC], { y: 14 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.05, ease: OUT, onStart: () => { nI.textContent = String(i + 1).padStart(2, '0'); nN.innerHTML = d.n; nD.innerHTML = d.d; nX.innerHTML = d.x; nC.innerHTML = d.n; } });
-        };
-        const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 75) + '%', pin: '.tc__stage', onUpdate: (s) => go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))) });
-        /* entrance: device rises, floats glide in from the sides */
-        g.from('[data-tc-device]', { y: 120, scale: 0.86, opacity: 0, duration: 1.3, ease: OUT, scrollTrigger: { trigger: tcS, start: 'top 70%', once: true } });
-        g.from('[data-tc-float]', { opacity: 0, x: (k) => (k % 2 ? 60 : -60), y: 30, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: tcS, start: 'top 60%', once: true } });
-        const sp = SplitText.create('[data-tc-title]', { type: 'words' });
-        g.from(sp.words, { opacity: 0, y: 18, filter: 'blur(8px)', duration: 0.9, stagger: 0.04, ease: OUT, clearProps: 'filter', scrollTrigger: { trigger: tcS, start: 'top 75%', once: true } });
-        if (!LITE) $$('[data-tc-float]').forEach((f, k) => g.to(f, { y: '+=10', duration: 2.6 + k * 0.4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: k * 0.3 }));
-        return () => { st.kill(); };
+    /* SERVICES → TECHNOLOGY — the same hills panel becomes the stage: cards drop away, a clinical-sky veil settles,
+       and five vector scenes build in on scroll and keep living while on screen */
+    mm.add('(min-width: 1024px)', () => {
+      const sv = $('.sv'), DD = $('#tc-data') ? JSON.parse($('#tc-data').textContent) : null;
+      if (LITE || !sv || !DD || !$('.sv__tech')) return;
+      h.classList.add('sv-story');
+      const scenes = $$('.sv-scene'), steps = $$('.sv-t__steps li');
+      const nI = $('[data-st-i]'), nN = $('[data-st-name]'), nD = $('[data-st-desc]'), nF = $('[data-st-fact]'), nU = $('[data-st-unit]');
+      const q = (sel) => $$(sel);
+      const R = (a, b) => a + Math.random() * (b - a);
+      /* living loops per scene (paused until that scene is on) */
+      const L = [[], [], [], [], []];
+      L[0].push(g.fromTo(q('.sc-s1 .sc-pulse'), { scale: 0.75, opacity: 0.7, transformOrigin: '50% 50%' }, { scale: 1.7, opacity: 0, duration: 1.8, stagger: 0.6, repeat: -1, ease: 'power1.out', paused: true }));
+      L[0].push(g.to(q('.sc-s1 .sc-fiber'), { scaleX: 0.82, transformOrigin: '50% 50%', duration: 0.28, yoyo: true, repeat: -1, repeatDelay: 0.32, stagger: 0.05, ease: 'power2.inOut', paused: true }));
+      L[0].push(g.to(q('.sc-s1 .sc-coil'), { opacity: 0.55, duration: 0.6, yoyo: true, repeat: -1, ease: 'sine.inOut', paused: true }));
+      L[1].push(g.to(q('.sc-s2 .sc-cell'), { scale: 1.28, transformOrigin: '50% 50%', duration: 0.45, yoyo: true, repeat: -1, ease: 'sine.inOut', stagger: { each: 0.06, grid: [4, 7], from: 'center' }, paused: true }));
+      L[1].push(g.to(q('.sc-s2 .sc-probe'), { x: '+=150', duration: 2.2, yoyo: true, repeat: -1, ease: 'sine.inOut', paused: true }));
+      L[1].push(g.to(q('.sc-s2 .sc-vib'), { opacity: 0.2, duration: 0.09, yoyo: true, repeat: -1, paused: true }));
+      L[1].push(g.fromTo(q('.sc-s2 .sc-wave'), { strokeDasharray: '22 10', strokeDashoffset: 0 }, { strokeDashoffset: -64, duration: 0.8, repeat: -1, ease: 'none', paused: true }));
+      L[2].push(g.to(q('.sc-s3 .sc-field'), { strokeDashoffset: -48, duration: 1.1, repeat: -1, ease: 'none', paused: true }));
+      L[2].push(g.to(q('.sc-s3 .sc-coilR'), { scaleY: 1.12, transformOrigin: '50% 50%', duration: 0.5, yoyo: true, repeat: -1, stagger: 0.08, ease: 'sine.inOut', paused: true }));
+      L[3].push(g.fromTo(q('.sc-s4 .sc-photon'), { attr: { cy: 175 }, opacity: 1 }, { attr: { cy: 470 }, opacity: 0.2, duration: 1.3, stagger: 0.26, repeat: -1, ease: 'none', paused: true }));
+      L[3].push(g.to(q('.sc-s4 .sc-heal'), { scale: 1.18, transformOrigin: '50% 50%', duration: 0.6, yoyo: true, repeat: -1, stagger: 0.12, ease: 'sine.inOut', paused: true }));
+      L[3].push(g.to(q('.sc-s4 .sc-beam'), { opacity: 0.75, duration: 0.25, yoyo: true, repeat: -1, paused: true }));
+      L[4].push(g.to(q('.sc-s5 .sc-hand--l'), { x: 16, duration: 0.9, yoyo: true, repeat: -1, ease: 'sine.inOut', paused: true }));
+      L[4].push(g.to(q('.sc-s5 .sc-hand--r'), { x: -16, duration: 0.9, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: 0.45, paused: true }));
+      let cur = -2;
+      const setScene = (i) => {
+        if (i === cur) return; const prev = cur; cur = i;
+        L.forEach((arr, k) => arr.forEach((t) => (k === i ? t.play() : t.pause())));
+        if (i < 0) return;
+        steps.forEach((s, k) => s.classList.toggle('is-on', k === i));
+        const d = DD[i], dir = i > prev ? 1 : -1;
+        g.fromTo([nN, nD, nF.parentElement], { y: 16 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.06, ease: OUT, overwrite: true,
+          onStart: () => { nI.textContent = String(i + 1).padStart(2, '0'); nN.innerHTML = d.n; nD.innerHTML = d.d; nF.textContent = d.f; nU.textContent = d.u; } });
+      };
+      /* master story timeline (units): hold · cards out · veil · then 4 units per scene */
+      const tl = g.timeline({ defaults: { ease: 'power2.inOut' } });
+      tl.to({}, { duration: 0.6 })
+        .to('.sv__bento', { y: 140, opacity: 0, duration: 1 }, 0.6)
+        .to('.sv__head', { y: -40, opacity: 0, duration: 0.8 }, 0.6)
+        .to('.sv__bg img', { scale: 1.35, duration: 1.6 }, 0.6)
+        .to('.sv__veil', { opacity: 1, duration: 1.2 }, 0.9)
+        .fromTo('.sv__tech', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.7 }, 1.5);
+      scenes.forEach((sc, i) => {
+        const T = 2 + i * 4;
+        tl.fromTo(sc, { opacity: 0, scale: 0.92, y: 40 }, { opacity: 1, scale: 1, y: 0, duration: 0.8 }, T);
+        if (i === 0) {
+          tl.fromTo('.sc-s1 .sc-gauge__v', { strokeDasharray: '0 100' }, { strokeDasharray: '85 100', duration: 1.4 }, T + 0.3)
+            .fromTo('.sc-s1 .sc-gauge__n', { rotation: -90, transformOrigin: '50% 100%' }, { rotation: 63, duration: 1.4 }, T + 0.3)
+            .from('.sc-s1 .sc-coil', { scale: 0.5, opacity: 0, transformOrigin: '50% 50%', duration: 0.9 }, T + 0.2);
+        } else if (i === 1) {
+          tl.from('.sc-s2 .sc-cell', { x: () => R(-70, 70), y: () => R(-50, 50), fill: '#B8C2BC', scale: 0.6, transformOrigin: '50% 50%', duration: 1.6, stagger: 0.02 }, T + 0.2);
+        } else if (i === 2) {
+          tl.from('.sc-s3 .sc-field', { scale: 0.3, opacity: 0, transformOrigin: '50% 50%', duration: 1.2, stagger: 0.12 }, T + 0.2)
+            .from('.sc-s3 .sc-bar2', { attr: { width: 6 }, duration: 1.4 }, T + 0.6);
+        } else if (i === 3) {
+          tl.from('.sc-s4 .sc-beam', { scaleY: 0, transformOrigin: '50% 0%', duration: 1.2 }, T + 0.2)
+            .from('.sc-s4 .sc-heal circle', { fill: '#C9645A', duration: 0.6, stagger: 0.08 }, T + 1.1)
+            .from('.sc-s4 .sc-heal path', { opacity: 0, duration: 0.4, stagger: 0.08 }, T + 1.3);
+        } else {
+          tl.from('.sc-s5 .sc-vert', { x: (k, el) => +el.dataset.off * 2, duration: 1.6, stagger: 0.06 }, T + 0.2);
+        }
+        if (i < scenes.length - 1) tl.to(sc, { opacity: 0, scale: 1.04, y: -30, duration: 0.6 }, T + 3.3);
       });
-    }
+      const TOTAL = 2 + scenes.length * 4;
+      tl.to({}, { duration: 0.01 }, TOTAL);
+      const st = ScrollTrigger.create({ trigger: sv, start: 'top top', end: '+=' + TOTAL * 32 + '%', pin: true, scrub: 1, animation: tl,
+        onUpdate: (s) => { const t = s.progress * TOTAL; setScene(t < 1.9 ? -1 : Math.min(scenes.length - 1, Math.floor((t - 2) / 4))); } });
+      return () => { st.kill(); tl.kill(); L.flat().forEach((t) => t.kill()); h.classList.remove('sv-story'); };
+    });
 
     /* history: drawn path + milestones light up */
     const line = $('.az-hist__line');
