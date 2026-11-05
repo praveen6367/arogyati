@@ -468,11 +468,12 @@
         const tl = g.timeline({ scrollTrigger: { trigger: pnl, start: 'top 62%', once: true } });
         tl.from(sp.words, { opacity: 0, y: 20, ...(LITE ? {} : { filter: 'blur(10px)' }), duration: 1, stagger: 0.05, ease: OUT, clearProps: 'filter' }, 0)
           .from('[data-sv-in]', { opacity: 0, y: 16, duration: 0.9, stagger: 0.1, ease: OUT }, 0.2)
-          .from('[data-sv-card]', { opacity: 0, y: 70, rotateX: LITE ? 0 : 22, transformOrigin: '50% 100%', duration: 1.1, stagger: 0.09, ease: OUT, clearProps: 'transform' }, 0.35)
           .from('.sv-card__segs i', { scaleX: 0, duration: 0.9, stagger: 0.08, ease: 'power3.out' }, 0.9)
-          .from('.sv-card__chips li', { opacity: 0, y: 10, duration: 0.5, stagger: 0.04, ease: OUT }, 0.95)
+          .from('.sv-card__list li', { opacity: 0, x: -10, duration: 0.5, stagger: 0.04, ease: OUT }, 0.95)
           .from('.sv-card__days i', { scale: 0, duration: 0.45, stagger: 0.07, ease: 'back.out(2.4)' }, 1.0)
-          .from('.sv-card__mini i', { scaleY: 0, duration: 0.7, stagger: 0.05, ease: 'power3.out' }, 1.0);
+          ;
+        /* cards rise with the scroll itself (scrubbed, reversible) instead of snapping out of a tilt */
+        $$('[data-sv-card]').forEach((c, i) => g.fromTo(c, { y: 90 + (i % 3) * 30, opacity: 0, scale: 0.965 }, { y: 0, opacity: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: '.sv__bento', start: 'top 98%', end: 'top 48%', scrub: 0.6 } }));
         const cnt = $('[data-sv-count]');
         if (cnt) { const o = { v: 0 }; cnt.textContent = '00'; tl.to(o, { v: 7, duration: 1.2, ease: 'power2.out', onUpdate: () => { cnt.textContent = String(Math.round(o.v)).padStart(2, '0'); } }, 0.8); }
         const tg = $('[data-sv-toggle]');
@@ -560,6 +561,10 @@
           const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
           morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.74, borderRadius: 34, rotateY: 0 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, rotateY: TILT[0], ease: 'power2.inOut', duration: 1 }, 0)
             .fromTo('.tc__screens', { borderRadius: 30 }, { borderRadius: () => pwPx() * 0.135, duration: 1 }, 0)
+            /* hand-off from Services: the services panel recedes, this panel opens from an inset frame, the device rises in */
+            .fromTo('.tc__tints', { clipPath: 'inset(9% 5% 0% 5% round 56px)' }, { clipPath: 'inset(0% 0% 0% 0% round 34px)', ease: 'power2.out', duration: 0.8 }, 0)
+            .fromTo(dev, { opacity: 0, y: 120 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.5 }, 0.05)
+            .fromTo('.sv__panel', { scale: 1, opacity: 1 }, { scale: 0.93, opacity: 0.25, ease: 'power1.in', duration: 0.6, immediateRender: false }, 0)
             .fromTo(intro, { opacity: 1 }, { opacity: 0, duration: 0.25, ease: 'none' }, 0.75)
             .fromTo('[data-tc-float], .tc__word, [data-tc-call]', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }, 0.68);
           const st = ScrollTrigger.create({ trigger: tcS, start: 'top top', end: '+=' + (D.length * 85) + '%', pin: '.tc__stage',
