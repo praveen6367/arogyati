@@ -68,7 +68,7 @@ function run(renderer) {
   plat.visible = false;
   ground.position.y = 0.06; ground.material.opacity = 0.2;
   /* meadow floor: instanced grass blades with layered wind, natural colour variation, grown in as the scene arrives */
-  const GN = LITE ? 10000 : 56000, GR = LITE ? 2.6 : 4.6;
+  const GN = LITE ? 22000 : 160000, GR = LITE ? 6 : 18;
   const blade = new THREE.InstancedBufferGeometry(), bp = [], bi = [], SEG = 4;
   for (let s = 0; s < SEG; s++) { const y = s / SEG, w = Math.pow(1 - y, 0.8) * 0.5; bp.push(-w, y, 0, w, y, 0); }
   bp.push(0, 1, 0);
@@ -77,7 +77,7 @@ function run(renderer) {
   blade.setAttribute('position', new THREE.Float32BufferAttribute(bp, 3)); blade.setIndex(bi);
   const gOff = new Float32Array(GN * 4), gSz = new Float32Array(GN * 2);
   for (let k = 0; k < GN; k++) {
-    const rr = GR * Math.pow(Math.random(), 0.62), a = Math.random() * Math.PI * 2;
+    const rr = GR * Math.pow(Math.random(), 0.8), a = Math.random() * Math.PI * 2;
     gOff.set([Math.cos(a) * rr, Math.sin(a) * rr, Math.random() * Math.PI, Math.random()], k * 4);
     gSz.set([0.045 + Math.random() * 0.075 + (Math.random() < 0.08 ? 0.05 : 0), 0.011 + Math.random() * 0.011], k * 2);
   }
@@ -88,9 +88,9 @@ function run(renderer) {
     uniforms: GU, side: THREE.DoubleSide,
     vertexShader: `attribute vec4 aOff; attribute vec2 aSz; uniform float uT, uGrow, uR; varying float vY, vR, vL;
       void main(){
-        float d = length(aOff.xy), edge = smoothstep(uR, uR * 0.55, d);
+        float d = length(aOff.xy), edge = smoothstep(uR, uR * 0.45, d);
         float h = aSz.x * uGrow * edge * (0.75 + 0.25 * smoothstep(0.0, 0.5, d));
-        vec3 p = position; p.x *= aSz.y; p.y *= h;
+        vec3 p = position; p.x *= aSz.y * (1.0 + d * 0.2); p.y *= h;
         float c = cos(aOff.z), s = sin(aOff.z); p = vec3(p.x * c, p.y, p.x * s);
         float gust = sin(uT * 0.7 + aOff.x * 0.9 - aOff.y * 0.4) * 0.5 + 0.5;
         float w = (sin(uT * 1.9 + aOff.x * 2.3 + aOff.y * 1.7 + aOff.w * 6.0) * 0.5 + 0.5) * (0.35 + gust * 0.65);
@@ -114,7 +114,7 @@ function run(renderer) {
   const grass = new THREE.Mesh(blade, grassMat); grass.frustumCulled = false; rig.add(grass);
   /* meadow ground to the horizon: layered value-noise turf, aerial haze, alpha-fades into the CSS sky so the horizon is seamless */
   const MU = { uA: { value: 0 }, uCam: { value: new THREE.Vector3() } };
-  const soil = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.ShaderMaterial({
+  const soil = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.ShaderMaterial({
     uniforms: MU, transparent: true, depthWrite: false,
     vertexShader: `varying vec2 vL; varying vec3 vW; void main(){ vL = position.xy; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
     fragmentShader: `uniform float uA; uniform vec3 uCam; varying vec2 vL; varying vec3 vW;
@@ -123,17 +123,17 @@ function run(renderer) {
       void main(){
         float d = distance(vW.xz, uCam.xz);
         float t = n(vL * 0.5) * 0.45 + n(vL * 2.1) * 0.3 + n(vL * 8.5) * 0.25;
-        vec3 col = mix(vec3(0.05, 0.10, 0.02), vec3(0.16, 0.26, 0.045), t);
-        col = mix(col, vec3(0.30, 0.30, 0.09), smoothstep(0.55, 0.85, n(vL * 0.18 + 7.0)) * 0.45);
-        float fog = 1.0 - exp(-pow(d / 34.0, 1.6));
-        col = mix(col, vec3(0.42, 0.47, 0.30), fog * 0.75);
-        gl_FragColor = vec4(col, uA * (1.0 - smoothstep(0.45, 0.97, fog)));
+        vec3 col = mix(vec3(0.06, 0.115, 0.02), vec3(0.14, 0.235, 0.04), t);
+        col = mix(col, vec3(0.27, 0.29, 0.075), smoothstep(0.55, 0.85, n(vL * 0.18 + 7.0)) * 0.35);
+        float fog = 1.0 - exp(-pow(d / 90.0, 1.5));
+        col = mix(col, vec3(0.20, 0.33, 0.14), fog * 0.85);
+        gl_FragColor = vec4(col, uA);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
   }));
   soil.rotation.x = -Math.PI / 2; soil.position.y = 0.0005; soil.renderOrder = -1; soil.frustumCulled = false; rig.add(soil);
-  const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 60);
+  const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 1200);
 
   /* body-part highlight: a soft thermal red → yellow bloom painted onto the skin/fabric around the chapter's point */
   const HOT = { uHot: { value: new THREE.Vector3(0, -9, 0) }, uHotA: { value: 0 }, uHotR: { value: 0.2 }, uTime: { value: 0 } };
@@ -146,7 +146,7 @@ function run(renderer) {
           float hd = distance(vHotW, uHot) / uHotR;
           float hg = pow(1.0 - smoothstep(0.0, 1.0, hd), 0.7) * uHotA;
           float hw = smoothstep(0.12, 0.0, abs(fract(uTime * 0.45) - hd * 0.9)) * (1.0 - smoothstep(0.6, 1.0, hd)) * uHotA;
-          vec3 hc = mix(vec3(0.92, 0.06, 0.04), vec3(1.0, 0.82, 0.12), smoothstep(0.15, 0.95, hd));
+          vec3 hc = mix(vec3(0.03, 0.22, 0.95), vec3(0.30, 0.82, 1.0), smoothstep(0.15, 0.95, hd));
           diffuseColor.rgb = mix(diffuseColor.rgb, hc, clamp(hg * 0.92 + hw * 0.3, 0.0, 0.95));`)
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
           totalEmissiveRadiance += hc * (hg * 0.75 + hw * 0.5);`);
@@ -197,7 +197,7 @@ function run(renderer) {
   /* chapter UI */
   /* straight hairline connector with a gradient fade (title → body) */
   const svg = $('.m3fx__line');
-  if (svg) svg.innerHTML = '<defs><linearGradient id="m3lg" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#14201A" stop-opacity="0"/><stop offset=".3" stop-color="#14201A" stop-opacity=".5"/><stop offset=".8" stop-color="#14201A" stop-opacity=".65"/><stop offset="1" stop-color="#14201A" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="0" x2="0" y2="0" stroke="url(#m3lg)"/>';
+  if (svg) svg.innerHTML = '<defs><linearGradient id="m3lg" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".75"/><stop offset=".8" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="0" x2="0" y2="0" stroke="url(#m3lg)"/>';
   const line = svg && $('line', svg), lg = svg && $('#m3lg', svg);
   /* motion-graphics scenery (rendered with Remotion) behind the model */
   const bg = $('.m3fx__bg');
@@ -213,7 +213,7 @@ function run(renderer) {
   const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), tints = $$('.m3fx__bg i');
   /* hand-drawn line scenes: each stroke draws itself on, staggered */
   const scenes = $$('.m3fx__scene');
-  scenes.forEach((s) => $$('path', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.035).toFixed(3) + 's')));
+  scenes.forEach((s) => $$('g.e', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.07).toFixed(3) + 's')));
   const placeInd = () => {
     if (!ind) return; const tb = tabs[curCh - 1];
     if (!tb) { ind.style.opacity = 0; return; }
@@ -221,7 +221,7 @@ function run(renderer) {
     ind.style.opacity = 1; ind.style.width = a.width + 'px'; ind.style.transform = `translateX(${(a.left - b.left).toFixed(1)}px)`;
   };
   addEventListener('resize', () => requestAnimationFrame(placeInd));
-  const CHIP = ['', '<b>Home visits</b><span>Hospitalized &amp; bedridden patients</span>', '<b>Knee &amp; balance</b><span>Geriatrics · Post operative</span>', '<b>Lower back</b><span>Osteopathy · Class IV Laser</span>', '<b>24 years</b><span>Dr. Pranjali Dhamane · FOMT</span>'];
+  const CHIP = ['', '<b>Home visits</b><span>Hospitalized &amp; bedridden patients</span>', '<b>Knee &amp; balance</b><span>Geriatrics · Post operative</span>', '<b>Lower back</b><span>Osteopathy · Class IV Laser</span>', '<b>One care team</b><span>6 physio + 6 staff · under one system</span>'];
   let curCh = -1;
   const setCh = (k) => {
     if (k === curCh) return; curCh = k;
