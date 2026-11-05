@@ -1617,3 +1617,18 @@ html.m3-on .az-head__logo svg,html.m3-on .az-head__logo svg *{fill:#fff!importan
   .az-home .m3-ch__chips li:nth-child(3n+2)::before{background:#BFDDFB;box-shadow:0 0 0 4px rgba(191,221,251,.2)}
   .az-home .m3-ch__chips li:nth-child(3n)::before{background:#C8F0E4;box-shadow:0 0 0 4px rgba(200,240,228,.2)}
 }
+
+/* ===== sticky header (desktop): menu pill gives way to a white hamburger beside the CTA ===== */
+@media (min-width:1101px){
+  .az-head__cta{display:flex;align-items:center;gap:.6rem}
+  .az-nav{transition:opacity .45s var(--az-ease),transform .6s var(--az-out),visibility 0s}
+  .az-head.is-condensed .az-nav{opacity:0;transform:translateY(-10px) scale(.96);pointer-events:none;visibility:hidden;transition:opacity .35s var(--az-ease),transform .5s var(--az-out),visibility 0s .5s}
+  .az-burger{display:block;width:0;height:52px;margin-left:-.6rem;opacity:0;transform:scale(.5) rotate(-90deg);overflow:hidden;pointer-events:none;background:#fff;box-shadow:0 10px 26px -14px rgba(23,35,27,.4),inset 0 0 0 1px rgba(23,35,27,.06);transition:width .55s var(--az-out),margin .55s var(--az-out),opacity .4s var(--az-ease),transform .6s var(--az-out),background .35s}
+  .az-head.is-condensed .az-burger,.az-menu-open .az-burger{width:52px;margin-left:0;opacity:1;transform:none;pointer-events:auto}
+  .az-burger span{left:17px;right:17px;transition:transform .5s var(--az-ease),top .5s var(--az-ease),background .35s,right .4s var(--az-out)}
+  .az-burger span:first-child{top:21px}.az-burger span:last-child{top:29px;right:23px}
+  .az-burger:hover{background:#14201A}.az-burger:hover span{background:#fff}.az-burger:hover span:last-child{right:17px}
+  .az-burger::after{content:"";position:absolute;top:11px;right:11px;width:6px;height:6px;border-radius:50%;background:#7DBA3C;transition:opacity .3s}
+  .az-menu-open .az-burger span:first-child,.az-menu-open .az-burger span:last-child{top:25px;right:17px}
+  .az-menu-open .az-burger::after{opacity:0}
+}
