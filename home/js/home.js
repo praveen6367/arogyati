@@ -86,24 +86,57 @@
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
 
-  /* ---------- body map ---------- */
-  const AREAS = JSON.parse($('#az-areas').textContent);
-  const areaEl = $('[data-az-area]'), condList = $('[data-az-conds]');
-  function setArea(k, anim) {
-    const a = AREAS[k]; if (!a) return;
-    $$('.az-spot').forEach((s) => s.classList.toggle('is-active', s.dataset.area === k));
-    $$('.az-areas button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.area === k));
-    areaEl.textContent = a.n; condList.textContent = '';
-    a.c.forEach((c) => { const li = d.createElement('li'); li.className = 'az-chip'; li.textContent = c; condList.appendChild(li); });
-    if (anim && !RM) g.fromTo([areaEl, ...condList.children], { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.05, ease: OUT, overwrite: true });
+  /* ---------- CONDITIONS: body hotspots, live panel, drawn connector, gentle zoom, auto-tour ---------- */
+  {
+    const cd = $('.cd'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
+    if (cd && AR) {
+      const keys = Object.keys(AR), svg = $('.cd__svg'), link = $('.cd__link'), lp = $('path', link), lc = $('circle', link), panel = $('[data-cd-panel]');
+      const aEl = $('[data-cd-area]'), cEl = $('[data-cd-conds]');
+      let cur = null, user = false, inView = false, tour = null;
+      const drawLink = () => {
+        if (!cur || innerWidth < 1024) return; const sp = $(`.cd-spot[data-area="${cur}"] .cd-spot__dot`, cd); if (!sp) return;
+        const r = cd.getBoundingClientRect(), a = sp.getBoundingClientRect(), b = panel.getBoundingClientRect();
+        const x1 = a.left + a.width / 2 - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - r.left, y2 = b.top + 70 - r.top;
+        const mx = (x1 + x2) / 2;
+        lp.setAttribute('d', `M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`); lc.setAttribute('cx', x1); lc.setAttribute('cy', y1);
+      };
+      const set = (k, anim) => {
+        if (!AR[k] || k === cur) return; cur = k; const a = AR[k];
+        $$('.cd-spot', cd).forEach((s) => s.classList.toggle('is-on', s.dataset.area === k));
+        $$('.cd__areas button', cd).forEach((b) => b.setAttribute('aria-pressed', b.dataset.area === k));
+        const sp = $(`.cd-spot[data-area="${k}"] .cd-spot__dot`, cd);
+        if (sp && !RM) { const vb = svg.viewBox.baseVal, cx = +sp.getAttribute('cx'), cy = +sp.getAttribute('cy'); svg.style.transformOrigin = `${((cx - vb.x) / vb.width) * 100}% ${((cy - vb.y) / vb.height) * 100}%`; svg.style.transform = 'scale(1.12)'; }
+        const fill = () => { aEl.textContent = a.n; cEl.textContent = ''; a.c.forEach((c) => { const li = d.createElement('li'); li.textContent = c; cEl.appendChild(li); }); };
+        if (anim && !RM) {
+          g.timeline({ overwrite: true }).to([aEl, cEl], { y: -14, opacity: 0, duration: 0.22, ease: 'power2.in' }).add(fill)
+            .fromTo(aEl, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: OUT })
+            .fromTo(cEl, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: OUT }, '-=0.4');
+          if (lp.getTotalLength) setTimeout(() => { drawLink(); const L = lp.getTotalLength(); g.fromTo(lp, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.8, ease: 'power3.out' }); }, 260);
+        } else { fill(); setTimeout(drawLink, 50); }
+      };
+      const stopTour = () => { user = true; clearInterval(tour); };
+      $$('.cd-spot', cd).forEach((s) => {
+        s.addEventListener('click', () => { stopTour(); set(s.dataset.area, true); });
+        s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stopTour(); set(s.dataset.area, true); } });
+        if (FINE) s.addEventListener('mouseenter', () => { stopTour(); set(s.dataset.area, true); });
+      });
+      $$('.cd__areas button', cd).forEach((b) => { b.addEventListener('click', () => { stopTour(); set(b.dataset.area, true); }); if (FINE) b.addEventListener('mouseenter', () => { stopTour(); set(b.dataset.area, true); }); });
+      set('neck', false);
+      addEventListener('resize', drawLink); addEventListener('scroll', () => { if (inView) drawLink(); }, { passive: true });
+      ScrollTrigger.create({ trigger: cd, start: 'top 70%', end: 'bottom 30%', onToggle: (s) => {
+        inView = s.isActive; clearInterval(tour);
+        if (inView && !user && !RM) tour = setInterval(() => { const i = (keys.indexOf(cur) + 1) % keys.length; set(keys[i], true); }, 3200);
+      } });
+      if (!RM) {
+        g.from('[data-cd-in]', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 75%', once: true } });
+        const edge = $('.cd__edge'); if (edge) { const L = edge.getTotalLength(); g.fromTo(edge, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut', scrollTrigger: { trigger: cd, start: 'top 70%', once: true } }); }
+        g.from('.cd__body', { opacity: 0, duration: 1.4, ease: 'power2.out', scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
+        g.from('.cd-spot', { scale: 0, transformOrigin: '50% 50%', duration: 0.6, stagger: 0.06, ease: 'back.out(2.4)', scrollTrigger: { trigger: cd, start: 'top 60%', once: true } });
+        g.from('[data-cd-panel]', { x: 40, opacity: 0, duration: 1.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
+        g.from('.cd__aura i', { scale: 0.6, opacity: 0, duration: 1.6, stagger: 0.15, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 70%', once: true } });
+      }
+    }
   }
-  $$('.az-spot').forEach((s) => {
-    s.addEventListener('click', () => setArea(s.dataset.area, true));
-    s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setArea(s.dataset.area, true); } });
-    if (FINE) s.addEventListener('mouseenter', () => setArea(s.dataset.area, true));
-  });
-  $$('.az-areas button').forEach((b) => b.addEventListener('click', () => setArea(b.dataset.area, true)));
-  setArea('neck', false);
 
   /* ---------- team accordion ---------- */
   $$('.az-member__btn').forEach((b) => b.addEventListener('click', () => {
