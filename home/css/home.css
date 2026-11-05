@@ -2008,3 +2008,10 @@ html.az-rm .sv-card__plusic i{animation:none}
 @media (min-width:1024px) and (max-height:780px){.rx__cap{bottom:1.2rem}.az-home .rx__txt p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:0;font-size:.84rem}.rx__segs{margin-top:.6rem}.az-home .rx__txt h3{font-size:1.15rem}}
 .rl .hx-card__big{font-size:clamp(1.8rem,calc(var(--cw) * .14),3rem)}
 .rl .hx-card--photo .hx-card__big{font-size:clamp(1.6rem,calc(var(--cw) * .12),2.6rem);margin-bottom:.35em}
+.cd.cd4{overflow:visible}
+@supports (overflow:clip){.cd.cd4{overflow-x:clip;overflow-y:visible}}
+.cd4__aside{grid-row:1 / span 2}
+.cd4__foot{grid-column:2;margin-top:clamp(1.6rem,3vw,2.4rem)}
+.cd4-row{padding:clamp(1.1rem,2.2vw,1.9rem) 0}
+@media (min-width:900px){.cd4__card{max-height:min(460px,56svh)}.cd4__aside{top:calc(50svh - min(230px,28svh))}}
+@media (max-width:899px){.cd4__aside{grid-row:auto}.cd4__foot{grid-column:auto}.cd4-row{padding:1rem 0}.cd4__card{aspect-ratio:16/10}}
