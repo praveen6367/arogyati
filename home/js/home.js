@@ -297,29 +297,12 @@
       if (!RM) g.ticker.add(() => { if (vis && !hover && performance.now() - t0 > 5000) move(1); });
       if (!RM) g.from('.st__head > *, [data-st-stage], .st__nav', { y: 60, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.st', start: 'top 70%', once: true } });
     }
-    /* CONTACT: marquee drifts and reacts to scroll velocity; console tilts with the mouse */
-    const t1 = $('[data-cx-track]'), t2 = $('[data-cx-track2]');
-    if (t1 && t2 && !RM) {
-      let x1 = 0, x2 = 0, boost = 0;
-      const w = () => t1.scrollWidth / 2;
-      ScrollTrigger.create({ trigger: '.cx', start: 'top bottom', end: 'bottom top', onUpdate: (s) => { boost = Math.max(-30, Math.min(30, s.getVelocity() / 120)); } });
-      let on = false; ScrollTrigger.create({ trigger: '.cx', start: 'top bottom', end: 'bottom top', onToggle: (s) => { on = s.isActive; } });
-      g.ticker.add((t, dt) => {
-        if (!on) return; const v = (0.6 + Math.abs(boost)) * (dt / 16); boost *= 0.92;
-        x1 -= v; x2 += v * 0.8; const W = w();
-        if (x1 <= -W) x1 += W; if (x2 >= 0) x2 -= W;
-        t1.style.transform = `translate3d(${x1.toFixed(1)}px,0,0) skewX(${(-boost * 0.4).toFixed(2)}deg)`;
-        t2.style.transform = `translate3d(${x2.toFixed(1)}px,0,0) skewX(${(boost * 0.4).toFixed(2)}deg)`;
-      });
-      x2 = -w();
-      g.from('[data-cx-card]', { y: 90, opacity: 0, rotateX: LITE ? 0 : 14, duration: 1.3, ease: OUT, scrollTrigger: { trigger: '.cx', start: 'top 70%', once: true } });
-      g.from('.cx-btn, .cx-cell', { y: 20, opacity: 0, duration: 0.8, stagger: 0.06, ease: OUT, scrollTrigger: { trigger: '.cx', start: 'top 55%', once: true } });
-      const card = $('[data-cx-card]');
-      if (FINE && !LITE && card) {
-        const rx = g.quickTo(card, 'rotateX', { duration: 0.8, ease: 'power3' }), ry = g.quickTo(card, 'rotateY', { duration: 0.8, ease: 'power3' });
-        $('.cx').addEventListener('mousemove', (e) => { const r = card.getBoundingClientRect(); rx(-((e.clientY - r.top) / r.height - 0.5) * 6); ry(((e.clientX - r.left) / r.width - 0.5) * 8); });
-        $('.cx').addEventListener('mouseleave', () => { rx(0); ry(0); });
-      }
+    /* CONTACT: calm editorial entrance */
+    if ($('.cx2') && !RM) {
+      g.from('.cx2__photo', { clipPath: 'inset(12% 8% 12% 8% round 40px)', scale: 1.04, duration: 1.4, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 75%', once: true } });
+      g.from('[data-cx-in]:not(.cx2__photo)', { y: 26, opacity: 0, duration: 1, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 70%', once: true } });
+      g.from('[data-cx-row]', { y: 18, opacity: 0, duration: 0.8, stagger: 0.07, ease: OUT, scrollTrigger: { trigger: '.cx2__list', start: 'top 85%', once: true } });
+      g.from('.cx2__note', { y: 30, opacity: 0, duration: 1, delay: 0.5, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 70%', once: true } });
     }
   }
   const mq = $('.az-marquee'); if (mq) { const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting))); io.observe(mq); }
