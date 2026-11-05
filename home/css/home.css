@@ -1826,3 +1826,7 @@ html.az-rm .sv-card__plusic i{animation:none}
 .cd__sel .cd__area{margin-top:.35rem!important}
 .cd__info .cd__also li{box-shadow:none!important;border-radius:0}
 @media (max-width:1023px){.cd__reel{width:min(220px,62vw)}.cd__figure{height:min(52svh,460px)}}
+/* team: breathing room between portrait rows */
+.az-home .tx-row__btn{padding:1.15rem 0;align-items:center}
+.az-home .tx-row__ph{width:56px;height:56px;border-radius:16px}
+@media (max-width:899px){.az-home .tx-row__btn{padding:.85rem 0;gap:.8rem}.az-home .tx-row__ph{width:44px;height:44px;border-radius:13px}.tx-row__n span{font-size:clamp(1.05rem,5vw,1.3rem)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}}
