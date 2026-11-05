@@ -440,11 +440,14 @@
         const tl = g.timeline({ scrollTrigger: { trigger: '.ix__laurels', start: 'top 85%', once: true }, delay: i * 0.18 });
         const stems = $$('.ix-stem path', lw);
         stems.forEach((p) => { const L = p.getTotalLength(); g.set(p, { strokeDasharray: L, strokeDashoffset: L }); });
-        tl.to(stems, { strokeDashoffset: 0, duration: 1, ease: 'power2.out' }, 0)
-          .from($$('.ix-leaf', lw), { scale: 0, transformOrigin: '50% 50%', duration: 0.5, stagger: { each: 0.035, from: 'start' }, ease: 'back.out(2.2)' }, 0.1)
-          .from($('.ix-laurel__txt', lw), { opacity: 0, y: 8, duration: 0.6, ease: OUT }, 0.5);
+        const li = lw.closest('.ix-first');
+        tl.fromTo($('.ix-first__rule', li), { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: 'power3.inOut' }, 0)
+          .to(stems, { strokeDashoffset: 0, duration: 1, ease: 'power2.out' }, 0.15)
+          .from($$('.ix-leaf', lw), { scale: 0, transformOrigin: '50% 50%', duration: 0.45, stagger: { each: 0.03, from: 'start' }, ease: 'back.out(2)' }, 0.25)
+          .from($$('.ix-first__n, .ix-first__t, .ix-first__s', li), { y: 22, opacity: 0, duration: 0.9, stagger: 0.07, ease: OUT }, 0.35);
       });
-      g.from('[data-ix-logo]', { y: 18, opacity: 0, duration: 0.9, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.ix__logos', start: 'top 88%', once: true } });
+      ScrollTrigger.create({ trigger: '.ix__mq', start: 'top bottom', end: 'bottom top', onToggle: (s) => $('.ix__mq').classList.toggle('is-run', s.isActive) });
+      g.from('.ix__faces span', { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: OUT, scrollTrigger: { trigger: '.ix__proof', start: 'top 90%', once: true } });
       const big = $('[data-ix-words]');
       if (big) {
         const sp = SplitText.create(big, { type: 'words', wordsClass: 'ix-w' });
