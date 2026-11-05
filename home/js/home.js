@@ -87,34 +87,39 @@
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
 
-  /* ---------- CONDITIONS: area index drives one reel + a tiny body map (no scroll listeners, no loops) ---------- */
+  /* ---------- CONDITIONS: the row crossing the screen centre becomes active (IntersectionObserver, no scroll handlers) ---------- */
   {
-    const cd = $('.cd3'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
+    const cd = $('.cd4'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
     if (cd && AR) {
-      const rows = $$('.cd3-row', cd), vid = $('[data-cd-vid]', cd), pin = $('.cd3__pin', cd);
-      const aEl = $('[data-cd-area]', cd), rT = $('[data-cd-rt]', cd), rS = $('[data-cd-rs]', cd), rL = $('[data-cd-rl]', cd);
-      let cur = rows[0] && rows[0].dataset.area, curV = AR[cur] && AR[cur].v, inView = false;
+      const rows = $$('.cd4-row', cd), vid = $('[data-cd-vid]', cd), pin = $('.cd4__pin', cd);
+      const rT = $('[data-cd-rt]', cd), rS = $('[data-cd-rs]', cd), rL = $('[data-cd-rl]', cd), cap = $('.cd4__cap', cd);
+      let cur = rows[0].dataset.area, curV = AR[cur].v, inView = false, hoverLock = 0;
       const set = (k) => {
         if (!AR[k] || k === cur) return; cur = k; const a = AR[k];
-        rows.forEach((r) => { const on = r.dataset.area === k; r.classList.toggle('is-on', on); r.setAttribute('aria-selected', on); });
-        if (pin) { if (RM) g.set(pin, { attr: { cx: a.x, cy: a.y } }); else g.to(pin, { attr: { cx: a.x, cy: a.y }, duration: 0.7, ease: 'power3.inOut', overwrite: true }); }
-        const txt = () => { aEl.textContent = a.n; rT.innerHTML = a.t; rS.innerHTML = a.s; rL.href = `https://www.instagram.com/p/${a.v}/`; };
-        if (RM) txt(); else g.timeline({ overwrite: true }).to([aEl, rT, rS], { y: -8, opacity: 0, duration: 0.18, ease: 'power2.in' }).add(txt).to([aEl, rT, rS], { y: 0, opacity: 1, duration: 0.45, stagger: 0.04, ease: OUT });
+        rows.forEach((r) => r.classList.toggle('is-on', r.dataset.area === k));
+        if (pin) g.to(pin, { attr: { cx: a.x, cy: a.y }, duration: RM ? 0 : 0.8, ease: 'power3.inOut', overwrite: true });
+        const txt = () => { rT.innerHTML = a.t; rS.innerHTML = a.s; rL.href = `https://www.instagram.com/p/${a.v}/`; };
+        if (RM) txt(); else g.timeline({ overwrite: true }).to(cap, { y: 10, opacity: 0, duration: 0.18, ease: 'power2.in' }).add(txt).to(cap, { y: 0, opacity: 1, duration: 0.5, ease: OUT });
         if (a.v !== curV) {
           curV = a.v;
           const swap = () => { vid.poster = `/home/assets/reels/${a.v}.webp`; vid.src = `/home/assets/reels/${a.v}.mp4`; if (inView) vid.play().catch(() => {}); };
-          if (RM) swap(); else g.timeline().to(vid, { opacity: 0, duration: 0.2, onComplete: swap }).to(vid, { opacity: 1, duration: 0.5, delay: 0.1 });
+          if (RM) swap(); else g.timeline().to(vid, { opacity: 0, scale: 1.04, duration: 0.22, onComplete: swap }).to(vid, { opacity: 1, scale: 1, duration: 0.7, ease: OUT, delay: 0.08 });
         }
       };
-      rows.forEach((r) => { r.addEventListener('click', () => set(r.dataset.area)); if (FINE) r.addEventListener('mouseenter', () => set(r.dataset.area)); });
+      const io = new IntersectionObserver((es) => { if (performance.now() < hoverLock) return; es.forEach((e) => { if (e.isIntersecting) set(e.target.dataset.area); }); }, { rootMargin: '-48% 0px -48% 0px' });
+      rows.forEach((r) => {
+        io.observe(r);
+        $('button', r).addEventListener('click', () => { hoverLock = performance.now() + 1500; set(r.dataset.area); });
+        if (FINE) r.addEventListener('mouseenter', () => { hoverLock = performance.now() + 1200; set(r.dataset.area); });
+      });
       ScrollTrigger.create({ trigger: cd, start: 'top 85%', end: 'bottom 15%', onToggle: (s) => {
         inView = s.isActive;
         if (inView) { if (!vid.src) vid.src = `/home/assets/reels/${curV}.mp4`; vid.play().catch(() => {}); } else vid.pause();
       } });
       if (!RM) {
-        g.from('.cd3__head > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 78%', once: true } });
-        g.from('.cd3-row', { y: 20, opacity: 0, duration: 0.7, stagger: 0.05, ease: OUT, scrollTrigger: { trigger: '.cd3__list', start: 'top 85%', once: true } });
-        g.from('.cd3__media', { clipPath: 'inset(10% 10% 10% 10% round 40px)', duration: 1.2, ease: OUT, scrollTrigger: { trigger: '.cd3__stage', start: 'top 80%', once: true } });
+        g.from('.cd4__head > *', { yPercent: 40, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 78%', once: true } });
+        ScrollTrigger.batch('.cd4-row', { start: 'top 92%', once: true, onEnter: (els) => g.from(els, { yPercent: 60, opacity: 0, duration: 0.9, stagger: 0.06, ease: OUT }) });
+        g.from('.cd4__card', { clipPath: 'inset(14% 14% 14% 14% round 48px)', duration: 1.3, ease: OUT, scrollTrigger: { trigger: '.cd4__grid', start: 'top 75%', once: true } });
       }
     }
   }
@@ -282,10 +287,10 @@
     const clamp = (v) => Math.max(0, Math.min(1, v)), mix = (a, b, t) => a + (b - a) * t;
     const io3 = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const mq = matchMedia('(min-width: 1024px)');
-    let pin = null, cw = 300, sp = 336, R0 = 900, L = 0, off = 0, lane0 = 600, active = -1, on = false;
+    let laneF = 400, pin = null, cw = 300, sp = 336, R0 = 900, L = 0, off = 0, lane0 = 600, active = -1, on = false;
     const measure = () => {
-      cw = Math.round(Math.max(250, Math.min(340, innerWidth * 0.2)));
-      sp = cw * 1.12; L = sp * N; R0 = L / (2 * Math.PI);
+      cw = Math.round(Math.max(250, Math.min(330, innerWidth * 0.19, innerHeight - 520)));
+      sp = cw * 1.26; L = sp * N; laneF = Math.max(190 + cw * 0.55, Math.min(innerHeight * 0.47, innerHeight - 300 - cw * 0.58)); R0 = L / (2 * Math.PI);
       cards.forEach((c) => c.style.setProperty('--cw', cw + 'px'));
       const cp = $('.hx__copy'), ct = $('.hx__ctas'); lane0 = cp.offsetTop + ct.offsetTop + ct.offsetHeight + 46 + cw * 0.45;
     };
@@ -308,7 +313,7 @@
       if (sky) sky.style.opacity = (1 - clamp(sk / 0.55)).toFixed(3);
       if (haze) haze.style.opacity = (1 - clamp(sk / 0.12)).toFixed(3);
       off += (dt || 16) / 1000 * 26 * (1 - a);
-      const railY0 = mix(lane0, vh * 0.5, a) - after;
+      const railY0 = mix(lane0, laneF, a) - after;
       el.style.perspectiveOrigin = `50% ${railY0.toFixed(1)}px`;
       const total = off + p * sp * (U - 1) + sp * 0.5 * clamp(p * 4);
       const pf = clamp(p * 12);
@@ -321,10 +326,10 @@
         const k = mix(1 / R0, 0, ai), d = mix(0.45 * R0, 0, ai);
         const th = s * k, x = k ? Math.sin(th) / k : s, z0 = -d + (k ? (1 - Math.cos(th)) / k : 0);
         const vis = k > 1e-6 ? Math.abs(th) < 1.7 : Math.abs(x) < vw * 0.62 + cw;
-        const yy = mix(lane0, vh * 0.5, ai) - after + wv * 70 * (0.35 + dist);
+        const yy = mix(lane0, laneF, ai) - after + wv * 70 * (0.35 + dist);
         let f = pf * Math.max(0, 1 - Math.abs(x) / (sp * 0.95));
         if (f > best) { best = f; bi = i % U; }
-        const z = z0 + 140 * f + wv * 60, scl = mix(1, 0.92, ai) * (1 + 0.22 * f);
+        const z = z0 + 60 * f + wv * 60, scl = mix(1, 0.92, ai) * (1 + 0.1 * f);
         const rx = wv * 16 * (0.4 + dist), rz = wv * 7 * sg * dist;
         const op = vis ? railIn.v * visMul * mix(1, 0.4 + 0.6 * Math.min(1, f * 1.6), pf) : 0;
         c.style.opacity = op.toFixed(3);
