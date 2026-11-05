@@ -883,3 +883,37 @@ html.az-lite .cd-spot__ring{animation:none;opacity:.5}
   .tm__founder{right:12px;left:12px;bottom:12px;max-width:none}
   .az-home .tm-row__bio p{padding-left:0}
 }
+
+/* ---------- TESTIMONIALS ---------- */
+.ts{position:relative;padding:clamp(5rem,9vw,7rem) 0 clamp(4rem,7vw,6rem);background:#F7F9FB;color:var(--hx-ink);overflow:hidden}
+.ts__top{text-align:center}
+.ts__stage{position:relative;max-width:980px;margin:1.6rem auto 0;min-height:clamp(220px,24vw,300px)}
+.ts__mark{position:absolute;left:50%;top:-.35em;transform:translateX(-50%);font-size:clamp(9rem,16vw,14rem);line-height:1;font-weight:600;color:rgba(79,138,63,.1);pointer-events:none}
+.az-home .ts__q{position:relative;font-weight:500;font-size:clamp(1.5rem,2.6vw,2.4rem);line-height:1.28;letter-spacing:-.03em;color:#14201A}
+.ts__q .ts-w{display:inline-block}
+.ts__who{margin-top:1.6rem;display:flex;justify-content:center;align-items:center;gap:.7rem;font-size:.9rem}
+.ts__who b{font-weight:600}
+.ts__who span{padding:.3rem .7rem;border-radius:999px;background:#EAF2EC;color:#2E4A33;font-size:.76rem;font-weight:500}
+.ts__pick{display:flex;justify-content:center;flex-wrap:wrap;gap:.6rem;margin-top:2.4rem}
+.ts__pick button{display:flex;align-items:center;gap:.6rem;padding:.4rem .9rem .4rem .4rem;border-radius:999px;background:#fff;box-shadow:0 12px 26px -20px rgba(20,40,30,.5),inset 0 0 0 1px rgba(26,35,30,.06);transition:box-shadow .4s,transform .4s var(--az-out)}
+.ts__pick button:hover{transform:translateY(-2px)}
+.ts__av{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#EAF2EC;color:#2E4A33;font-size:.7rem;font-weight:700;transition:background .4s,color .4s}
+.ts__pn{display:flex;flex-direction:column;gap:.35rem;font-size:.8rem;font-weight:500;color:#8A948E;text-align:left;transition:color .4s}
+.ts__pn i{display:block;width:88px;height:2px;border-radius:2px;background:rgba(26,35,30,.1);overflow:hidden}
+.ts__pn i b{display:block;height:100%;width:100%;background:var(--hx-green);transform:scaleX(0);transform-origin:left}
+.ts__pick button[aria-selected="true"] .ts__av{background:var(--hx-green);color:#fff}
+.ts__pick button[aria-selected="true"] .ts__pn{color:#14201A}
+.ts__rows{margin-top:clamp(3.5rem,6vw,5rem);display:flex;flex-direction:column;gap:1rem;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.ts__row{overflow:hidden}
+.ts__track{display:flex;gap:1rem;width:max-content;animation:tsMarq 60s linear infinite}
+.ts__row--r .ts__track{animation-direction:reverse;animation-duration:70s}
+.ts__rows:hover .ts__track{animation-play-state:paused}
+@keyframes tsMarq{to{transform:translateX(-50%)}}
+html.az-lite .ts__track,html.az-rm .ts__track{animation:none}
+.ts-card{flex:none;width:360px;margin:0;padding:1.2rem 1.3rem;border-radius:22px;background:#fff;box-shadow:0 18px 36px -28px rgba(20,40,60,.45)}
+.ts-card blockquote{font-size:.84rem;line-height:1.55;color:#4B5650;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ts-card figcaption{display:flex;align-items:center;gap:.55rem;margin-top:1rem;font-size:.8rem}
+.ts-card figcaption span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--hx-green);color:#fff;font-size:.62rem;font-weight:700}
+.ts-card figcaption b{font-weight:600}
+.ts-card figcaption small{margin-left:auto;font-size:.7rem;color:#8A948E}
+@media (max-width:700px){.ts__pn i{width:56px}.ts-card{width:280px}.ts__pick button{padding-right:.7rem}}

@@ -152,28 +152,35 @@
     const yc = $('[data-tm-count]'); if (yc) { const o = { v: 0 }; yc.textContent = '0'; g.to(o, { v: 24, duration: 1.8, ease: 'power3.out', scrollTrigger: { trigger: '.tm', start: 'top 55%', once: true }, onUpdate: () => { yc.textContent = Math.round(o.v); } }); }
   }
 
-  /* ---------- testimonials ---------- */
-  const qs = $$('.az-quote'), qCount = $('[data-az-qcount]');
-  let qi = 0, qTimer = null, qVisible = false;
-  function showQ(n) {
-    const prev = qs[qi]; qi = (n + qs.length) % qs.length; const cur = qs[qi];
-    qCount.textContent = String(qi + 1).padStart(2, '0') + ' / ' + String(qs.length).padStart(2, '0');
-    if (prev === cur) return;
-    if (RM) { prev.classList.remove('is-on'); cur.classList.add('is-on'); return; }
-    g.to(prev, { autoAlpha: 0, y: -24, duration: 0.5, ease: 'power2.in', onComplete: () => prev.classList.remove('is-on') });
-    cur.classList.add('is-on');
-    g.fromTo(cur, { autoAlpha: 0, y: 32 }, { autoAlpha: 1, y: 0, duration: 1, delay: 0.3, ease: OUT });
+  /* ---------- testimonials: featured quote with word reveal, auto-advancing picker ---------- */
+  {
+    const TS = $('#ts-data') ? JSON.parse($('#ts-data').textContent) : null;
+    if (TS) {
+      const qEl = $('[data-ts-q]'), nEl = $('[data-ts-n]'), tEl = $('[data-ts-t]'), btns = $$('.ts__pick button'), bars = $$('.ts__pn i b');
+      let qi = 0, vis = false, t0 = 0, DUR = 8000;
+      const render = (i, anim) => {
+        qi = i; const d = TS[i];
+        btns.forEach((b, k) => b.setAttribute('aria-selected', k === i));
+        const fill = () => { qEl.innerHTML = d.q.split(' ').map((w) => `<span class="ts-w">${w.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`).join(' '); nEl.textContent = d.n; tEl.textContent = d.t; };
+        if (!anim || RM) { fill(); return; }
+        g.timeline({ overwrite: true }).to([qEl, nEl.parentElement], { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }).add(fill)
+          .set([qEl, nEl.parentElement], { opacity: 1, y: 0 })
+          .from(() => $$('.ts-w', qEl), { opacity: 0, y: 14, ...(LITE ? {} : { filter: 'blur(6px)' }), duration: 0.6, stagger: 0.018, ease: OUT, clearProps: 'filter' })
+          .from(nEl.parentElement, { opacity: 0, y: 10, duration: 0.5, ease: OUT }, '-=0.4');
+        t0 = performance.now();
+      };
+      btns.forEach((b) => b.addEventListener('click', () => render(+b.dataset.tsI, true)));
+      render(0, false);
+      g.ticker.add(() => {
+        if (!vis || RM) return; const p = Math.min(1, (performance.now() - t0) / DUR);
+        bars.forEach((b, k) => { b.style.transform = `scaleX(${k === qi ? p : 0})`; });
+        if (p >= 1) render((qi + 1) % TS.length, true);
+      });
+      ScrollTrigger.create({ trigger: '.ts', start: 'top 70%', end: 'bottom 20%', onToggle: (s) => { vis = s.isActive; if (vis) t0 = performance.now(); } });
+      if (!RM) g.from('[data-ts-in], .ts__stage, .ts__pick', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.ts', start: 'top 70%', once: true } });
+    }
   }
-  const qPlay = () => { clearInterval(qTimer); if (!RM && qVisible) qTimer = setInterval(() => showQ(qi + 1), 7000); };
-  $('[data-az-next]').addEventListener('click', () => { showQ(qi + 1); qPlay(); });
-  $('[data-az-prev]').addEventListener('click', () => { showQ(qi - 1); qPlay(); });
-
-  /* pause loops off-screen */
-  const io = new IntersectionObserver((es) => es.forEach((e) => {
-    if (e.target.classList.contains('az-marquee')) e.target.classList.toggle('is-paused', !e.isIntersecting);
-    if (e.target.hasAttribute('data-az-quotes')) { qVisible = e.isIntersecting; qVisible ? qPlay() : clearInterval(qTimer); }
-  }));
-  const mq = $('.az-marquee'); if (mq) io.observe(mq); io.observe($('[data-az-quotes]'));
+  const mq = $('.az-marquee'); if (mq) { const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting))); io.observe(mq); }
 
 
 
