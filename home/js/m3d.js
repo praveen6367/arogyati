@@ -49,6 +49,22 @@ function run(renderer) {
   const rig = new THREE.Group(); scene.add(rig);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.14 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; rig.add(ground);
+  /* studio platform: soft glow disc, 360° tick ring and a lime arc that fills with the story */
+  const plat = new THREE.Group(); scene.add(plat);
+  const gc = d.createElement('canvas'); gc.width = gc.height = 256; const gx = gc.getContext('2d');
+  const gr = gx.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(.55, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  gx.fillStyle = gr; gx.fillRect(0, 0, 256, 256);
+  const disc = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false }));
+  disc.rotation.x = -Math.PI / 2; disc.position.y = 0.001; plat.add(disc);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x14201a, transparent: true, opacity: 0.22, depthWrite: false });
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.98, 0.985, 160), ringMat); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.002; plat.add(ring);
+  const ticks = new THREE.Group(); plat.add(ticks);
+  for (let k = 0; k < 72; k++) { const big = k % 6 === 0, tk = new THREE.Mesh(new THREE.PlaneGeometry(big ? 0.006 : 0.003, big ? 0.07 : 0.035), ringMat);
+    const a = (k / 72) * Math.PI * 2; tk.rotation.x = -Math.PI / 2; tk.rotation.z = -a; tk.position.set(Math.sin(a) * 1.04, 0.002, Math.cos(a) * 1.04); ticks.add(tk); }
+  const arcMat = new THREE.MeshBasicMaterial({ color: 0x9fd63a, transparent: true, opacity: 0.95, depthWrite: false });
+  let arc = new THREE.Mesh(new THREE.RingGeometry(0.965, 1.0, 120, 1, 0, 0.001), arcMat); arc.rotation.x = -Math.PI / 2; arc.position.y = 0.003; plat.add(arc);
+  let arcV = -1;
+  const setArc = (v) => { if (Math.abs(v - arcV) < 0.004) return; arcV = v; arc.geometry.dispose(); arc.geometry = new THREE.RingGeometry(0.965, 1.0, 120, 1, Math.PI / 2, Math.max(0.001, v * Math.PI * 2)); };
   const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 60);
 
   const intro = { v: 0 };
@@ -93,7 +109,7 @@ function run(renderer) {
 
   /* chapter UI */
   const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), line = $('.m3fx__line path'), tints = $$('.m3fx__bg i');
-  const CHIP = ['', 'Hands-on support', 'Knee &amp; cane', 'Lower back', 'Our team'];
+  const CHIP = ['', '<b>Home visits</b><span>Hospitalized &amp; bedridden patients</span>', '<b>Knee &amp; balance</b><span>Geriatrics · Post operative</span>', '<b>Lower back</b><span>Osteopathy · Class IV Laser</span>', '<b>24 years</b><span>Dr. Pranjali Dhamane · FOMT</span>'];
   let curCh = -1;
   const setCh = (k) => {
     if (k === curCh) return; curCh = k;
@@ -137,7 +153,7 @@ function run(renderer) {
     /* hero framing → chapter framing */
     const { i, u } = kf(smooth), A = K[i], B = K[i + 1];
     setCh(t < 0.98 ? 0 : (u < 0.5 ? i : i + 1));
-    rig.rotation.y = mix(-0.12, A.yaw + (B.yaw - A.yaw) * u, t) + mx * 0.22 + (RM ? 0 : Math.sin(clock.elapsedTime * 0.4) * 0.025) + (1 - intro.v) * 0.6;
+    rig.rotation.y = mix(-0.12, A.yaw + (B.yaw - A.yaw) * u, t) + Math.sin(t * Math.PI) * 0.75 + mx * 0.22 + (RM ? 0 : Math.sin(clock.elapsedTime * 0.4) * 0.025) + (1 - intro.v) * 0.6;
     rig.updateMatrixWorld();
     const T = V(PTS[A.f]).lerp(V(PTS[B.f]), u).applyMatrix4(rig.matrixWorld);
     const heroDist = ((H * 1.04) / 2 / Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2)) * (Hh / heroR);
@@ -147,6 +163,9 @@ function run(renderer) {
     cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + y, mobile ? Hh * 0.2 : 0, t), W, Hh);
     const look = new THREE.Vector3(T.x * t, mix(H * 0.5, T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
+    plat.rotation.y = rig.rotation.y; plat.visible = t > 0.02;
+    const po = clamp((t - 0.35) / 0.5); disc.material.opacity = po; ringMat.opacity = 0.22 * po; arcMat.opacity = 0.95 * po;
+    setArc(t > 0.98 ? smooth : 0);
     renderer.domElement.style.opacity = intro.v.toFixed(3);
     renderer.render(scene, cam);
 
