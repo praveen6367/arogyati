@@ -12,7 +12,7 @@ const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
 const fail = () => h.classList.add('m3-fail');
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v)), mix = (a, b, t) => a + (b - a) * t, ss = (t) => t * t * (3 - 2 * t);
 
-const PTS = { center: [0, 0.95, 0], shoulder: [-0.12, 1.42, 0.08], knee: [-0.33, 0.72, 0.11], back: [-0.2, 1.05, -0.15], steth: [0.18, 1.42, 0.15] };
+const PTS = { center: [0, 0.95, 0], shoulder: [-0.1, 1.43, 0.13], knee: [-0.33, 0.72, 0.11], back: [-0.2, 1.05, -0.15], steth: [0.18, 1.42, 0.15] };
 const K = [
   { yaw: 0, dist: 1, f: 'center', spot: null },
   { yaw: 0.45, dist: 0.5, f: 'shoulder', spot: 'shoulder' },
@@ -67,6 +67,25 @@ function run(renderer) {
   const setArc = (v) => { if (Math.abs(v - arcV) < 0.004) return; arcV = v; arc.geometry.dispose(); arc.geometry = new THREE.RingGeometry(0.965, 1.0, 120, 1, Math.PI / 2, Math.max(0.001, v * Math.PI * 2)); };
   const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 60);
 
+  /* body-part highlight: a soft thermal red → yellow bloom painted onto the skin/fabric around the chapter's point */
+  const HOT = { uHot: { value: new THREE.Vector3(0, -9, 0) }, uHotA: { value: 0 }, uHotR: { value: 0.2 }, uTime: { value: 0 } };
+  const heat = (mat) => {
+    mat.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, HOT);
+      sh.vertexShader = 'varying vec3 vHotW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvHotW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      sh.fragmentShader = 'uniform vec3 uHot; uniform float uHotA, uHotR, uTime; varying vec3 vHotW;\n' + sh.fragmentShader
+        .replace('#include <color_fragment>', `#include <color_fragment>
+          float hd = distance(vHotW, uHot) / uHotR;
+          float hg = pow(1.0 - smoothstep(0.0, 1.0, hd), 0.7) * uHotA;
+          float hw = smoothstep(0.12, 0.0, abs(fract(uTime * 0.45) - hd * 0.9)) * (1.0 - smoothstep(0.6, 1.0, hd)) * uHotA;
+          vec3 hc = mix(vec3(0.92, 0.06, 0.04), vec3(1.0, 0.82, 0.12), smoothstep(0.15, 0.95, hd));
+          diffuseColor.rgb = mix(diffuseColor.rgb, hc, clamp(hg * 0.92 + hw * 0.3, 0.0, 0.95));`)
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+          totalEmissiveRadiance += hc * (hg * 0.75 + hw * 0.5);`);
+    };
+    mat.customProgramCacheKey = () => 'heat';
+  };
+
   const intro = { v: 0 };
   let H = 1.9, ready = false;
   new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(LITE ? '/home/assets/3d/model-lite.glb' : '/home/assets/3d/model-hq.glb', (g) => {
@@ -83,7 +102,7 @@ function run(renderer) {
       });
       [p.map, p.normalMap, p.roughnessMap].forEach((t) => { if (t) t.anisotropy = aniso; });
       if (p.map) p.map.colorSpace = THREE.SRGBColorSpace;
-      o.material = p;
+      heat(p); o.material = p;
     });
     const b = new THREE.Box3().setFromObject(m), c = b.getCenter(new THREE.Vector3());
     m.position.set(-c.x, -b.min.y, -c.z); H = b.getSize(new THREE.Vector3()).y;
@@ -108,7 +127,29 @@ function run(renderer) {
   addEventListener('resize', qfit);
 
   /* chapter UI */
-  const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), line = $('.m3fx__line path'), tints = $$('.m3fx__bg i');
+  /* straight hairline connector with a gradient fade (title → body) */
+  const svg = $('.m3fx__line');
+  if (svg) svg.innerHTML = '<defs><linearGradient id="m3lg" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#14201A" stop-opacity="0"/><stop offset=".3" stop-color="#14201A" stop-opacity=".5"/><stop offset=".8" stop-color="#14201A" stop-opacity=".65"/><stop offset="1" stop-color="#14201A" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="0" x2="0" y2="0" stroke="url(#m3lg)"/>';
+  const line = svg && $('line', svg), lg = svg && $('#m3lg', svg);
+  /* motion-graphics scenery (rendered with Remotion) behind the model */
+  const bg = $('.m3fx__bg');
+  if (bg && !$('.m3fx__vid', bg)) {
+    const v = d.createElement('video'); v.className = 'm3fx__vid'; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+    v.poster = '/home/assets/3d/scenery.webp'; v.preload = LITE ? 'none' : 'auto';
+    if (!LITE && !RM) { v.autoplay = true; v.innerHTML = '<source src="/home/assets/3d/scenery.webm" type="video/webm"><source src="/home/assets/3d/scenery.mp4" type="video/mp4">'; }
+    bg.appendChild(v); if (!LITE && !RM) v.play().catch(() => {});
+  }
+  /* tabs: one sliding indicator with an in-chapter progress hairline */
+  const tabBar = $('.m3__tabs'); let ind = null, indFill = null;
+  if (tabBar) { ind = d.createElement('span'); ind.className = 'm3__ind'; ind.innerHTML = '<i></i>'; tabBar.prepend(ind); indFill = $('i', ind); }
+  const chs = $$('.m3-ch'), tabs = $$('.m3-tab'), dial = $('.m3-dial__ring'), dialN = $('[data-m3-n]'), spot = $('.m3fx__spot'), chip = $('.m3fx__chip'), tints = $$('.m3fx__bg i');
+  const placeInd = () => {
+    if (!ind) return; const tb = tabs[curCh - 1];
+    if (!tb) { ind.style.opacity = 0; return; }
+    const a = tb.getBoundingClientRect(), b = tabBar.getBoundingClientRect();
+    ind.style.opacity = 1; ind.style.width = a.width + 'px'; ind.style.transform = `translateX(${(a.left - b.left).toFixed(1)}px)`;
+  };
+  addEventListener('resize', () => requestAnimationFrame(placeInd));
   const CHIP = ['', '<b>Home visits</b><span>Hospitalized &amp; bedridden patients</span>', '<b>Knee &amp; balance</b><span>Geriatrics · Post operative</span>', '<b>Lower back</b><span>Osteopathy · Class IV Laser</span>', '<b>24 years</b><span>Dr. Pranjali Dhamane · FOMT</span>'];
   let curCh = -1;
   const setCh = (k) => {
@@ -118,6 +159,7 @@ function run(renderer) {
     tints.forEach((t, i) => { if (i > 0) t.classList.toggle('is-on', i === k); });
     if (dialN) dialN.textContent = String(Math.max(1, k)).padStart(2, '0');
     if (chip) chip.innerHTML = CHIP[k] || '';
+    placeInd();
   };
   let pin = null, prog = 0;
   if (window.ScrollTrigger) {
@@ -134,6 +176,7 @@ function run(renderer) {
 
   const V = (a) => new THREE.Vector3(a[0], a[1], a[2]), tmp = new THREE.Vector3(), clock = new THREE.Clock();
   let smooth = 0, tS = 0;
+  const SURF = {}, ray = new THREE.Raycaster();
   const N = K.length;
   const kf = (p) => { const t = p * (N - 1), i = Math.min(N - 2, Math.floor(t)), f = t - i, hold = 0.28; return { i, u: ss(clamp((f - hold) / (1 - 2 * hold))) }; };
 
@@ -171,14 +214,34 @@ function run(renderer) {
 
     /* hotspot + callout chip + connector to the chapter title */
     const sk = t >= 0.98 ? (u < 0.5 ? A.spot : B.spot) : null, fade = 1 - Math.min(1, Math.abs(u - (u < 0.5 ? 0 : 1)) * 4);
+    HOT.uTime.value = clock.elapsedTime;
+    HOT.uHotA.value += ((sk ? fade : 0) - HOT.uHotA.value) * Math.min(1, e * 1.4);
+    if (sk) {
+      /* once per spot, snap the highlight centre onto the visible surface (ray from the camera), cached in rig space */
+      if (!SURF[sk] && fade > 0.95) {
+        /* nearest surface around the anatomical point: short rays in a sphere of directions, keep the closest hit */
+        const wp = V(PTS[sk]).applyMatrix4(rig.matrixWorld); let best = null, bd = 0.25; ray.far = 0.25;
+        for (let a = 0; a < 26; a++) {
+          const th = (a / 26) * Math.PI * 2 * 3.3, z = 1 - (2 * a + 1) / 26, rr = Math.sqrt(1 - z * z);
+          ray.set(wp, tmp.set(Math.cos(th) * rr, z, Math.sin(th) * rr));
+          const hit = ray.intersectObject(rig, true).find((x) => x.object.isMesh && x.object !== ground);
+          if (hit && hit.distance < bd) { bd = hit.distance; best = hit.point.clone(); }
+        }
+        SURF[sk] = best ? rig.worldToLocal(best) : V(PTS[sk]);
+      }
+      HOT.uHot.value.copy(SURF[sk] || V(PTS[sk])).applyMatrix4(rig.matrixWorld);
+    }
+    if (indFill && curCh > 0) indFill.style.transform = `scaleX(${clamp(smooth * (N - 1) - (curCh - 1)).toFixed(3)})`;
     if (sk && spot) {
       tmp.copy(V(PTS[sk])).applyMatrix4(rig.matrixWorld).project(cam);
       const x = (tmp.x * 0.5 + 0.5) * W, yy = (-tmp.y * 0.5 + 0.5) * Hh;
       spot.style.transform = `translate(${x.toFixed(1)}px,${yy.toFixed(1)}px)`; spot.style.opacity = fade.toFixed(3);
       const ttl = $('.m3-ch.is-on .m3-ch__t');
       if (ttl && line && !mobile) {
-        const rr = ttl.getBoundingClientRect(), x2 = rr.right + 18, y2 = rr.top + rr.height / 2, mxp = (x + x2) / 2;
-        line.setAttribute('d', `M${x2} ${y2} C ${mxp} ${y2}, ${mxp} ${yy}, ${x - 12} ${yy}`); line.style.opacity = (fade * 0.7).toFixed(3);
+        const rr = ttl.getBoundingClientRect(), x1 = rr.right + 24, y1 = rr.top + rr.height * 0.55, x2 = x - 26, y2 = yy;
+        line.setAttribute('x1', x1.toFixed(1)); line.setAttribute('y1', y1.toFixed(1)); line.setAttribute('x2', x2.toFixed(1)); line.setAttribute('y2', y2.toFixed(1));
+        lg.setAttribute('x1', x1.toFixed(1)); lg.setAttribute('y1', y1.toFixed(1)); lg.setAttribute('x2', x2.toFixed(1)); lg.setAttribute('y2', y2.toFixed(1));
+        line.style.opacity = (x2 > x1 + 40 ? fade : 0).toFixed(3);
       } else if (line) line.style.opacity = 0;
     } else { if (spot) spot.style.opacity = 0; if (line) line.style.opacity = 0; }
     if (dial) dial.style.strokeDashoffset = (100 - smooth * 100).toFixed(2);
