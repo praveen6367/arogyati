@@ -1578,3 +1578,29 @@ html.m3-scene .m3fx__scene.is-on{opacity:1}
 }
 html.az-lite .m3fx__clouds{width:100%;animation:none;background-size:cover}
 @media (max-width:899px){.m3fx__scenes{height:22vh}}
+
+/* ===== 3D v11: sky through the hero hand-off, white type on the sky, light chips, white controls ===== */
+.m3fx__bg i:first-child{display:none}
+html .m3fx__clouds,html.m3-scene .m3fx__clouds{transition:none;opacity:0}
+html.m3-scene .m3fx__clouds{opacity:1!important}
+.az-home .m3-ch__k{display:none!important}
+@media (min-width:900px){
+  .m3__left{top:13vh;transform:none;width:min(560px,40vw)}
+  .m3-ch{top:0;transform:none}
+  .az-home .m3-ch__t{margin-top:0;font-size:clamp(2.6rem,4vw,4.4rem);line-height:1;color:#fff;background:none;-webkit-background-clip:border-box;background-clip:border-box;filter:none;text-shadow:0 2px 4px rgba(6,26,52,.25),0 12px 34px rgba(6,26,52,.35)}
+  .az-home .m3-ch__t em{color:#fff;background:none;-webkit-background-clip:border-box;background-clip:border-box}
+  .az-home .m3-ch__d{max-width:46ch;font-size:1rem;margin-top:1rem;padding-top:1rem}
+  .az-home .m3-ch__chips li{border:0;color:#1E3A2B;font-weight:600;text-shadow:none}
+  .az-home .m3-ch__chips li:nth-child(3n+1){background:#E3F5D2}
+  .az-home .m3-ch__chips li:nth-child(3n+2){background:#DCEBFB}
+  .az-home .m3-ch__chips li:nth-child(3n){background:#E2F3EE}
+}
+.m3-dial__track{stroke:rgba(255,255,255,.35)}
+.m3-dial__ring{stroke:#fff}
+.m3-dial__n b{color:#fff;text-shadow:0 1px 8px rgba(6,26,52,.4)}
+.m3-dial__n span{color:rgba(255,255,255,.8)}
+.az-home .m3-dial__cta{background:#fff;color:#14201A;box-shadow:0 14px 30px -14px rgba(6,26,52,.45)}
+.m3-dial__cta svg{color:#4F8A3F}
+.m3__hint{color:rgba(255,255,255,.8)}
+.m3__hint::before{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75);background:linear-gradient(#fff,#fff) no-repeat 50% 5px/2px 5px}
+@media (max-width:899px){.m3-dial__n b{color:#14201A;text-shadow:none}}

@@ -207,7 +207,7 @@ function run(renderer) {
   /* hand-drawn line scenes: each stroke draws itself on, staggered */
   const scenes = $$('.m3fx__scene');
   scenes.forEach((s) => $$('path', s).forEach((p, i) => p.style.setProperty('--dl', (i * 0.03).toFixed(3) + 's')));
-  const scBox = $('.m3fx__scenes'), land = $('.m3fx__land'); let scH = 1, lastHz = -1, lastPo = -1, lastOp = -1, lastT0 = -1, ttlRead = 0, ttlR = null;
+  const sky = $('.m3fx__clouds'), scBox = $('.m3fx__scenes'), land = $('.m3fx__land'); let scH = 1, lastHz = -1, lastPo = -1, lastOp = -1, lastT0 = -1, ttlRead = 0, ttlR = null;
   addEventListener('resize', () => { ttlRead = 40; });
   const placeInd = () => {
     if (!ind) return; const tb = tabs[curCh - 1];
@@ -258,7 +258,7 @@ function run(renderer) {
     const tRaw = clamp(y / Math.max(1, secTop)); tS += (tRaw - tS) * e; smooth += (prog - smooth) * e;
     mx += (tmx - mx) * e * 0.5; my += (tmy - my) * e * 0.5;
     const t = ss(tS);
-    const t0 = Math.round(t * 200) / 200; if (tints[0] && t0 !== lastT0) { tints[0].style.opacity = t0; lastT0 = t0; }
+    const t0 = Math.round(Math.min(1, t * 1.6) * 200) / 200; if (sky && t0 !== lastT0) { sky.style.opacity = t0; lastT0 = t0; }
     h.classList.toggle('m3-scene', t > 0.9);
 
     /* hero framing → chapter framing */
@@ -275,7 +275,7 @@ function run(renderer) {
     const look = new THREE.Vector3(T.x * t, mix(H * 0.5, T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
     const po = clamp((t - 0.35) / 0.5);
-    GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(po); MU.uA.value = po; MU.uCam.value.copy(cam.position); grass.visible = po > 0.001;
+    GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(clamp((t - 0.45) / 0.45)); MU.uA.value = ss(clamp((t - 0.12) / 0.3)); MU.uCam.value.copy(cam.position); grass.visible = po > 0.001;
     /* true horizon (eye level) on screen: the drawn panorama and the far meadow sit on it */
     cam.updateMatrixWorld(); cam.getWorldDirection(tmp); tmp.y = 0; tmp.normalize().multiplyScalar(300).add(cam.position).project(cam);
     /* compositor-only writes, and only when the value actually moves */
