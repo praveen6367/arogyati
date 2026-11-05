@@ -204,6 +204,7 @@
         });
         if (fillEl) fillEl.style.transform = `scaleX(${(f / (N - 1)).toFixed(4)})`;
         yrs.forEach((l, k) => l.classList.toggle('is-on', k <= Math.round(f)));
+        const ci = Math.round(f); $$('.hx2__bg').forEach((im, k) => im.classList.toggle('is-on', k === ci));
       };
       gm.add('(min-width: 900px)', () => {
         if (RM) { lay(N - 1); return; }
@@ -227,13 +228,13 @@
       const lens = $('.tx__lens');
       if (lens && FINE && !LITE) {
         const lx = g.quickTo(lens, 'x', { duration: 0.5, ease: 'power3' }), ly = g.quickTo(lens, 'y', { duration: 0.5, ease: 'power3' });
-        const sI = $('[data-tx-ini]'), sS = $('[data-tx-stat]'), sU = $('[data-tx-unit]'), sR = $('[data-tx-role]');
+        const sI = $('[data-tx-ini]'), sS = $('[data-tx-stat]'), sU = $('[data-tx-unit]'), sR = $('[data-tx-role]'); const sP = $('[data-tx-img]');
         const list = $('.tx__list');
         list.addEventListener('mousemove', (e) => { lx(e.clientX + 150); ly(e.clientY); });
         list.addEventListener('mouseenter', (e) => { g.set(lens, { x: e.clientX + 150, y: e.clientY }); g.to(lens, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(1.6)' }); });
         list.addEventListener('mouseleave', () => g.to(lens, { opacity: 0, scale: 0.6, duration: 0.3 }));
         rows.forEach((r) => r.addEventListener('mouseenter', () => {
-          sI.textContent = r.dataset.ini; sS.textContent = r.dataset.stat; sU.textContent = r.dataset.unit; sR.innerHTML = r.dataset.role;
+          if (sP) sP.src = r.dataset.img; sI.textContent = r.dataset.ini; sS.textContent = r.dataset.stat; sU.textContent = r.dataset.unit; sR.innerHTML = r.dataset.role;
           g.fromTo([sS, sR], { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, stagger: 0.04, ease: OUT, overwrite: true });
         }));
       }
