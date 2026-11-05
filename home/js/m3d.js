@@ -68,7 +68,7 @@ function run(renderer) {
   plat.visible = false;
   ground.position.y = 0.06; ground.material.opacity = 0.2;
   /* meadow floor: instanced grass blades with layered wind, natural colour variation, grown in as the scene arrives */
-  const GN = LITE ? 9000 : 46000, GR = LITE ? 2.2 : 3.4;
+  const GN = LITE ? 10000 : 56000, GR = LITE ? 2.6 : 4.6;
   const blade = new THREE.InstancedBufferGeometry(), bp = [], bi = [], SEG = 4;
   for (let s = 0; s < SEG; s++) { const y = s / SEG, w = Math.pow(1 - y, 0.8) * 0.5; bp.push(-w, y, 0, w, y, 0); }
   bp.push(0, 1, 0);
@@ -112,12 +112,27 @@ function run(renderer) {
       }`,
   });
   const grass = new THREE.Mesh(blade, grassMat); grass.frustumCulled = false; rig.add(grass);
-  const sc = d.createElement('canvas'); sc.width = sc.height = 256; const sx = sc.getContext('2d');
-  const sg = sx.createRadialGradient(128, 128, 0, 128, 128, 128); sg.addColorStop(0, 'rgba(58,78,34,1)'); sg.addColorStop(0.6, 'rgba(70,90,42,.85)'); sg.addColorStop(1, 'rgba(90,110,60,0)');
-  sx.fillStyle = sg; sx.fillRect(0, 0, 256, 256);
-  const soilTex = new THREE.CanvasTexture(sc); soilTex.colorSpace = THREE.SRGBColorSpace;
-  const soil = new THREE.Mesh(new THREE.PlaneGeometry(GR * 2.1, GR * 2.1), new THREE.MeshBasicMaterial({ map: soilTex, transparent: true, depthWrite: false, opacity: 0 }));
-  soil.rotation.x = -Math.PI / 2; soil.position.y = 0.0005; soil.renderOrder = -1; rig.add(soil);
+  /* meadow ground to the horizon: layered value-noise turf, aerial haze, alpha-fades into the CSS sky so the horizon is seamless */
+  const MU = { uA: { value: 0 }, uCam: { value: new THREE.Vector3() } };
+  const soil = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.ShaderMaterial({
+    uniforms: MU, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vL; varying vec3 vW; void main(){ vL = position.xy; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform float uA; uniform vec3 uCam; varying vec2 vL; varying vec3 vW;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + 1.0), f.x), f.y); }
+      void main(){
+        float d = distance(vW.xz, uCam.xz);
+        float t = n(vL * 0.5) * 0.45 + n(vL * 2.1) * 0.3 + n(vL * 8.5) * 0.25;
+        vec3 col = mix(vec3(0.05, 0.10, 0.02), vec3(0.16, 0.26, 0.045), t);
+        col = mix(col, vec3(0.30, 0.30, 0.09), smoothstep(0.55, 0.85, n(vL * 0.18 + 7.0)) * 0.45);
+        float fog = 1.0 - exp(-pow(d / 34.0, 1.6));
+        col = mix(col, vec3(0.42, 0.47, 0.30), fog * 0.75);
+        gl_FragColor = vec4(col, uA * (1.0 - smoothstep(0.45, 0.97, fog)));
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  }));
+  soil.rotation.x = -Math.PI / 2; soil.position.y = 0.0005; soil.renderOrder = -1; soil.frustumCulled = false; rig.add(soil);
   const cam = new THREE.PerspectiveCamera(26, 1, 0.05, 60);
 
   /* body-part highlight: a soft thermal red → yellow bloom painted onto the skin/fabric around the chapter's point */
@@ -264,7 +279,7 @@ function run(renderer) {
     const look = new THREE.Vector3(T.x * t, mix(H * 0.5, T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
     const po = clamp((t - 0.35) / 0.5);
-    GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(po); soil.material.opacity = po; grass.visible = po > 0.001;
+    GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(po); MU.uA.value = po; MU.uCam.value.copy(cam.position); grass.visible = po > 0.001;
     /* true horizon (eye level) on screen: the drawn panorama and the far meadow sit on it */
     cam.updateMatrixWorld(); cam.getWorldDirection(tmp); tmp.y = 0; tmp.normalize().multiplyScalar(300).add(cam.position).project(cam);
     fx.style.setProperty('--hz', ((-tmp.y * 0.5 + 0.5) * Hh).toFixed(1) + 'px'); fx.style.setProperty('--po', po.toFixed(3));
