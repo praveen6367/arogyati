@@ -1895,3 +1895,68 @@ html.az-rm .sv-card__plusic i{animation:none}
 .cd-spot.is-on .cd-spot__dot{stroke:none!important;stroke-width:0!important}
 .cd__cap{bottom:56px}
 @media (max-width:1023px){.cd__reel{width:min(240px,66vw)!important}.cd__figure{height:min(58svh,520px)!important;padding:12px 0}.cd__svg{overflow:visible;max-height:100%}}
+
+/* ===== conditions v4: area index + reel stage ===== */
+.cd3{padding:clamp(4.5rem,8vw,7rem) 0}
+.cd3 .cd__bgtint{display:none}
+.cd3__head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;flex-wrap:wrap}
+.az-home .cd3__h2{margin-top:.9rem;font-weight:500;font-size:clamp(2.4rem,4.6vw,4.4rem);line-height:.98;letter-spacing:-.055em;color:var(--hx-ink)}
+.cd3__h2 em{font-style:normal;color:var(--hx-green)}
+.az-home .cd3__lede{max-width:34ch;font-size:.98rem;line-height:1.55;color:#5E6963}
+.cd3__grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(2rem,5vw,5rem);margin-top:clamp(2.4rem,4vw,3.6rem);align-items:start}
+.cd3__list{border-top:1px solid #E1E8E3}
+.cd3-row{width:100%;display:grid;grid-template-columns:2.6rem minmax(0,9rem) 1fr 36px;align-items:center;gap:1rem;padding:1.05rem .2rem;border-bottom:1px solid #E1E8E3;text-align:left;color:#7D8781;transition:color .35s,background .35s,padding .5s var(--az-out)}
+.cd3-row__n{font-size:.66rem;font-weight:700;letter-spacing:.12em;color:#A3ACA6}
+.az-home .cd3-row__t{font-weight:500;font-size:clamp(1.25rem,1.8vw,1.7rem);letter-spacing:-.035em;color:#5E6963;transition:color .35s}
+.cd3-row__c{font-size:.84rem;color:#8A948E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd3-row__go{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px #DCE3DE;color:#14201A;opacity:0;transform:translateX(-8px);transition:opacity .35s,transform .5s var(--az-out),background .35s,color .35s}
+.cd3-row__go svg{width:13px;height:13px}
+.cd3-row.is-on{padding-left:.9rem;color:#14201A}
+.cd3-row.is-on .cd3-row__t{color:#14201A}
+.cd3-row.is-on .cd3-row__n{color:var(--hx-green)}
+.cd3-row.is-on .cd3-row__c{color:#3F4B44}
+.cd3-row.is-on .cd3-row__go{opacity:1;transform:none;background:var(--hx-green);color:#fff;box-shadow:none}
+@media (hover:hover){.cd3-row:hover .cd3-row__t{color:#14201A}}
+.cd3__stage{position:sticky;top:96px}
+.cd3__media{position:relative;margin:0;aspect-ratio:4/5;border-radius:30px;overflow:hidden;background:#1B2A1E;box-shadow:0 40px 80px -48px rgba(20,40,30,.6)}
+.cd3__media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cd3__media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,20,14,0) 50%,rgba(10,20,14,.72) 100%);pointer-events:none}
+.cd3__cap{position:absolute;left:22px;right:96px;bottom:22px;z-index:2;color:#fff;display:flex;flex-direction:column;gap:.2rem}
+.cd3__area{align-self:flex-start;margin-bottom:.45rem;padding:.3rem .7rem;border-radius:999px;background:rgba(255,255,255,.92);color:#14201A;font-size:.7rem;font-weight:700;letter-spacing:.06em}
+.cd3__cap strong{font-weight:500;font-size:1.35rem;letter-spacing:-.025em;line-height:1.1}
+.cd3__cap small{font-size:.8rem;opacity:.85}
+.cd3__map{position:absolute;right:18px;bottom:18px;z-index:2;width:58px;height:124px;padding:8px 6px;border-radius:16px;background:rgba(255,255,255,.92);overflow:visible}
+.cd3__map path{fill:#B9CDBF}
+.cd3__pin{fill:#2F7FE0;stroke:#fff;stroke-width:2.5}
+.cd3__actions{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1.1rem;flex-wrap:wrap}
+.az-home .cd3__watch{display:inline-flex;align-items:center;gap:.4rem;font-size:.84rem;font-weight:600;color:#14201A}
+.cd3__watch svg{width:13px;height:13px;color:var(--hx-green)}
+.az-home .cd3__also{margin-top:1.2rem;font-size:.8rem;line-height:1.6;color:#7D8781}
+.cd3__also b{display:block;margin-bottom:.2rem;font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#4B5650}
+@media (max-width:899px){
+  .cd3__grid{grid-template-columns:1fr;gap:1.6rem}
+  .cd3__stage{position:relative;top:0;order:-1}
+  .cd3__media{aspect-ratio:4/4.4;border-radius:22px}
+  .cd3__list{display:flex;gap:.45rem;overflow-x:auto;border:0;padding-bottom:.3rem;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+  .cd3__list::-webkit-scrollbar{display:none}
+  .cd3__list li{flex:none}
+  .cd3-row{display:block;width:auto;padding:.6rem 1rem;border:0;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px #E1E8E3}
+  .cd3-row__n,.cd3-row__c,.cd3-row__go{display:none}
+  .az-home .cd3-row__t{font-size:.9rem;letter-spacing:-.01em}
+  .cd3-row.is-on{padding-left:1rem;background:#14201A;box-shadow:none}
+  .cd3-row.is-on .cd3-row__t{color:#fff}
+  .cd3__actions .hx-pill{flex:1 1 auto;justify-content:space-between}
+}
+/* ===== technology: phone enters upright (no stretch) ===== */
+.tc__device{transform-style:preserve-3d}
+/* ===== services: breathing room ===== */
+.sv__panel{padding:clamp(1.8rem,3vw,3rem) clamp(1.4rem,3vw,3rem) clamp(1.6rem,3vw,3rem)}
+.sv__head{padding-top:clamp(2.4rem,5vh,4rem)}
+.sv__bento{padding-top:clamp(2.4rem,7vh,5rem);gap:clamp(.9rem,1.4vw,1.4rem)}
+/* ===== footer v2 ===== */
+.az-foot{padding:clamp(3rem,6vw,5rem) 0 calc(1.4rem + env(safe-area-inset-bottom,0px))}
+.az-foot__word{font-family:var(--az-sans);font-weight:600;font-size:clamp(4rem,19vw,22rem);line-height:.86;letter-spacing:-.07em;margin:clamp(1rem,3vw,2.4rem) 0 0;padding-bottom:.06em;overflow:visible;color:transparent;background:linear-gradient(180deg,#1E2B23 0%,#4F6B57 55%,rgba(79,107,87,.25) 100%);-webkit-background-clip:text;background-clip:text}
+.az-foot__word span{background:inherit;-webkit-background-clip:text;background-clip:text;color:transparent}
+.az-foot__bot{align-items:center;font-size:.82rem;line-height:1.5}
+@media (max-width:899px){.az-foot__top{grid-template-columns:1fr 1fr;gap:2rem 1rem}.az-foot__tag{grid-column:1/-1}.az-foot__bot{flex-direction:column;align-items:flex-start;gap:.5rem}}
+@media (min-width:900px){.cd3__media{aspect-ratio:auto;height:min(560px,calc(100svh - 240px))}.cd3__grid{align-items:center}}

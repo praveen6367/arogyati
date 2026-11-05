@@ -19,6 +19,7 @@
     g.ticker.lagSmoothing(0);
   }
 
+  $$('[data-year]').forEach((e) => { e.textContent = new Date().getFullYear(); });
   /* ---------- header ---------- */
   const head = $('.az-head'), burger = $('.az-burger'), menu = $('#az-menu');
   let lastY = 0, menuOpen = false;
@@ -86,75 +87,34 @@
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
 
-  /* ---------- CONDITIONS: body hotspots, live panel, drawn connector, gentle zoom, auto-tour ---------- */
+  /* ---------- CONDITIONS: area index drives one reel + a tiny body map (no scroll listeners, no loops) ---------- */
   {
-    const cd = $('.cd'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
+    const cd = $('.cd3'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
     if (cd && AR) {
-      const keys = Object.keys(AR), svg = $('.cd__svg'), link = $('.cd__link'), lp = $('path', link), lc = $('circle', link), panel = $('[data-cd-panel]');
-      const aEl = $('[data-cd-area]'), cEl = $('[data-cd-conds]');
-      const vid = $('[data-cd-vid]'), rT = $('[data-cd-rt]'), rS = $('[data-cd-rs]'), rL = $('[data-cd-rl]'), prog = $('.cd__prog em'), lkA = $('.cd__lk-a', link), lkB = $('.cd__lk-b', link), lkR = $('.cd__lk-run', link), lg = $('#cdLk', link);
-      let curV = null, runT = null;
-      const setVid = (a) => {
-        if (!vid || a.v === curV) return; curV = a.v;
-        const swap = () => { vid.poster = `/home/assets/reels/${a.v}.webp`; vid.src = `/home/assets/reels/${a.v}.mp4`; if (inView) vid.play().catch(() => {}); };
-        if (RM) swap(); else g.timeline().to(vid, { opacity: 0, scale: 1.03, duration: 0.25, ease: 'power2.in', onComplete: swap }).to(vid, { opacity: 1, scale: 1, duration: 0.6, ease: OUT });
-        rT.innerHTML = a.t; rS.innerHTML = a.s; rL.href = `https://www.instagram.com/p/${a.v}/`;
-      };
-      if (vid && prog) vid.addEventListener('timeupdate', () => { prog.style.transform = `scaleX(${vid.duration ? (vid.currentTime / vid.duration).toFixed(3) : 0})`; });
-      let cur = null, user = false, inView = false, tour = null;
-      const drawLink = () => {
-        return; const sp = $(`.cd-spot[data-area="${cur}"] .cd-spot__dot`, cd); if (!sp) return;
-        const r = cd.getBoundingClientRect(), a = sp.getBoundingClientRect(), b = panel.getBoundingClientRect();
-        const x1 = a.left + a.width / 2 - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - 10 - r.left, y2 = b.top + b.height * 0.42 - r.top;
-        const k = (x2 - x1) * 0.55;
-        lp.setAttribute('d', `M${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + k).toFixed(1)} ${y1.toFixed(1)}, ${(x2 - k).toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`);
-        lkA.setAttribute('cx', x1); lkA.setAttribute('cy', y1); lkB.setAttribute('cx', x2); lkB.setAttribute('cy', y2);
-        lg.setAttribute('x1', x1); lg.setAttribute('y1', y1); lg.setAttribute('x2', x2); lg.setAttribute('y2', y2);
-      };
-      const set = (k, anim) => {
+      const rows = $$('.cd3-row', cd), vid = $('[data-cd-vid]', cd), pin = $('.cd3__pin', cd);
+      const aEl = $('[data-cd-area]', cd), rT = $('[data-cd-rt]', cd), rS = $('[data-cd-rs]', cd), rL = $('[data-cd-rl]', cd);
+      let cur = rows[0] && rows[0].dataset.area, curV = AR[cur] && AR[cur].v, inView = false;
+      const set = (k) => {
         if (!AR[k] || k === cur) return; cur = k; const a = AR[k];
-        $$('.cd-spot', cd).forEach((s) => s.classList.toggle('is-on', s.dataset.area === k));
-        $$('.cd__areas button', cd).forEach((b) => b.setAttribute('aria-pressed', b.dataset.area === k));
-        const sp = $(`.cd-spot[data-area="${k}"] .cd-spot__dot`, cd);
-        const glow = $('.cd__glow', svg);
-        if (sp && glow) { const p = { cx: +sp.getAttribute('cx'), cy: +sp.getAttribute('cy') }; if (RM || !anim) g.set(glow, { attr: p }); else g.to(glow, { attr: p, duration: 1.1, ease: 'power3.inOut', overwrite: true }); }
-        setVid(a);
-        const fill = () => { aEl.textContent = a.n; cEl.textContent = ''; a.c.forEach((c) => { const li = d.createElement('li'); li.textContent = c; cEl.appendChild(li); }); };
-        if (anim && !RM) {
-          g.timeline({ overwrite: true }).to([aEl, cEl], { y: -14, opacity: 0, duration: 0.22, ease: 'power2.in' }).add(fill)
-            .fromTo(aEl, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: OUT })
-            .fromTo(cEl, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: OUT }, '-=0.4');
-          if (lp.getTotalLength) setTimeout(() => {
-            drawLink(); const L = lp.getTotalLength(); g.set(lp, { strokeDasharray: L });
-            g.fromTo(lp, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 1.1, ease: 'power3.inOut' });
-            g.fromTo(lkB, { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, delay: 0.85, ease: 'back.out(2.5)' });
-            if (runT) runT.kill(); const o = { t: 0 };
-            runT = g.to(o, { t: 1, duration: 2.4, delay: 1.1, repeat: -1, ease: 'power1.inOut', onUpdate: () => { const p = lp.getPointAtLength(o.t * L); lkR.setAttribute('cx', p.x); lkR.setAttribute('cy', p.y); lkR.style.opacity = Math.sin(o.t * Math.PI).toFixed(2); } });
-          }, 260);
-        } else { fill(); setTimeout(drawLink, 50); }
+        rows.forEach((r) => { const on = r.dataset.area === k; r.classList.toggle('is-on', on); r.setAttribute('aria-selected', on); });
+        if (pin) { if (RM) g.set(pin, { attr: { cx: a.x, cy: a.y } }); else g.to(pin, { attr: { cx: a.x, cy: a.y }, duration: 0.7, ease: 'power3.inOut', overwrite: true }); }
+        const txt = () => { aEl.textContent = a.n; rT.innerHTML = a.t; rS.innerHTML = a.s; rL.href = `https://www.instagram.com/p/${a.v}/`; };
+        if (RM) txt(); else g.timeline({ overwrite: true }).to([aEl, rT, rS], { y: -8, opacity: 0, duration: 0.18, ease: 'power2.in' }).add(txt).to([aEl, rT, rS], { y: 0, opacity: 1, duration: 0.45, stagger: 0.04, ease: OUT });
+        if (a.v !== curV) {
+          curV = a.v;
+          const swap = () => { vid.poster = `/home/assets/reels/${a.v}.webp`; vid.src = `/home/assets/reels/${a.v}.mp4`; if (inView) vid.play().catch(() => {}); };
+          if (RM) swap(); else g.timeline().to(vid, { opacity: 0, duration: 0.2, onComplete: swap }).to(vid, { opacity: 1, duration: 0.5, delay: 0.1 });
+        }
       };
-      const stopTour = () => { user = true; clearInterval(tour); };
-      $$('.cd-spot', cd).forEach((s) => {
-        s.addEventListener('click', () => { stopTour(); set(s.dataset.area, true); });
-        s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stopTour(); set(s.dataset.area, true); } });
-        if (FINE) s.addEventListener('mouseenter', () => { stopTour(); set(s.dataset.area, true); });
-      });
-      $$('.cd__areas button', cd).forEach((b) => { b.addEventListener('click', () => { stopTour(); set(b.dataset.area, true); }); if (FINE) b.addEventListener('mouseenter', () => { stopTour(); set(b.dataset.area, true); }); });
-      set('neck', false);
-      addEventListener('resize', drawLink); addEventListener('scroll', () => { if (inView) drawLink(); }, { passive: true });
-      ScrollTrigger.create({ trigger: cd, start: 'top 70%', end: 'bottom 30%', onToggle: (s) => {
-        inView = s.isActive; clearInterval(tour);
-        if (vid) { if (inView) vid.play().catch(() => {}); else vid.pause(); }
-        if (runT) runT.paused(!inView);
-        if (inView && !user && !RM) tour = setInterval(() => { const i = (keys.indexOf(cur) + 1) % keys.length; set(keys[i], true); }, 6500);
+      rows.forEach((r) => { r.addEventListener('click', () => set(r.dataset.area)); if (FINE) r.addEventListener('mouseenter', () => set(r.dataset.area)); });
+      ScrollTrigger.create({ trigger: cd, start: 'top 85%', end: 'bottom 15%', onToggle: (s) => {
+        inView = s.isActive;
+        if (inView) { if (!vid.src) vid.src = `/home/assets/reels/${curV}.mp4`; vid.play().catch(() => {}); } else vid.pause();
       } });
       if (!RM) {
-        g.from('[data-cd-in]', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 75%', once: true } });
-        const edge = $('.cd__edge'); if (edge) { const L = edge.getTotalLength(); g.fromTo(edge, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut', scrollTrigger: { trigger: cd, start: 'top 70%', once: true } }); }
-        g.from('.cd__body', { opacity: 0, duration: 1.4, ease: 'power2.out', scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
-        g.from('.cd-spot', { scale: 0, transformOrigin: '50% 50%', duration: 0.6, stagger: 0.06, ease: 'back.out(2.4)', scrollTrigger: { trigger: cd, start: 'top 60%', once: true } });
-        g.from('[data-cd-panel]', { x: 40, opacity: 0, duration: 1.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
-        g.to('.cd__glow', { attr: { r: 18 }, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+        g.from('.cd3__head > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 78%', once: true } });
+        g.from('.cd3-row', { y: 20, opacity: 0, duration: 0.7, stagger: 0.05, ease: OUT, scrollTrigger: { trigger: '.cd3__list', start: 'top 85%', once: true } });
+        g.from('.cd3__media', { clipPath: 'inset(10% 10% 10% 10% round 40px)', duration: 1.2, ease: OUT, scrollTrigger: { trigger: '.cd3__stage', start: 'top 80%', once: true } });
       }
     }
   }
@@ -563,8 +523,8 @@
           const pwPx = () => Math.min(390, innerWidth * 0.26, (innerHeight - 130) / 2.06), phH = () => pwPx() * 2.06;
           const wide = () => Math.min(innerWidth - 48, 1400);
           const morph = g.timeline({ scrollTrigger: { trigger: tcS, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
-          morph.fromTo(dev, { width: wide, height: () => innerHeight * 0.74, borderRadius: 34, rotateY: 0 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, rotateY: TILT[0], ease: 'power2.inOut', duration: 1 }, 0)
-            .fromTo('.tc__screens', { borderRadius: 30 }, { borderRadius: () => pwPx() * 0.135, duration: 1 }, 0)
+          morph.fromTo(dev, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, rotateY: 0, rotateX: 18, scale: 0.86 }, { width: pwPx, height: phH, borderRadius: () => pwPx() * 0.17, rotateY: TILT[0], rotateX: 0, scale: 1, ease: 'power2.out', duration: 1 }, 0)
+            .set('.tc__screens', { borderRadius: () => pwPx() * 0.135 }, 0)
             /* hand-off from Services: the services panel recedes, this panel opens from an inset frame, the device rises in */
             .fromTo('.tc__tints', { clipPath: 'inset(9% 5% 0% 5% round 56px)' }, { clipPath: 'inset(0% 0% 0% 0% round 34px)', ease: 'power2.out', duration: 0.8 }, 0)
             .fromTo(dev, { opacity: 0, y: 120 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.5 }, 0.05)
