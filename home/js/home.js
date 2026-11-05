@@ -188,32 +188,38 @@
   /* ===================== GLASS PASS motion ===================== */
   {
     const gm = g.matchMedia();
-    /* HISTORY glass deck: front pane drops away, next steps forward */
-    const panes = $$('[data-hx2-pane]');
-    if (panes.length) {
-      const N = panes.length, fillEl = $('[data-hx2-fill]'), yrs = $$('[data-hx2-y]');
-      const lay = (f) => {
-        panes.forEach((p, i) => {
-          const d = i - f, ad = Math.abs(d);
-          let y, sc, op;
-          if (d >= 0) { y = -d * 11; sc = 1 - d * 0.08; op = d > 2.2 ? 0 : 1 - d * 0.42; }
-          else { y = -d * 120; sc = 1 - d * 0.05; op = Math.max(0, 1 + d * 2.4); }
-          p.style.transform = `translate3d(0,${y.toFixed(1)}%,0) scale(${sc.toFixed(4)}) rotateX(${(d > 0 ? Math.min(d, 2) * 4 : d * -12).toFixed(2)}deg)`;
-          p.style.opacity = op.toFixed(3); p.style.zIndex = String(100 - Math.round(d * 10));
-          p.style.visibility = op <= 0.01 ? 'hidden' : '';
-        });
-        if (fillEl) fillEl.style.transform = `scaleX(${(f / (N - 1)).toFixed(4)})`;
-        yrs.forEach((l, k) => l.classList.toggle('is-on', k <= Math.round(f)));
-        const ci = Math.round(f); $$('.hx2__bg').forEach((im, k) => im.classList.toggle('is-on', k === ci));
+    /* HISTORY platinum year: counter rolls 2007 → 2024; info card + background follow the milestone */
+    if ($('[data-hx3-year]')) {
+      const HD = JSON.parse($('#hx3-data').textContent), Y = HD.map((x) => +x.y), N = HD.length;
+      const yEl = $('[data-hx3-year]'), fillEl = $('[data-hx2-fill]'), yrs = $$('[data-hx2-y]'), wins = $$('.hx3__win img'), bgs = $$('.hx2__bg');
+      const nN = $('[data-hx3-name]'), nNo = $('[data-hx3-no]'), nI = $('[data-hx3-ic]'), info = $('[data-hx3-info]');
+      let cur = -1;
+      const setM = (k) => {
+        if (k === cur) return; cur = k; const d = HD[k];
+        wins.forEach((w, i) => w.classList.toggle('is-on', i === k)); bgs.forEach((w, i) => w.classList.toggle('is-on', i === k));
+        yrs.forEach((l, i) => l.classList.toggle('is-on', i <= k));
+        g.timeline({ overwrite: true }).to([nN, nNo, nI], { y: -10, opacity: 0, duration: 0.2 }).add(() => { nN.textContent = d.t; nNo.textContent = String(k + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0'); nI.innerHTML = d.ic; })
+          .to([nN, nNo, nI], { y: 0, opacity: 1, duration: 0.45, stagger: 0.04, ease: OUT });
+        if (!RM) g.fromTo(info, { scale: 0.97 }, { scale: 1, duration: 0.6, ease: 'back.out(2)' });
+      };
+      const lay = (p) => {
+        const yr = Math.round(Y[0] + (Y[N - 1] - Y[0]) * p); yEl.textContent = yr;
+        let k = 0; for (let i = 0; i < N; i++) if (yr >= Y[i]) k = i;
+        setM(k);
+        if (fillEl) fillEl.style.transform = `scaleX(${p.toFixed(4)})`;
       };
       gm.add('(min-width: 900px)', () => {
-        if (RM) { lay(N - 1); return; }
+        if (RM) { lay(1); return; }
         lay(0);
-        const st = ScrollTrigger.create({ trigger: '.hx2', start: 'top top', end: '+=' + (N * 70) + '%', pin: '.hx2__stage', scrub: 1, onUpdate: (s) => lay(s.progress * (N - 1)) });
-        g.from('.hx2__head > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.hx2', start: 'top 70%', once: true } });
-        return () => { st.kill(); panes.forEach((p) => { p.style.cssText = ''; }); };
+        const st = ScrollTrigger.create({ trigger: '.hx2', start: 'top top', end: '+=220%', pin: '.hx2__stage', scrub: 0.6, onUpdate: (s) => lay(s.progress) });
+        g.from('.hx2__head > *, .hx3__year, .hx3__info', { y: 40, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.hx2', start: 'top 70%', once: true } });
+        return () => st.kill();
       });
-      gm.add('(max-width: 899px)', () => { if (!RM) g.from(panes, { y: 50, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.hx2__deck', start: 'top 85%', once: true } }); });
+      gm.add('(max-width: 899px)', () => {
+        lay(0);
+        const st = ScrollTrigger.create({ trigger: '.hx2', start: 'top 70%', end: 'bottom 40%', scrub: true, onUpdate: (s) => lay(s.progress) });
+        return () => st.kill();
+      });
     }
     /* TEAM people index: masked name reveals, glass lens follows the cursor */
     const rows = $$('[data-tx-row]');
@@ -239,18 +245,37 @@
         }));
       }
     }
-    /* REVIEWS stacking: earlier cards shrink and dim as the next slides over */
-    const cards = $$('[data-sx-card]');
-    if (cards.length) {
-      const cnt = $('[data-sx-i]');
-      cards.forEach((c, i) => {
-        const b = $('.rs-meter b', c);
-        ScrollTrigger.create({ trigger: c, start: 'top 60%', onEnter: () => { cnt.textContent = String(i + 1).padStart(2, '0'); if (b) g.to(b, { scaleX: 1, duration: 1.6, ease: 'power2.inOut' }); }, onLeaveBack: () => { cnt.textContent = String(Math.max(1, i)).padStart(2, '0'); } });
-        if (RM || i === cards.length - 1) return;
-        g.to(c, { scale: 0.9, opacity: 0.45, ease: 'none', scrollTrigger: { trigger: cards[i + 1], start: 'top bottom', end: 'top 30%', scrub: true } });
+    /* REVIEWS stagger (21st.dev Stagger Testimonials pattern, rebuilt in vanilla) */
+    if ($('[data-st-stage]')) {
+      const stage = $('[data-st-stage]'); let list = $$('[data-st-card]', stage);
+      const lay = () => {
+        const n = list.length, mid = Math.floor(n / 2), cs = list[0].offsetWidth, sp = Math.min(cs * 0.92, innerWidth * 0.26);
+        list.forEach((c, i) => {
+          const pos = i - mid, ctr = pos === 0;
+          c.classList.toggle('is-center', ctr); c.style.zIndex = String(10 - Math.abs(pos));
+          c.style.opacity = Math.abs(pos) > 3 ? 0 : 1;
+          c.style.transform = `translate(-50%,-50%) translateX(${sp * pos}px) translateY(${ctr ? -50 : pos % 2 ? 18 : -18}px) rotate(${ctr ? 0 : pos % 2 ? 2.5 : -2.5}deg)`;
+          const b = $('.rs-meter b', c); if (b) b.style.transform = ctr ? 'scaleX(1)' : 'scaleX(.15)';
+        });
+      };
+      const move = (steps) => {
+        if (steps > 0) for (let s = 0; s < steps; s++) list.push(list.shift());
+        else for (let s = 0; s < -steps; s++) list.unshift(list.pop());
+        lay(); t0 = performance.now();
+      };
+      list.forEach((c) => {
+        c.addEventListener('click', () => { const i = list.indexOf(c), mid = Math.floor(list.length / 2); if (i !== mid) move(i - mid); });
+        c.addEventListener('keydown', (e) => { if (e.key === 'Enter') c.click(); });
       });
-      if (RM) $$('.sx .rs-meter b').forEach((b) => { b.style.transform = 'scaleX(1)'; });
-      if (!RM) g.from('.sx__side > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.sx', start: 'top 70%', once: true } });
+      $('[data-st-next]').addEventListener('click', () => move(1));
+      $('[data-st-prev]').addEventListener('click', () => move(-1));
+      $$('.rs-meter b', stage).forEach((b) => { b.style.transition = 'transform 1.4s cubic-bezier(.65,.05,.17,1)'; });
+      lay(); addEventListener('resize', lay);
+      let t0 = performance.now(), vis = false, hover = false;
+      stage.addEventListener('mouseenter', () => { hover = true; }); stage.addEventListener('mouseleave', () => { hover = false; t0 = performance.now(); });
+      ScrollTrigger.create({ trigger: '.st', start: 'top 70%', end: 'bottom 30%', onToggle: (s) => { vis = s.isActive; t0 = performance.now(); } });
+      if (!RM) g.ticker.add(() => { if (vis && !hover && performance.now() - t0 > 5000) move(1); });
+      if (!RM) g.from('.st__head > *, [data-st-stage], .st__nav', { y: 60, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.st', start: 'top 70%', once: true } });
     }
     /* CONTACT: marquee drifts and reacts to scroll velocity; console tilts with the mouse */
     const t1 = $('[data-cx-track]'), t2 = $('[data-cx-track2]');
