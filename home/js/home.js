@@ -103,7 +103,7 @@
       if (vid && prog) vid.addEventListener('timeupdate', () => { prog.style.transform = `scaleX(${vid.duration ? (vid.currentTime / vid.duration).toFixed(3) : 0})`; });
       let cur = null, user = false, inView = false, tour = null;
       const drawLink = () => {
-        if (!cur || innerWidth < 1024) return; const sp = $(`.cd-spot[data-area="${cur}"] .cd-spot__dot`, cd); if (!sp) return;
+        return; const sp = $(`.cd-spot[data-area="${cur}"] .cd-spot__dot`, cd); if (!sp) return;
         const r = cd.getBoundingClientRect(), a = sp.getBoundingClientRect(), b = panel.getBoundingClientRect();
         const x1 = a.left + a.width / 2 - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - 10 - r.left, y2 = b.top + b.height * 0.42 - r.top;
         const k = (x2 - x1) * 0.55;
@@ -116,7 +116,8 @@
         $$('.cd-spot', cd).forEach((s) => s.classList.toggle('is-on', s.dataset.area === k));
         $$('.cd__areas button', cd).forEach((b) => b.setAttribute('aria-pressed', b.dataset.area === k));
         const sp = $(`.cd-spot[data-area="${k}"] .cd-spot__dot`, cd);
-        if (sp && !RM) { const vb = svg.viewBox.baseVal, cx = +sp.getAttribute('cx'), cy = +sp.getAttribute('cy'); svg.style.transformOrigin = `${((cx - vb.x) / vb.width) * 100}% ${((cy - vb.y) / vb.height) * 100}%`; svg.style.transform = 'scale(1.12)'; }
+        const glow = $('.cd__glow', svg);
+        if (sp && glow) { const p = { cx: +sp.getAttribute('cx'), cy: +sp.getAttribute('cy') }; if (RM || !anim) g.set(glow, { attr: p }); else g.to(glow, { attr: p, duration: 1.1, ease: 'power3.inOut', overwrite: true }); }
         setVid(a);
         const fill = () => { aEl.textContent = a.n; cEl.textContent = ''; a.c.forEach((c) => { const li = d.createElement('li'); li.textContent = c; cEl.appendChild(li); }); };
         if (anim && !RM) {
@@ -153,7 +154,7 @@
         g.from('.cd__body', { opacity: 0, duration: 1.4, ease: 'power2.out', scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
         g.from('.cd-spot', { scale: 0, transformOrigin: '50% 50%', duration: 0.6, stagger: 0.06, ease: 'back.out(2.4)', scrollTrigger: { trigger: cd, start: 'top 60%', once: true } });
         g.from('[data-cd-panel]', { x: 40, opacity: 0, duration: 1.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 65%', once: true } });
-        g.from('.cd__aura i', { scale: 0.6, opacity: 0, duration: 1.6, stagger: 0.15, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 70%', once: true } });
+        g.to('.cd__glow', { attr: { r: 18 }, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
       }
     }
   }
