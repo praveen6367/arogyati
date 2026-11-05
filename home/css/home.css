@@ -1044,3 +1044,54 @@ html.az-lite .tq-card__in{transition:none}html.az-lite .tq-card__back{transform:
 .az-foot__word{background:none;-webkit-text-fill-color:currentColor}
 .az-foot__word span{background:linear-gradient(180deg,#14201A 0%,rgba(20,32,26,.14) 95%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .az-foot__word{font-size:17.5vw;margin:0}
+
+/* ===== PANEL PASS: History / Conditions / Technology share the rounded-panel language ===== */
+/* History — deep green panel */
+.hi{background:#F7F9FB}
+.hi__stage{isolation:isolate;color:#fff}
+.hi__stage::before{content:"";position:absolute;inset:12px clamp(10px,1.2vw,18px);border-radius:34px;z-index:-1;background:radial-gradient(70% 60% at 50% 45%,#1E4430 0%,#11281C 55%,#0B1D14 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.hi__stage::after{content:"";position:absolute;inset:12px clamp(10px,1.2vw,18px);border-radius:34px;z-index:-1;pointer-events:none;background:radial-gradient(40% 35% at 18% 20%,rgba(182,242,60,.10),transparent 70%),radial-gradient(35% 30% at 85% 80%,rgba(111,155,208,.12),transparent 70%)}
+.hi .rx__label{color:rgba(255,255,255,.6)}
+.hi__h2 span{color:rgba(255,255,255,.45)}
+.az-home .hi__note{color:rgba(255,255,255,.7)}
+.hi__year span{font-size:clamp(7rem,19vw,17rem);background:linear-gradient(180deg,#FFFFFF 25%,rgba(255,255,255,.12));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hi__line{background:rgba(255,255,255,.14)}
+.hi__line i{background:#B6F23C;box-shadow:0 0 12px rgba(182,242,60,.6)}
+.hi-m{color:rgba(255,255,255,.4)}
+.hi-m__dot{background:#11281C;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+.hi-m__ic{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.hi-m.is-on{color:#fff}
+.hi-m.is-on .hi-m__dot{background:#B6F23C;box-shadow:0 0 0 6px rgba(182,242,60,.18)}
+.hi-m.is-on .hi-m__ic{background:#B6F23C;color:#0F2219}
+.hi__ph{border:0;padding:0;margin-top:1.4rem;font-size:.68rem;color:rgba(255,255,255,.4)}
+.hi__head,.hi__track{padding-left:clamp(1rem,2vw,1.6rem);padding-right:clamp(1rem,2vw,1.6rem)}
+@media (max-width:899px){
+  .hi__stage::before,.hi__stage::after{inset:0 10px;border-radius:24px}
+  .hi__stage{padding:4rem 0 3rem}
+  .hi-m{border-bottom-color:rgba(255,255,255,.1);color:#fff}
+  .hi-m__ic{background:#B6F23C;color:#0F2219}
+  .hi-m b{color:#B6F23C}
+}
+/* Conditions — mint panel, solid figure, pill grid */
+.cd{background:#F7F9FB;padding:clamp(1.5rem,3vw,2.5rem) clamp(10px,1.2vw,18px)}
+.cd__bgtint{inset:clamp(1.5rem,3vw,2.5rem) clamp(10px,1.2vw,18px);border-radius:34px;background:radial-gradient(55% 65% at 50% 55%,#FFFFFF 0%,#E8F2EA 55%,#D6E8DC 100%)}
+.cd__grid{padding-top:clamp(3rem,6vw,4.5rem);padding-bottom:clamp(3rem,6vw,4.5rem)}
+.cd__areas{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:.45rem;max-width:none}
+.cd__areas button{padding:.55rem .95rem;border:0;border-radius:999px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 1px rgba(26,35,30,.08);font-size:.86rem;color:#4B5650;gap:.5rem}
+.cd__areas button[aria-pressed="true"]{padding-left:.95rem;background:#14201A;color:#fff}
+.cd__areas button[aria-pressed="true"] small{color:#B6F23C}
+.cd__edge{opacity:.0}
+.cd__spine{display:none}
+.cd__body{filter:drop-shadow(0 18px 30px rgba(40,80,60,.25))}
+.cd-spot__dot{fill:#fff;stroke:#4F8A3F;stroke-width:1.1}
+.cd-spot__ring{fill:rgba(255,255,255,.55)}
+.cd-spot.is-on .cd-spot__dot{fill:#B6F23C;stroke:#14201A}
+.cd-spot.is-on .cd-spot__ring{fill:rgba(182,242,60,.45)}
+.cd__aura i{border-color:rgba(79,138,63,.18)}
+@media (max-width:1023px){.cd__bgtint{border-radius:24px}.cd__grid{padding-left:1.2rem;padding-right:1.2rem}.cd__areas{display:flex}}
+/* Technology — mood inside a rounded panel, no watermark, no overlap */
+.tc__word{display:none}
+.tc__tints{inset:12px clamp(10px,1.2vw,18px);border-radius:34px;overflow:hidden}
+.tc__right{align-self:end;margin-bottom:9svh}
+.tc-call--a{top:10%}
+@media (max-width:1023px){.tc__tints{inset:0 10px;border-radius:24px}}
