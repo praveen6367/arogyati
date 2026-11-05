@@ -20,7 +20,7 @@
 <link rel="preload" href="/home/assets/fonts/InstrumentSerif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/home/assets/fonts/Jakarta.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/home/assets/img/hero-care3-1100.webp" type="image/webp" imagesrcset="/home/assets/img/hero-care3-640.webp 736w, /home/assets/img/hero-care3-1100.webp 1264w" imagesizes="(max-width:900px) 96vw, 44vw">
-<link rel="stylesheet" href="/home/css/home.css?v=88">
+<link rel="stylesheet" href="/home/css/home.css?v=90">
 <script>
 (function(d){var h=d.documentElement,c=h.classList;c.remove('az-nojs');
 var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -239,6 +239,12 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
       <span class="rx__label" data-cd-in>Conditions Treated</span>
       <h2 class="cd__h2" data-cd-in>Where does it <em>hurt?</em></h2>
       <div class="cd__areas" role="group" aria-label="Body areas" data-cd-in><button type="button" data-area="head" aria-pressed="false"><span>Head</span><small>02</small></button><button type="button" data-area="neck" aria-pressed="false"><span>Neck</span><small>01</small></button><button type="button" data-area="shoulder" aria-pressed="false"><span>Shoulder</span><small>01</small></button><button type="button" data-area="chest" aria-pressed="false"><span>Chest</span><small>02</small></button><button type="button" data-area="back" aria-pressed="false"><span>Back</span><small>02</small></button><button type="button" data-area="elbow" aria-pressed="false"><span>Elbow</span><small>01</small></button><button type="button" data-area="wrist" aria-pressed="false"><span>Wrist</span><small>01</small></button><button type="button" data-area="knee" aria-pressed="false"><span>Knee</span><small>01</small></button><button type="button" data-area="heel" aria-pressed="false"><span>Heel</span><small>01</small></button></div>
+      <div class="cd__info" aria-live="polite" data-cd-in>
+        <div class="cd__sel"><span class="cd__lab">Selected area</span><p class="cd__area" data-cd-area>Neck</p></div>
+        <ul class="cd__conds" data-cd-conds></ul>
+        <div class="cd__also"><span class="cd__lab">Also treated</span><ul><li>Geriatrics</li><li>Pediatric Cases</li><li>Ortho Cases</li><li>All Types Of Fractures</li><li>Post Operative Conditions</li><li>Neuro Conditions After Joint Replacement</li></ul></div>
+        <a class="hx-pill hx-pill--dark" href="#contact" data-az-magnetic>Book an assessment<span class="hx-pill__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+      </div>
     </div>
     <div class="cd__figure" data-cd-fig>
       <div class="cd__aura" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -253,15 +259,13 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
         <g class="cd-spot" data-area="head" tabindex="0" role="button" aria-label="Head"><circle class="cd-spot__ring" cx="103.2" cy="11" r="4.2"/><circle class="cd-spot__dot" cx="103.2" cy="11" r="2.1"/></g><g class="cd-spot" data-area="neck" tabindex="0" role="button" aria-label="Neck"><circle class="cd-spot__ring" cx="103.2" cy="27" r="4.2"/><circle class="cd-spot__dot" cx="103.2" cy="27" r="2.1"/></g><g class="cd-spot" data-area="shoulder" tabindex="0" role="button" aria-label="Shoulder"><circle class="cd-spot__ring" cx="85" cy="38" r="4.2"/><circle class="cd-spot__dot" cx="85" cy="38" r="2.1"/></g><g class="cd-spot" data-area="chest" tabindex="0" role="button" aria-label="Chest"><circle class="cd-spot__ring" cx="103.2" cy="50" r="4.2"/><circle class="cd-spot__dot" cx="103.2" cy="50" r="2.1"/></g><g class="cd-spot" data-area="back" tabindex="0" role="button" aria-label="Back"><circle class="cd-spot__ring" cx="103.2" cy="82" r="4.2"/><circle class="cd-spot__dot" cx="103.2" cy="82" r="2.1"/></g><g class="cd-spot" data-area="elbow" tabindex="0" role="button" aria-label="Elbow"><circle class="cd-spot__ring" cx="128.5" cy="76" r="4.2"/><circle class="cd-spot__dot" cx="128.5" cy="76" r="2.1"/></g><g class="cd-spot" data-area="wrist" tabindex="0" role="button" aria-label="Wrist"><circle class="cd-spot__ring" cx="133" cy="101" r="4.2"/><circle class="cd-spot__dot" cx="133" cy="101" r="2.1"/></g><g class="cd-spot" data-area="knee" tabindex="0" role="button" aria-label="Knee"><circle class="cd-spot__ring" cx="95.5" cy="152" r="4.2"/><circle class="cd-spot__dot" cx="95.5" cy="152" r="2.1"/></g><g class="cd-spot" data-area="heel" tabindex="0" role="button" aria-label="Heel"><circle class="cd-spot__ring" cx="112.5" cy="197" r="4.2"/><circle class="cd-spot__dot" cx="112.5" cy="197" r="2.1"/></g>
       </svg>
     </div>
-    <div class="cd__panel" aria-live="polite" data-cd-panel>
-      <span class="cd__lab">Selected area</span>
-      <p class="cd__area" data-cd-area>Neck</p>
-      <ul class="cd__conds" data-cd-conds></ul>
-      <a class="hx-pill hx-pill--dark" href="#contact" data-az-magnetic>Book an assessment<span class="hx-pill__ic"><svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-      <div class="cd__also"><span class="cd__lab">Also treated</span><ul><li>Geriatrics</li><li>Pediatric Cases</li><li>Ortho Cases</li><li>All Types Of Fractures</li><li>Post Operative Conditions</li><li>Neuro Conditions After Joint Replacement</li></ul></div>
-    </div>
+    <figure class="cd__reel" data-cd-panel>
+      <div class="cd__vid"><video muted loop playsinline preload="none" poster="/home/assets/reels/DXrGFTqiG3z.webp" data-cd-vid></video><i class="cd__prog"><em></em></i></div>
+      <figcaption class="cd__cap"><span class="cd__ig"><b>A</b>arogyati · Reel</span><strong data-cd-rt>Super Inductive System</strong><small data-cd-rs>Pulsed electromagnetic field</small></figcaption>
+      <a class="cd__watch" href="https://www.instagram.com/p/DXrGFTqiG3z/" target="_blank" rel="noopener" data-cd-rl>Watch the full reel <svg class="az-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+    </figure>
   </div>
-  <svg class="cd__link" aria-hidden="true"><path d=""/><circle r="4"/></svg>
+  <svg class="cd__link" aria-hidden="true"><defs><linearGradient id="cdLk" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4F8A3F"/><stop offset="1" stop-color="#6F9BD0"/></linearGradient></defs><path d=""/><circle class="cd__lk-a" r="3.2"/><circle class="cd__lk-b" r="3.2"/><circle class="cd__lk-run" r="2.4"/></svg>
 </section>
 
 <!-- HISTORY: glass deck -->
@@ -324,7 +328,7 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
 </section>
 
 <script type="application/json" id="az-areas">{"head": {"n": "Head", "c": ["Stroke", "Bell's Palsy"]}, "neck": {"n": "Neck", "c": ["Neck Pain"]}, "shoulder": {"n": "Shoulder", "c": ["Frozen Shoulder"]}, "chest": {"n": "Chest", "c": ["COPD", "Cardiopulmonary"]}, "back": {"n": "Back", "c": ["Upper Back Pain", "Lower Back Pain"]}, "elbow": {"n": "Elbow", "c": ["Tennis Elbow"]}, "wrist": {"n": "Wrist", "c": ["Wrist Drop"]}, "knee": {"n": "Knee", "c": ["Knee Pain"]}, "heel": {"n": "Heel", "c": ["Heel Pain"]}}</script>
-<script type="application/json" id="cd-areas">{"head": {"n": "Head", "c": ["Stroke", "Bell's Palsy"]}, "neck": {"n": "Neck", "c": ["Neck Pain"]}, "shoulder": {"n": "Shoulder", "c": ["Frozen Shoulder"]}, "chest": {"n": "Chest", "c": ["COPD", "Cardiopulmonary"]}, "back": {"n": "Back", "c": ["Upper Back Pain", "Lower Back Pain"]}, "elbow": {"n": "Elbow", "c": ["Tennis Elbow"]}, "wrist": {"n": "Wrist", "c": ["Wrist Drop"]}, "knee": {"n": "Knee", "c": ["Knee Pain"]}, "heel": {"n": "Heel", "c": ["Heel Pain"]}}</script>
+<script type="application/json" id="cd-areas">{"head": {"n": "Head", "c": ["Stroke", "Bell's Palsy"], "v": "DV_SDaJkwcn", "t": "TMJ pain", "s": "Lower jaw &amp; upper skull"}, "neck": {"n": "Neck", "c": ["Neck Pain"], "v": "DXrGFTqiG3z", "t": "Super Inductive System", "s": "Pulsed electromagnetic field"}, "shoulder": {"n": "Shoulder", "c": ["Frozen Shoulder"], "v": "DXrGFTqiG3z", "t": "Super Inductive System", "s": "Pulsed electromagnetic field"}, "chest": {"n": "Chest", "c": ["COPD", "Cardiopulmonary"], "v": "DdGSOu3oaw0", "t": "PCOD management", "s": "Physiotherapy approach"}, "back": {"n": "Back", "c": ["Upper Back Pain", "Lower Back Pain"], "v": "DfOezDQINUI", "t": "Advance glutes rehab", "s": "Hip &amp; lower back strength"}, "elbow": {"n": "Elbow", "c": ["Tennis Elbow"], "v": "DZg28q3IvOz", "t": "Elbow &amp; forearm", "s": "The four arm bones"}, "wrist": {"n": "Wrist", "c": ["Wrist Drop"], "v": "DY9h5PgIpXM", "t": "Sebo glove", "s": "Hand rehabilitation"}, "knee": {"n": "Knee", "c": ["Knee Pain"], "v": "DZp2v3BTPeL", "t": "Knee pain", "s": "Causes &amp; care"}, "heel": {"n": "Heel", "c": ["Heel Pain"], "v": "DfOezDQINUI", "t": "Advance glutes rehab", "s": "Lower limb strength"}}</script>
 </main>
 
 <footer class="az-foot">
@@ -349,7 +353,7 @@ try{if(sessionStorage.getItem('az-seen'))c.add('az-seen')}catch(e){}
 <script src="/home/vendor/SplitText.min.js" defer></script>
 <script src="/home/vendor/CustomEase.min.js" defer></script>
 <script src="/home/vendor/lenis.min.js" defer></script>
-<script src="/home/js/home.js?v=61" defer></script>
+<script src="/home/js/home.js?v=62" defer></script>
 <script>setTimeout(function(){if(!window.__azReady)document.documentElement.classList.remove('az-motion')},4000)</script>
 <script type="module" src="/home/js/m3d.js?v=25"></script>
 </body>

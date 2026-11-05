@@ -92,13 +92,24 @@
     if (cd && AR) {
       const keys = Object.keys(AR), svg = $('.cd__svg'), link = $('.cd__link'), lp = $('path', link), lc = $('circle', link), panel = $('[data-cd-panel]');
       const aEl = $('[data-cd-area]'), cEl = $('[data-cd-conds]');
+      const vid = $('[data-cd-vid]'), rT = $('[data-cd-rt]'), rS = $('[data-cd-rs]'), rL = $('[data-cd-rl]'), prog = $('.cd__prog em'), lkA = $('.cd__lk-a', link), lkB = $('.cd__lk-b', link), lkR = $('.cd__lk-run', link), lg = $('#cdLk', link);
+      let curV = null, runT = null;
+      const setVid = (a) => {
+        if (!vid || a.v === curV) return; curV = a.v;
+        const swap = () => { vid.poster = `/home/assets/reels/${a.v}.webp`; vid.src = `/home/assets/reels/${a.v}.mp4`; if (inView) vid.play().catch(() => {}); };
+        if (RM) swap(); else g.timeline().to(vid, { opacity: 0, scale: 1.03, duration: 0.25, ease: 'power2.in', onComplete: swap }).to(vid, { opacity: 1, scale: 1, duration: 0.6, ease: OUT });
+        rT.innerHTML = a.t; rS.innerHTML = a.s; rL.href = `https://www.instagram.com/p/${a.v}/`;
+      };
+      if (vid && prog) vid.addEventListener('timeupdate', () => { prog.style.transform = `scaleX(${vid.duration ? (vid.currentTime / vid.duration).toFixed(3) : 0})`; });
       let cur = null, user = false, inView = false, tour = null;
       const drawLink = () => {
         if (!cur || innerWidth < 1024) return; const sp = $(`.cd-spot[data-area="${cur}"] .cd-spot__dot`, cd); if (!sp) return;
         const r = cd.getBoundingClientRect(), a = sp.getBoundingClientRect(), b = panel.getBoundingClientRect();
-        const x1 = a.left + a.width / 2 - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - r.left, y2 = b.top + 70 - r.top;
-        const mx = (x1 + x2) / 2;
-        lp.setAttribute('d', `M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`); lc.setAttribute('cx', x1); lc.setAttribute('cy', y1);
+        const x1 = a.left + a.width / 2 - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - 10 - r.left, y2 = b.top + b.height * 0.42 - r.top;
+        const k = (x2 - x1) * 0.55;
+        lp.setAttribute('d', `M${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + k).toFixed(1)} ${y1.toFixed(1)}, ${(x2 - k).toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+        lkA.setAttribute('cx', x1); lkA.setAttribute('cy', y1); lkB.setAttribute('cx', x2); lkB.setAttribute('cy', y2);
+        lg.setAttribute('x1', x1); lg.setAttribute('y1', y1); lg.setAttribute('x2', x2); lg.setAttribute('y2', y2);
       };
       const set = (k, anim) => {
         if (!AR[k] || k === cur) return; cur = k; const a = AR[k];
@@ -106,12 +117,19 @@
         $$('.cd__areas button', cd).forEach((b) => b.setAttribute('aria-pressed', b.dataset.area === k));
         const sp = $(`.cd-spot[data-area="${k}"] .cd-spot__dot`, cd);
         if (sp && !RM) { const vb = svg.viewBox.baseVal, cx = +sp.getAttribute('cx'), cy = +sp.getAttribute('cy'); svg.style.transformOrigin = `${((cx - vb.x) / vb.width) * 100}% ${((cy - vb.y) / vb.height) * 100}%`; svg.style.transform = 'scale(1.12)'; }
+        setVid(a);
         const fill = () => { aEl.textContent = a.n; cEl.textContent = ''; a.c.forEach((c) => { const li = d.createElement('li'); li.textContent = c; cEl.appendChild(li); }); };
         if (anim && !RM) {
           g.timeline({ overwrite: true }).to([aEl, cEl], { y: -14, opacity: 0, duration: 0.22, ease: 'power2.in' }).add(fill)
             .fromTo(aEl, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: OUT })
             .fromTo(cEl, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: OUT }, '-=0.4');
-          if (lp.getTotalLength) setTimeout(() => { drawLink(); const L = lp.getTotalLength(); g.fromTo(lp, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.8, ease: 'power3.out' }); }, 260);
+          if (lp.getTotalLength) setTimeout(() => {
+            drawLink(); const L = lp.getTotalLength(); g.set(lp, { strokeDasharray: L });
+            g.fromTo(lp, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 1.1, ease: 'power3.inOut' });
+            g.fromTo(lkB, { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, delay: 0.85, ease: 'back.out(2.5)' });
+            if (runT) runT.kill(); const o = { t: 0 };
+            runT = g.to(o, { t: 1, duration: 2.4, delay: 1.1, repeat: -1, ease: 'power1.inOut', onUpdate: () => { const p = lp.getPointAtLength(o.t * L); lkR.setAttribute('cx', p.x); lkR.setAttribute('cy', p.y); lkR.style.opacity = Math.sin(o.t * Math.PI).toFixed(2); } });
+          }, 260);
         } else { fill(); setTimeout(drawLink, 50); }
       };
       const stopTour = () => { user = true; clearInterval(tour); };
@@ -125,7 +143,9 @@
       addEventListener('resize', drawLink); addEventListener('scroll', () => { if (inView) drawLink(); }, { passive: true });
       ScrollTrigger.create({ trigger: cd, start: 'top 70%', end: 'bottom 30%', onToggle: (s) => {
         inView = s.isActive; clearInterval(tour);
-        if (inView && !user && !RM) tour = setInterval(() => { const i = (keys.indexOf(cur) + 1) % keys.length; set(keys[i], true); }, 3200);
+        if (vid) { if (inView) vid.play().catch(() => {}); else vid.pause(); }
+        if (runT) runT.paused(!inView);
+        if (inView && !user && !RM) tour = setInterval(() => { const i = (keys.indexOf(cur) + 1) % keys.length; set(keys[i], true); }, 6500);
       } });
       if (!RM) {
         g.from('[data-cd-in]', { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 75%', once: true } });
