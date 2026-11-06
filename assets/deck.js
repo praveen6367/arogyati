@@ -95,15 +95,15 @@ add('AROGYATI', {theme: 'paper', blob: B.full, orb: O.c, photo: null, html:
   box(0, 0, 1920, `<canvas class="cvp" width="1920" height="1080" style="position:absolute;left:0;top:0;width:1920px;height:1080px"></canvas>`) +
   box(0, 0, 1920, `<div style="height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:30px">
     <div class="cover-logo">${LOGO}</div>
-    <div class="a cv-sub"><span style="color:#406CB4">REHABE</span> <span style="color:#7D8E39">SETUP</span> <span style="color:#406CB4">VISIO</span></div>
+    <div class="a cv-sub"><span style="color:#406CB4">REHAB</span> <span style="color:#7D8E39">SETUP</span> <span style="color:#406CB4">VISION</span></div>
   </div>`)});
 
 add('Why AROGYATI?', {blob: B.behindL, orb: O.d, photo: {at: P.archL, src: IMG('site-doctor.png')}, html:
   box(900, 190, 880, title('*Why* {AROGYATI?}') + `<div style="height:70px"></div>` + items([
-    ['Dr. Pranjali has {25yrs} of working experiences in clinical practice of physiotherapy.', 'award'],
+    ['Dr. Pranjali has {25yrs} of working experience in clinical practice of physiotherapy.', 'award'],
     ['{1st} big private clinic in Kolhapur.', 'building'],
     ['Working in Kolhapur with own private set up since {18yrs.}', 'clock'],
-    ['Having {advance modalities.}', 'cpu'],
+    ['Having {advanced modalities.}', 'cpu'],
   ]))});
 add('Why AROGYATI? (2)', {blob: B.behindLandL, orb: O.a, photo: {at: P.landL, src: IMG('site-team.png')}, html:
   box(900, 190, 880, title('*Why* {AROGYATI?}') + `<div style="height:70px"></div>` + items([
@@ -130,7 +130,7 @@ add('Our values', {blob: B.behindLandR, orb: O.c, photo: {at: P.landR, src: IMG(
 add('Our promise', {blob: B.wave, orb: O.d, photo: null, html:
   box(140, 380, 1640, items([
     ['We are good at {social} and {offline} promotions.', 'mega'],
-    ['And are charges to patients are {affordable.}', 'smile'],
+    ['And our charges to patients are {affordable.}', 'smile'],
     ['And we are focused to get you {results.}', 'target'],
   ], {cols: 3, size: 40, gap: '60px 80px'}))});
 
@@ -169,7 +169,7 @@ add('VISION (2)', {blob: B.behindL2, orb: O.a, photo: {at: P.archL, src: IMG('st
 add('Practice', {blob: B.orbTRs, orb: O.c, photo: null, html:
   box(140, 220, 1640, items([
     ['{Evidence-Based Practice:} Use the latest research and techniques to guide treatment.', 'flask'],
-    ['{Collaborative Care:} Work alongside other healthcare professionals for comprehensive support {WINS}', 'collab'],
+    ['{Collaborative Care:} Work alongside other healthcare professionals for comprehensive support {WINS.}', 'collab'],
     ['{Technology Integration:} Leverage advancements in technology to enhance rehabilitation methods.', 'cpu'],
     ['{Community Engagement:} Foster connections and support systems within the community to aid recovery.', 'community'],
   ], {size: 34, gap: '96px 110px'}))});
@@ -182,36 +182,6 @@ add('Scope of Collaboration', {blob: B.orbTRs, orb: O.d, photo: null, html:
   box(140, 740, 760, `<div class="a" style="font-size:66px;font-weight:700;letter-spacing:-.035em;line-height:1.08">${fmt('*Patients* {faster recovery.}')}</div>`) +
   box(1000, 650, 780, chart(780, 300))});
 
-add('CHARGES', {blob: B.orbTRs, orb: O.none, photo: null, html:
-  box(140, 150, 1640, title('{CHARGES:}') + `<div style="height:40px"></div>` + rows([
-    ['Consultation', '500', '500'], ['Physiotherapy', '500', '500'], ['Hydrotherapy', '1000', '1000'], ['Robotics', '1000', '1000'],
-    ['Matrix rhythm therapy', '1500/2000/2500', '1500/2000/2500'], ['Class 4 laser', '600', '600'], ['Super induction system', '1000', '1000'], ['Shock wave diathermy', '500', '500'],
-  ], {cols: ['IPD', 'OPD'], size: 30, vw: 360}))});
-
-const pk = (name, t, list, total) => add(name, {blob: B.circR, orb: O.e, photo: null, html:
-  box(140, 160, 900, title(t, 58) + `<div style="height:48px"></div>` + rows(list, {dots: true, size: 32, vw: 220})) +
-  box(1190, 260, 560, donut(list.map((r) => parseInt(r[1].replace(/\D/g, ''))), 560, 64,
-    `<div><div style="font-size:24px;font-weight:800;letter-spacing:.2em">TOTAL:</div><div class="cnt" data-to="${total}" style="font-size:96px;font-weight:800;letter-spacing:-.05em;line-height:1">${total}</div></div>`))});
-pk('Package 01', '{EXAMPLE PACKAGE:}<br>*PACKAGE 01: 6 DAYS*', [['Consultation', '500'], ['5 PT', '2500'], ['1 MT', '1500'], ['5 ROBOTICS', '5000'], ['1 HYDROTHERAPY', '1000'], ['2 SIS', '2000']], '12500');
-pk('Package 02', '{PACKAGE 02:} *1 MONTH*', [['Consultation', '500'], ['25 PT', '12500'], ['5 MT', '7500'], ['8 HYDRO', '8000'], ['8 SIS', '8000'], ['20 ROBOTICS', '20000']], '56500');
-
-add('OUTCOME', {blob: B.orbBR, orb: O.b, photo: null, html:
-  box(140, 160, 1640, title('{OUTCOME}') + `<div style="height:72px"></div>` + items([
-    ['Minimum a patient will pay {12000} to max {56500}', 'users'],
-    ['If we get minimum 15 patients of 1 month package and 15 of basic package we can reach our target of {8,47,500+ 1,80,000=10,27,500/month.}', 'target'],
-    ['Total investment {1.40cr}', 'building'],
-    ['In 225 bedded hospitals if we get to treat at least 30 patients/ day Min charge of each patient 12500/1 week to 56500/month', 'bed'],
-    ['Monthly turn over will be {9,00,000 to 10,00,000}', 'calendar'],
-  ], {cols: 3, size: 29, gap: '72px 80px'}))});
-add('OUTCOME (2)', {theme: 'lime', blob: B.full, orb: O.none, photo: null, html:
-  box(140, 160, 1640, title('{OUTCOME}') + `<div style="height:72px"></div>` + items([
-    ['Annual income {1cr to 1.25cr}', 'growth'],
-    ['Annual expenses15L *including staff salary, device maintenance*', 'gear'],
-    ['{AROGYATI 40%:} monthly {360000-400000}', 'pulse'],
-    ['Sum of profit to wins annually: {60L-70L}', 'star'],
-  ], {cols: 4, size: 30, gap: '40px 60px'})) +
-  box(140, 700, 1640, `<div class="a" style="display:flex;align-items:baseline;gap:40px"><span style="font-size:60px;font-weight:800;letter-spacing:-.03em">R.O.I</span><span class="num" style="font-size:150px">18 TO 24 MONTHS.</span></div>`)});
-
 const roles = (name, label, icon, list, side, withTitle) => add(name, {blob: B.hubL, orb: O.a, photo: null, html:
   (withTitle ? box(140, 150, 1640, title('{Roles and Responsibilities:}', 60)) : '') +
   box(130, 330, 430, `<div class="a" style="height:430px;display:grid;place-items:center">${tile(icon, true)}</div>`) +
@@ -219,39 +189,20 @@ const roles = (name, label, icon, list, side, withTitle) => add(name, {blob: B.h
   box(660, 330, 560, items(list.map((t) => [t]), {cols: 1, side: true, size: 30, gap: '34px'})) +
   box(1290, 330, 490, items(side, {cols: 1, side: true, size: 27, gap: '44px'}))});
 roles('Neurosurgeon', '{Neurosurgeon:}', 'brain', ['Diagnosis and Surgical Intervention', 'Post-operative Care', 'Medical Treatment Planning', 'Referrals: Importance of physio', 'Progress Monitoring'],
-  [['Promotion of physio through your marketing platform both online and offline.', 'mega'], ['Phase 01 investment', 'bolt'], ['Admin expenses management', 'gear']], true);
+  [['Promotion of physio through your marketing platform both online and offline.', 'mega'], ['Shared goal: faster and complete {patient recovery.}', 'target']], true);
 roles('Physiotherapist', '{Physiotherapist:}', 'person', ['Assessment and Evaluation', 'Rehabilitation Planning and protocol designing', 'Patient Education', 'Collaboration and Communication with patient doctor and relatives'],
   [['Admin management of physio department will be done under our system', 'gear'], ['Management and selection of physio team will be {ours.}', 'users'], ['Joint meetings can be conducted to achieve specific aim and goal of patient.', 'collab']]);
 
-const E1 = [['6 IFT+ TENS AND STIMULATOR COMBINATION DEVICE', '8LAC'], ['SPINAL DECOMPRESSION', '8LAC'], ['TILT TABLE:2', '40K'], ['STANDING FRAME: 2', '20K'], ['TREADMILL WITH ROBOTICS', '4LAC'], ['VIRTUAL REHABE', '2 LAC']];
-const E2 = [['CLASS FOUR LASER', '15LAC'], ['SUPER INDUCTIVE SYSTEM', '20LAC'], ['SH0Ck WAVE DIATHERMY', '4LAC'], ['MATRIX RHYTHM THERAPY', '5L'], ['HYDROTHERAPY', '20L'], ['SUSPENSION BED', '40K']];
+const E1 = [['6 IFT+ TENS AND STIMULATOR COMBINATION DEVICE', '8LAC'], ['SPINAL DECOMPRESSION', '8LAC'], ['TILT TABLE:2', '40K'], ['STANDING FRAME: 2', '20K'], ['TREADMILL WITH ROBOTICS', '4LAC'], ['VIRTUAL REHAB', '2 LAC']];
+const E2 = [['CLASS FOUR LASER', '15LAC'], ['SUPER INDUCTIVE SYSTEM', '20LAC'], ['SHOCK WAVE DIATHERMY', '4LAC'], ['MATRIX RHYTHM THERAPY', '5L'], ['HYDROTHERAPY', '20L'], ['SUSPENSION BED', '40K']];
 const E3 = [['MOIST HEAT', '10K'], ['BALANCE AND POSTURAL STABILITY SYSTEM', '2L'], ['SMART BALL', '60K'], ['BICYCLE: 2', '1L'], ['SMART GLOVE', '2L']];
 const E4 = [['OVERHEAD HARNESS SYSTEM', '50K'], ['PARALLEL BAR', '20K'], ['TRAMPOLINE', '5K'], ['SENSORY KIT', '1K']];
-const m1 = Math.max(...[...E1, ...E2].map((r) => amt(r[1]))), m2 = Math.max(...[...E3, ...E4].map((r) => amt(r[1])));
-add('Equipment PHASE 01', {blob: B.orbTRs, orb: O.c, photo: null, html:
-  box(140, 150, 1640, title('{Equipment\'s:} *PHASE 01:*')) + box(140, 330, 760, bars(E1, m1)) + box(1020, 330, 760, bars(E2, m1))});
-add('Equipment (2)', {blob: B.behindLandR, orb: O.d, photo: {at: P.landR, src: IMG('site-sis.png')}, html:
-  box(140, 200, 820, bars([...E3, ...E4], m2))});
-add('Basic equipments & budget', {theme: 'lime', blob: B.full, orb: O.none, photo: null, html:
-  box(140, 170, 1640, `<div class="a" style="font-size:40px;font-weight:700;letter-spacing:-.02em">${fmt('{BASIC PHYSIO EQUIPMENTS FOR ASSESMENT AND TREATMENT} *1L*')}</div><div style="height:46px"></div>` +
-    tags(['BALL', 'GONEOMETER', 'MUSCLE STRENGTH TESTER', 'STEPPER', 'PULLEYS', 'BALANCE BOARD', 'STAIR CASE', 'TOYS', 'WOODEN BLOCKS'], 30)) +
-  box(140, 640, 1640, `<div class="a" style="font-size:44px;font-weight:700;letter-spacing:-.02em">PHASE 01 BUDGET:</div>`) +
-  box(130, 710, 1640, num('1.10CR', 250))});
-
-add('INFRASTRUCTURE AND FURNITURE', {blob: B.orbTRs, orb: O.c, photo: null, html:
-  box(140, 150, 1640, title('{INFRASTRUCTURE AND FURNITURE:}', 58)) +
-  box(140, 340, 380, `<div class="a">${tile('bed')}</div><div class="a" style="margin-top:36px;font-size:40px;font-weight:700">BEDS:</div>`) + box(130, 500, 400, num('15', 240)) +
-  box(620, 340, 560, items([['FURNITURE', 'building'], ['TROLEYS', 'gear'], ['INTERIOR DESIGN: LIGHT PAINT', 'spark'], ['TABLES', 'clip'], ['FLOORING', 'wave']], {cols: 1, side: true, size: 28, gap: '26px'})) +
-  box(1260, 340, 520, `<div class="a" style="font-size:40px;font-weight:700;margin-bottom:30px">${fmt('{BASICS}')}</div>` + tags(['CURTAIN', 'COMPUTER', 'CCTV', 'PRINTER', 'CHAIRS', 'WEIGHING MACHINE', 'BIOMETRY'], 26)) +
-  box(1260, 790, 520, `<div class="a" style="display:flex;align-items:baseline;gap:26px"><span style="font-size:40px;font-weight:700">BUDGET:</span>${num('35LAK', 110)}</div>`)});
-
-add('MONTHLY MAINTAINACE', {blob: B.wave, orb: O.d, photo: null, html:
-  box(140, 150, 1640, title('{MONTHLY MAINTAINACE:}') + `<div style="height:70px"></div>` + items([['TEAM SALARY', 'users'], ['ELECTRIC BILL', 'bolt'], ['DEVICE MAINTAINANCE', 'gear'], ['ADMIN RELATED:', 'clip']], {cols: 4, size: 32})) +
-  box(140, 560, 700, `<div class="a" style="font-size:44px;font-weight:700">TOTAL:</div>`) + box(130, 620, 700, num('2LAK', 200)) + box(1000, 470, 780, chart(780, 280))});
-
+const EQ = [...E1, ...E2, ...E3, ...E4].map((r) => r[0]);
+add('Advanced modalities', {blob: B.orbTRs, orb: O.c, photo: null, html:
+  box(140, 150, 1640, title('{Advanced modalities} *we plan to bring*')) + box(140, 340, 1640, tags(EQ, 28))});
 add('PHASE 2', {blob: B.behindR, orb: O.c, photo: {at: P.archR, src: IMG('st-back.jpg')}, html:
   box(140, 170, 900, title('{PHASE 2:}') + `<div style="height:64px"></div>` + items([
-    ['Once phase 1 investment is recovered and admin management and clinical system is set by end of first year, and depending upon the patient’s recovery rate and ratio of number of patients per month we can step into {phase 2.}', 'calendar'],
+    ['Once the admin management and clinical system is set by end of first year, and depending upon the patient’s recovery rate and ratio of number of patients per month we can step into {phase 2.}', 'calendar'],
     ['Phase 2 will be focusing on reaching to {larger population,} not only neuro and ortho patients but also non-medical individual {sports fitness}', 'users'],
   ], {cols: 1, side: true, size: 29, gap: '56px'}))});
 add('PHASE 2 (2)', {blob: B.behindR2, orb: O.a, photo: {at: P.archR, src: IMG('st-dumbbell.jpg')}, html:
@@ -260,16 +211,12 @@ add('PHASE 2 (2)', {blob: B.behindR2, orb: O.a, photo: {at: P.archR, src: IMG('s
     ['We can think of collaborating few associations like geriatrics, OBG and sports.', 'collab'],
   ], {cols: 1, side: true, size: 32, gap: '64px'}))});
 
-add('Phase 2 investment', {blob: B.circR, orb: O.c, photo: null, html:
+add('Phase 2 vision', {blob: B.circR, orb: O.c, photo: null, html:
   box(140, 220, 900, items([
-    ['Regarding development in neuro we can add on more {advance modalities,} according to patient need', 'cpu'],
-    ['Investment of phase 2 will not be as phase 01.', 'growth'],
-    ['Investment can be done proportion to present day income.', 'calendar'],
+    ['Regarding development in neuro we can add on more {advanced modalities,} according to patient need', 'cpu'],
+    ['Phase 2 grows with patient needs, reaching a {larger population} through geriatric, pediatric, OBG, musculoskeletal and sports care.', 'growth'],
   ], {cols: 1, side: true, size: 32, gap: '64px'})) +
-  box(1190, 260, 560, donut([60, 40], 560, 70, `<div class="cnt" data-to="60-40" style="font-size:110px;font-weight:800;letter-spacing:-.05em">60-40</div>`))});
-add('Partnership 60-40', {theme: 'lime', blob: B.full, orb: O.none, photo: null, html:
-  box(140, 250, 1500, `<div class="a" style="font-size:58px;font-weight:600;letter-spacing:-.03em;line-height:1.22">${fmt('Arogyati is growing along with {wins,} by phase 02 Arogyati, have established a trust, good will and goal-oriented results, now we would like to know our working partnership of {60-40} *by when can we increase it?*')}</div>`)});
-
+  box(1190, 260, 560, `<div class="a" style="height:560px;display:grid;place-items:center;text-align:center;color:#06261B;font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1">Working for<br>wellness.</div>`)});
 /* ---------------- build DOM ---------------- */
 const stage = $('#stage'), wrap = $('#slides');
 $('.wm').innerHTML = MARK;
@@ -402,9 +349,9 @@ function go(n, silent) {
   $('#prog').style.width = ((n + 1) / N) * 100 + '%';
   history.replaceState(null, '', '#' + (n + 1));
   [...$('#ovg').children].forEach((c, i) => c.classList.toggle('cur', i === n));
-  if (!silent) play('whoosh', 0.32);
+  if (!silent) play('whoosh', 0.1);
   clearTimeout(go.t1); clearTimeout(go.t2); clearTimeout(go.t3);
-  if (n === 0) { go.t1 = setTimeout(() => play('swell', 0.4), 350); go.t3 = setTimeout(() => play('chime', 0.32), 2750); reveal(el); }
+  if (n === 0) { go.t1 = setTimeout(() => play('swell', 0.12), 350); go.t3 = setTimeout(() => play('chime', 0.1), 2750); reveal(el); }
 }
 const locked = () => document.body.classList.contains('intro');
 const next = () => { if (!locked()) go(cur + 1); }, prev = () => { if (!locked()) go(cur - 1); };
