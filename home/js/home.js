@@ -106,6 +106,26 @@
           if (RM) swap(); else g.timeline().to(vid, { opacity: 0, scale: 1.04, duration: 0.22, onComplete: swap }).to(vid, { opacity: 1, scale: 1, duration: 0.7, ease: OUT, delay: 0.08 });
         }
       };
+      /* lightbox: the real Instagram reel (full length, with sound), loaded only on open */
+      const lb = $('[data-cd-lb]'), lbf = $('[data-cd-lbf]');
+      const openLb = () => {
+        if (!lb) return; const a = AR[cur];
+        $('[data-cd-lba]').textContent = a.n; $('[data-cd-lbt]').innerHTML = a.t; $('[data-cd-lbs]').innerHTML = a.s; $('[data-cd-lbig]').href = `https://www.instagram.com/p/${a.v}/`;
+        lbf.innerHTML = `<video src="/home/assets/reels/${a.v}.mp4" poster="/home/assets/reels/${a.v}.webp" muted autoplay loop playsinline></video><iframe src="https://www.instagram.com/p/${a.v}/embed/" title="${a.t.replace(/<[^>]+>/g, '')}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+        const fr = $('iframe', lbf); fr.addEventListener('load', () => lbf.classList.add('is-ready'), { once: true });
+        vid.pause(); if (lenis) lenis.stop();
+        if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
+        if (!RM) g.fromTo('.cd-lb__in', { y: 40, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: OUT });
+      };
+      const closeLb = () => { if (!lb || !lb.open) return; lb.close ? lb.close() : lb.removeAttribute('open'); };
+      if (lb) {
+        lb.addEventListener('close', () => { lbf.innerHTML = ''; lbf.classList.remove('is-ready'); if (lenis) lenis.start(); if (inView) vid.play().catch(() => {}); });
+        lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
+        $('[data-cd-close]').addEventListener('click', closeLb);
+        $('[data-cd-lbbook]').addEventListener('click', closeLb);
+        $('[data-cd-open]').addEventListener('click', openLb);
+        vid.addEventListener('click', openLb);
+      }
       const io = new IntersectionObserver((es) => { if (performance.now() < hoverLock) return; es.forEach((e) => { if (e.isIntersecting) set(e.target.dataset.area); }); }, { rootMargin: '-48% 0px -48% 0px' });
       rows.forEach((r) => {
         io.observe(r);
