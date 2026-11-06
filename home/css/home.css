@@ -2015,3 +2015,27 @@ html.az-rm .sv-card__plusic i{animation:none}
 .cd4-row{padding:clamp(1.1rem,2.2vw,1.9rem) 0}
 @media (min-width:900px){.cd4__card{max-height:min(460px,56svh)}.cd4__aside{top:calc(50svh - min(230px,28svh))}}
 @media (max-width:899px){.cd4__aside{grid-row:auto}.cd4__foot{grid-column:auto}.cd4-row{padding:1rem 0}.cd4__card{aspect-ratio:16/10}}
+
+/* ===== contact v3: calmer rhythm, soft cells ===== */
+.cx2{align-items:start}
+.cx2__photo{position:sticky;top:96px}
+.cx2__body{padding-top:clamp(.5rem,2vw,1.5rem)}
+.az-home .cx2__h2{margin-top:1.2rem;font-size:clamp(2.4rem,4.2vw,4rem);line-height:1;letter-spacing:-.05em}
+.az-home .cx2__sub{margin-top:1.1rem;max-width:36ch;font-size:1.05rem;line-height:1.55}
+.cx2__btns{margin-top:2rem;gap:.7rem}
+.cx2__cells{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:clamp(2.4rem,4vw,3.2rem)}
+.cx2-cell{position:relative;display:flex;flex-direction:column;gap:.35rem;padding:1.25rem 1.3rem 1.3rem;border-radius:22px;background:#fff;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 0 0 1px #E8EDEA,0 18px 34px -30px rgba(20,40,30,.35);transition:box-shadow .4s,transform .5s var(--az-out)}
+.cx2-cell--wide{grid-column:1 / -1}
+a.cx2-cell:hover{transform:translateY(-2px);box-shadow:0 0 0 1px #D5DED8,0 24px 40px -28px rgba(20,40,30,.4)}
+.cx2-cell__ic{position:absolute;right:1.1rem;top:1.1rem;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#EEF4EF;color:var(--hx-green)}
+.cx2-cell__ic svg{width:14px;height:14px}
+.cx2-cell__lab{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#8A948E}
+.az-home .cx2-cell b{font-weight:500;font-size:1.02rem;line-height:1.45;color:#1E2A23;padding-right:2.6rem;letter-spacing:-.01em}
+.cx2-cell__go{margin-top:.35rem;font-size:.82rem;font-weight:600;color:var(--hx-green)}
+.cx2-cell .ct-days{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.7rem}
+.cx2-cell .ct-days li{width:auto;height:auto;padding:.38rem .65rem;border-radius:999px;background:#F1F5F2;color:#4B5650;font-size:.72rem;font-weight:600}
+.cx2-cell .ct-days li.off{opacity:.45;text-decoration:line-through}
+.cx2-cell .ct-days li.is-today{background:var(--hx-green);color:#fff}
+.cx2-cell__note{margin-top:.5rem;font-size:.76rem;color:#8A948E}
+@media (max-width:899px){.cx2__photo{position:relative;top:0}.cx2__cells{grid-template-columns:1fr}.cx2-cell--wide{grid-column:auto}}
+@media (max-width:899px){.cx2-cell{padding:1rem 1.1rem;border-radius:18px}.cx2__cells{gap:.6rem;margin-top:2rem}}

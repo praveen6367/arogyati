@@ -267,7 +267,7 @@
     if ($('.cx2') && !RM) {
       g.from('.cx2__photo', { clipPath: 'inset(12% 8% 12% 8% round 40px)', scale: 1.04, duration: 1.4, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 75%', once: true } });
       g.from('[data-cx-in]:not(.cx2__photo)', { y: 26, opacity: 0, duration: 1, stagger: 0.08, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 70%', once: true } });
-      g.from('[data-cx-row]', { y: 18, opacity: 0, duration: 0.8, stagger: 0.07, ease: OUT, scrollTrigger: { trigger: '.cx2__list', start: 'top 85%', once: true } });
+      g.from('[data-cx-row]', { y: 18, opacity: 0, duration: 0.8, stagger: 0.07, ease: OUT, scrollTrigger: { trigger: '.cx2__cells', start: 'top 88%', once: true } });
       g.from('.cx2__note', { y: 30, opacity: 0, duration: 1, delay: 0.5, ease: OUT, scrollTrigger: { trigger: '.cx2', start: 'top 70%', once: true } });
     }
   }
