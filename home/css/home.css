@@ -2076,3 +2076,22 @@ a.cx2-cell:hover{transform:translateY(-2px);box-shadow:0 0 0 1px #D5DED8,0 24px 
 @media (max-width:899px){.cd-lb{background:#0E1A13}.cd-lb__in{align-items:stretch;padding-top:calc(68px + env(safe-area-inset-top,0px))}.cd-lb__frame{border-radius:18px 18px 0 0}.cd-lb__side{width:100%}.cd-lb__x{top:calc(12px + env(safe-area-inset-top,0px));width:42px;height:42px}}
 .az-home .cd-lb__x{background:#fff;color:#14201A}
 .az-home .cd4__play{background:rgba(255,255,255,.94);color:#14201A}
+
+/* ===== ambient gradient drift behind the light sections (one transform-only layer each) ===== */
+.rx,.ix,.cd,.tx,.st,.cx,.az-foot,.ph,.sx,.hv,.ap,.am,.mx,.al,.fd,.wy,.mp,.tt,.pn{position:relative;isolation:isolate}
+.rx::before,.ix::before,.cd::before,.tx::before,.st::before,.cx::before,.az-foot::before,.sx::before,.hv::before,.ap::before,.am::before,.mx::before,.al::before,.fd::before,.wy::before,.mp::before,.tt::before,.pn::before{
+  content:"";position:absolute;inset:-12% -8%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(38% 46% at 12% 18%,rgba(200,229,184,.55),rgba(200,229,184,0) 70%),
+    radial-gradient(34% 42% at 88% 72%,rgba(196,218,246,.55),rgba(196,218,246,0) 70%),
+    radial-gradient(28% 36% at 62% 8%,rgba(232,244,196,.5),rgba(232,244,196,0) 70%),
+    radial-gradient(30% 38% at 30% 92%,rgba(214,236,226,.5),rgba(214,236,226,0) 70%);
+  animation:azDrift 26s ease-in-out infinite alternate;will-change:transform}
+.ix::before,.tx::before,.ap::before,.mx::before,.wy::before{animation-duration:32s;animation-direction:alternate-reverse}
+.cx::before,.st::before,.fd::before,.al::before{animation-duration:29s}
+@keyframes azDrift{0%{transform:translate3d(-3%,-2%,0) scale(1)}50%{transform:translate3d(3%,2%,0) scale(1.08)}100%{transform:translate3d(-1%,3%,0) scale(1.03)}}
+.az-foot,.cx,.rx,.ix,.cd,.tx,.st{overflow:hidden}
+.cd.cd4{overflow-x:clip;overflow-y:visible}
+html.az-rm .rx::before,html.az-rm .ix::before,html.az-rm .cd::before,html.az-rm .tx::before,html.az-rm .st::before,html.az-rm .cx::before,html.az-rm .az-foot::before,
+html.az-lite .rx::before,html.az-lite .ix::before,html.az-lite .cd::before,html.az-lite .tx::before,html.az-lite .st::before,html.az-lite .cx::before,html.az-lite .az-foot::before{animation:none}
+html.az-rm .pg [class]::before,html.az-lite .pg [class]::before{animation:none}

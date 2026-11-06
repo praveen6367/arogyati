@@ -194,3 +194,24 @@ html.az-rm .ph__h1 .ph-w>span{transform:none!important}
   .pr__grid{grid-template-columns:1fr}
   .az-home .tt__a{border-radius:22px;margin:0 var(--az-gutter);width:auto}
 }
+
+/* ambient drift on inner pages: one fixed page-wide layer (no seams between sections) */
+.pg{position:relative;isolation:isolate}
+.pg .sx::before,.pg .hv::before,.pg .ap::before,.pg .am::before,.pg .mx::before,.pg .al::before,.pg .fd::before,.pg .wy::before,.pg .mp::before,.pg .tt::before,.pg .pn::before,.pg .cx::before,.pg .st::before,.pg .tx::before,.pg .ix::before,.pg .cd::before{display:none}
+.pg::before{content:"";position:fixed;inset:-10%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(36% 44% at 10% 20%,rgba(200,229,184,.5),rgba(200,229,184,0) 70%),
+    radial-gradient(34% 42% at 90% 70%,rgba(196,218,246,.5),rgba(196,218,246,0) 70%),
+    radial-gradient(28% 36% at 60% 6%,rgba(232,244,196,.45),rgba(232,244,196,0) 70%),
+    radial-gradient(30% 38% at 28% 94%,rgba(214,236,226,.45),rgba(214,236,226,0) 70%);
+  animation:azDrift 28s ease-in-out infinite alternate;will-change:transform}
+.pg,.pg>section:not(.ph):not(.pr):not(.hi):not(.tc):not(.sv),.pg .cx,.pg .cd.cd4,.pg .tx,.pg .st,.pg .ix{background:transparent!important}
+html.az-rm .pg::before,html.az-lite .pg::before{animation:none}
+.pg .ph{background:transparent!important}
+.pg::before{background:
+    radial-gradient(34% 42% at 8% 18%,rgba(198,230,190,.42),rgba(198,230,190,0) 70%),
+    radial-gradient(34% 42% at 92% 72%,rgba(196,218,246,.5),rgba(196,218,246,0) 70%),
+    radial-gradient(26% 34% at 62% 4%,rgba(224,240,214,.3),rgba(224,240,214,0) 70%),
+    radial-gradient(30% 38% at 26% 96%,rgba(206,232,236,.4),rgba(206,232,236,0) 70%)}
+.az-home .pg{background:#F7F9FB!important}
+.az-page .az-orb{display:none}
