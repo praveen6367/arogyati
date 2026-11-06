@@ -2115,3 +2115,8 @@ body.az-home::before{background:radial-gradient(40% 48% at 6% 16%,rgba(196,230,1
 .az-home .aur--light{display:none}
 body.az-home::before{background:radial-gradient(42% 48% at 18% 24%,rgba(196,230,186,.5),rgba(196,230,186,0) 70%),radial-gradient(42% 48% at 84% 70%,rgba(192,216,248,.55),rgba(192,216,248,0) 70%),radial-gradient(32% 40% at 58% 12%,rgba(224,240,206,.4),rgba(224,240,206,0) 70%),radial-gradient(36% 44% at 30% 88%,rgba(202,232,236,.45),rgba(202,232,236,0) 70%)}
 body.az-home{background:transparent!important}
+/* seamless: the technology tint is a feathered wash, not a rounded panel; room below for the phone shadow */
+.az-home .tc__tints{inset:0!important;border-radius:0!important;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 22%,#000 78%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 22%,#000 78%,transparent 100%)}
+.az-home .tc__tints i{-webkit-mask-image:radial-gradient(120% 90% at 50% 50%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 50% 50%,#000 45%,transparent 100%)}
+.az-home .tc__stage{overflow-x:clip;overflow-y:visible}
+.az-home .hx2{background:transparent!important}
