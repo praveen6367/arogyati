@@ -258,7 +258,7 @@ function run(renderer) {
     const y = scrollY, after = pin ? Math.max(0, y - pin.end) : 0;
     const on = y >= secTop - Hh * 0.2 && after < Hh * 0.55; if (on !== h.classList.contains('m3-on')) h.classList.toggle('m3-on', on);
     /* exit: the scene drifts up slowly and dissolves into the next section (cross-fade, no hard edge) */
-    const ex = Math.min(1, after / (Hh * 0.75));
+    const ex = Math.min(1, after / (Hh * 0.38));
     if (ex >= 1) { if (fx.style.visibility !== 'hidden') fx.style.visibility = 'hidden'; return; }
     const so = ex ? Math.max(0, 1 - ex * 2.2).toFixed(3) : ''; if (stage.style.opacity !== so) stage.style.opacity = so;
     fx.style.visibility = ''; fx.style.opacity = ex ? (1 - ex * ex * (3 - 2 * ex)).toFixed(3) : ''; fx.style.transform = after ? `translate3d(0,${(-after * 0.45).toFixed(1)}px,0)` : '';
@@ -279,7 +279,7 @@ function run(renderer) {
     const kd = A.dist + (B.dist - A.dist) * u, dist = mix(heroDist, base * (mobile ? 0.7 + kd * 0.42 : kd), t);
     const hy0 = -((heroTop + heroR / 2) - Hh / 2);
     /* while the hero scrolls, the figures ride up with it (offset follows scroll) until the section takes over */
-    cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + y, mobile ? Hh * 0.1 : 0, t), W, Hh);
+    cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + tS * secTop * (mobile ? 0.6 : 1), mobile ? Hh * 0.1 : 0, t), W, Hh);
     const look = new THREE.Vector3(T.x * t, mix(H * 0.5, mobile ? mix(T.y, H * 0.62, 0.55) : T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
     const po = clamp((t - 0.35) / 0.5);

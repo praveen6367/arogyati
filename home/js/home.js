@@ -88,6 +88,12 @@
   if (ARC3D) { layout(); applyRing(); }
 
 
+  /* live clinic status on the hours cards (Kolhapur time) */
+  {
+    const ist = new Date(Date.now() + (new Date().getTimezoneOffset() + 330) * 60000), dw = (ist.getDay() + 6) % 7, m = ist.getHours() * 60 + ist.getMinutes();
+    const open = dw < 6 && ((m >= 600 && m < 840) || (m >= 960 && m < 1140));
+    $$('[data-live-open]').forEach((c) => { if (!open) { c.textContent = 'Closed now'; c.classList.add('is-closed'); } else c.firstChild.textContent = 'Open now '; });
+  }
   /* ---------- phone carousels: native scroll-snap tracks; the slide in the middle is active ---------- */
   const MQm = matchMedia('(max-width: 899px)'), MOB = () => MQm.matches;
   const mcar = (track, slides, dotsEl, onActive) => {
@@ -235,8 +241,9 @@
         if (!RM) g.fromTo(info, { scale: 0.97 }, { scale: 1, duration: 0.6, ease: 'back.out(2)' });
       };
       const lay = (p) => {
-        const yr = Math.round(Y[0] + (Y[N - 1] - Y[0]) * p); yEl.textContent = yr;
+        const yr = Math.round(Y[0] + (Y[N - 1] - Y[0]) * p);
         let k = 0; for (let i = 0; i < N; i++) if (yr >= Y[i]) k = i;
+        if (yEl.textContent !== String(Y[k])) yEl.textContent = Y[k];
         setM(k);
         if (fillEl) fillEl.style.transform = `scaleX(${p.toFixed(4)})`;
       };
@@ -489,17 +496,18 @@
         const tl = g.timeline({ scrollTrigger: { trigger: pnl, start: 'top 62%', once: true } });
         tl.from(sp.words, { opacity: 0, y: 20, ...(LITE ? {} : { filter: 'blur(10px)' }), duration: 1, stagger: 0.05, ease: OUT, clearProps: 'filter' }, 0)
           .from('[data-sv-in]', { opacity: 0, y: 16, duration: 0.9, stagger: 0.1, ease: OUT }, 0.2)
-          .from('.sv-card__segs i', { scaleX: 0, duration: 0.9, stagger: 0.08, ease: 'power3.out' }, 0.9)
-          .from('.sv-card__list li', { opacity: 0, x: -10, duration: 0.5, stagger: 0.04, ease: OUT }, 0.95)
-          .from('.sv-card__days i', { scale: 0, duration: 0.45, stagger: 0.07, ease: 'back.out(2.4)' }, 1.0)
           ;
+        const tc2 = g.timeline({ scrollTrigger: { trigger: '.sv__bento', start: 'top 82%', once: true } });
+        tc2.from('.sv-card__segs i', { scaleX: 0, duration: 0.9, stagger: 0.08, ease: 'power3.out' }, 0.1)
+          .from('.sv-card__list li', { opacity: 0, x: -10, duration: 0.5, stagger: 0.04, ease: OUT }, 0.15)
+          .from('.sv-card__days i', { scale: 0, duration: 0.45, stagger: 0.07, ease: 'back.out(2.4)' }, 0.2);
         /* cards rise with the scroll itself (scrubbed, reversible) instead of snapping out of a tilt */
         $$('[data-sv-card]').forEach((c, i) => g.fromTo(c, { y: 90 + (i % 3) * 30, opacity: 0, scale: 0.965 }, { y: 0, opacity: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: '.sv__bento', start: 'top 98%', end: 'top 48%', scrub: 0.6 } }));
         const cnt = $('[data-sv-count]');
-        if (cnt) { const o = { v: 0 }; cnt.textContent = '00'; tl.to(o, { v: 7, duration: 1.2, ease: 'power2.out', onUpdate: () => { cnt.textContent = String(Math.round(o.v)).padStart(2, '0'); } }, 0.8); }
+        if (cnt) { const o = { v: 0 }; cnt.textContent = '00'; tc2.to(o, { v: 7, duration: 1.2, ease: 'power2.out', onUpdate: () => { cnt.textContent = String(Math.round(o.v)).padStart(2, '0'); } }, 0); }
         const tg = $('[data-sv-toggle]');
         if (tg) { const tr = $('.sv-toggle__track', tg); const kx = () => tr.offsetWidth - 38;
-          tl.to(tr, { '--kx': () => kx() + 'px', '--fill': 1, duration: 1.1, ease: 'power3.inOut' }, 1.6).to(tr, { '--ck': 1, duration: 0.3 }, 2.5); }
+          tc2.to(tr, { '--kx': () => kx() + 'px', '--fill': 1, duration: 1.1, ease: 'power3.inOut' }, 0.8).to(tr, { '--ck': 1, duration: 0.3 }, 1.7); }
       }
     }
 

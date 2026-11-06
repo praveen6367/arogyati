@@ -2207,3 +2207,8 @@ body.az-home{background:transparent!important}
   .tcm__copy p{margin:0;font-size:.92rem;line-height:1.55;color:#55615A}
   .tcm__book{display:inline-flex;margin:1.6rem 20px 0}
 }
+/* QA: titles never run under the corner chip */
+.hx-card__t:has(+ .hx-card__chip){max-width:none;padding-right:5.2em}
+.hx-card__chip.is-closed{background:#8A958D}
+/* QA: tablets keep phone-sized slides (no giant reels) */
+@media (max-width:899px){.cd4m__s,.tcm__s{flex-basis:min(82vw,400px)}.st-card{flex-basis:min(84vw,440px)!important}.hx2m{max-width:560px}.cd4m,.tcm__track{scroll-padding:0 max(9vw,calc(50vw - 200px));padding-left:max(9vw,calc(50vw - 200px));padding-right:max(9vw,calc(50vw - 200px))}}
