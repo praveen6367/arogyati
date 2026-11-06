@@ -2120,3 +2120,90 @@ body.az-home{background:transparent!important}
 .az-home .tc__tints i{-webkit-mask-image:radial-gradient(120% 90% at 50% 50%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 50% 50%,#000 45%,transparent 100%)}
 .az-home .tc__stage{overflow-x:clip;overflow-y:visible}
 .az-home .hx2{background:transparent!important}
+
+/* phones: the drifting sky is a viewport-sized layer moved by transform only (no 5000px layer, no background-position repaints) */
+@media (max-width:899px){
+  .m3fx__clouds{--S:100vw;left:-10%!important;width:120%!important;height:100%;background:url(/home/assets/img/sky-tile.webp) center top/cover no-repeat!important;animation:m3skyM 60s ease-in-out infinite alternate!important;will-change:transform}
+  .m3fx__clouds::before{display:none}
+  .m3fx__canvas{bottom:auto}
+}
+@keyframes m3skyM{from{transform:translate3d(-4%,0,0) scale(1.04)}to{transform:translate3d(4%,0,0) scale(1.1)}}
+
+/* ===================== PHONE ALTERNATES: timeline, testimonials, reels, technology ===================== */
+.hx2m,.cd4m,.tcm,.mc-dots{display:none}
+.mc-dots{justify-content:center;gap:6px;margin-top:1.1rem}
+.mc-dots i{width:6px;height:6px;border-radius:99px;background:rgba(26,35,30,.18);transition:width .45s var(--az-out),background .45s}
+.mc-dots i.is-on{width:24px;background:#4F8A3F}
+@media (max-width:899px){
+  .mc-dots{display:flex}
+  /* timeline: a vertical story, each year rises in as it scrolls into view; the rail fills with you */
+  .hx2__center,.hx2__rail{display:none!important}
+  .hx2__stage{padding:3.6rem 0 2.6rem}
+  .hx2__stage .hx2m{display:grid;gap:2.4rem;position:relative;list-style:none;margin:2.4rem 20px 0!important;padding:0 0 0 30px!important;z-index:2}
+  .hx2m__i{list-style:none;margin:0!important}
+  .hx2m__line{position:absolute;left:5px;top:12px;bottom:12px;width:1px;background:rgba(255,255,255,.16)}
+  .hx2m__line b{position:absolute;inset:0;background:linear-gradient(180deg,#D7F57A,#fff);transform-origin:50% 0;transform:scaleY(0)}
+  .hx2m__i{position:relative;opacity:0;transform:translate3d(0,30px,0);transition:opacity .8s var(--az-ease),transform 1s var(--az-out)}
+  .hx2m__i.is-in{opacity:1;transform:none}
+  .hx2m__i::before{content:"";position:absolute;left:-30px;top:1.05rem;width:11px;height:11px;border-radius:50%;background:#0D2218;box-shadow:0 0 0 1px rgba(255,255,255,.45);transition:background .4s,box-shadow .4s}
+  .hx2m__i.is-on::before{background:#B6F23C;box-shadow:0 0 0 5px rgba(182,242,60,.22)}
+  .hx2m__y{display:block;font-size:clamp(3.4rem,17vw,5rem);font-weight:500;line-height:.92;letter-spacing:-.045em;background:linear-gradient(100deg,#9AA5A8 0%,#fff 30%,#C9D1D3 62%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hx2m__card{position:relative;margin:.9rem 0 0;border-radius:22px;overflow:hidden;aspect-ratio:4/3;background:#173A27;box-shadow:0 30px 60px -36px rgba(0,0,0,.7)}
+  .hx2m__card img{width:100%;height:100%;object-fit:cover;transform:scale(1.08);transition:transform 1.4s var(--az-out)}
+  .hx2m__i.is-in .hx2m__card img{transform:none}
+  .hx2m__card figcaption{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;gap:.75rem;padding:.75rem .9rem;border-radius:16px;background:rgba(12,28,20,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+  .hx2m__ic{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);color:#D7F57A}
+  .hx2m__ic svg{width:18px;height:18px}
+  .hx2m__card b{display:block;font-weight:500;font-size:1.02rem;line-height:1.2}
+  .hx2m__card small{display:block;margin-top:.15rem;font-size:.74rem;color:rgba(255,255,255,.6)}
+  html.az-rm .hx2m__i{opacity:1;transform:none}
+  .hx2__bg{filter:blur(10px) brightness(.62)!important}
+  /* testimonials: one story per swipe, the centred card turns dark */
+  .st__stage{display:flex!important;height:auto!important;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;width:100%;padding:1.2rem 8vw 1rem;scroll-padding:0 8vw}
+  .st__stage::-webkit-scrollbar{display:none}
+  .st-card{position:relative!important;left:auto!important;top:auto!important;transform:none!important;opacity:1!important;flex:0 0 84vw!important;width:auto!important;height:auto!important;min-height:0!important;scroll-snap-align:center;transition:background-color .45s,color .45s,box-shadow .45s!important}
+  .st-card--dup{display:none!important}
+  .st-card .rs-meter b{transform:scaleX(1)!important}
+  .st__nav{margin-top:1rem}
+  /* reels: area name above, the reel below; swipe between body areas */
+  .cd4__aside,.cd4__list{display:none!important}
+  .cd4m{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;width:100vw;margin:1.8rem 0 0 calc(50% - 50vw);padding:.2rem 9vw .6rem;scroll-padding:0 9vw}
+  .cd4m::-webkit-scrollbar{display:none}
+  .cd4m__s{flex:0 0 82vw;scroll-snap-align:center;opacity:.42;transform:scale(.94);transform-origin:50% 60%;transition:opacity .5s var(--az-ease),transform .7s var(--az-out)}
+  .cd4m__s.is-on{opacity:1;transform:none}
+  .cd4m__h span{font-size:.72rem;letter-spacing:.14em;color:#4F8A3F}
+  .cd4m__h h3{margin:.35rem 0 .2rem;font-size:clamp(2.3rem,11vw,3.2rem);font-weight:500;line-height:1;letter-spacing:-.04em;color:#17231B}
+  .cd4m__h p{margin:0;font-size:.9rem;color:#5F6B63}
+  .cd4m__card{position:relative;display:block;width:100%;margin-top:1rem;padding:0;border:0;aspect-ratio:9/13;border-radius:26px;overflow:hidden;background:#1B2A1E;box-shadow:0 34px 60px -38px rgba(20,40,30,.65);cursor:pointer;text-align:left;font:inherit}
+  .cd4m__card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .cd4m__card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,18,12,0) 50%,rgba(8,18,12,.78) 100%);pointer-events:none}
+  .cd4m__play{position:absolute;top:12px;right:12px;z-index:1;display:flex;align-items:center;gap:.45rem;padding:.35rem .8rem .35rem .35rem;border-radius:99px;background:rgba(255,255,255,.92);color:#17231B;font-size:.82rem}
+  .cd4m__play i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#4F8A3F;color:#fff}
+  .cd4m__play svg{width:12px;height:12px}
+  .cd4m__cap{position:absolute;left:16px;right:16px;bottom:16px;z-index:1;color:#fff}
+  .cd4m__cap b{display:block;font-weight:500;font-size:1.1rem}
+  .cd4m__cap small{display:block;margin-top:.15rem;font-size:.78rem;color:rgba(255,255,255,.7)}
+  .cd4__foot{margin-top:2rem}
+  /* technology: swipe the modalities; the section tint follows the active one */
+  .tc__grid,.tc__word{display:none!important}
+  .tc__stage{padding:3.4rem 0 2.6rem}
+  .tcm{display:block;position:relative;z-index:2}
+  .tcm__head{padding:0 20px}
+  .tcm__h2{margin:.6rem 0 0;font-size:clamp(2.2rem,10vw,3rem);font-weight:500;line-height:1;letter-spacing:-.04em;color:#17231B}
+  .tcm__h2 em{font-style:normal;color:#4F8A3F}
+  .tcm__track{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;margin-top:1.6rem;padding:.2rem 9vw .4rem;scroll-padding:0 9vw}
+  .tcm__track::-webkit-scrollbar{display:none}
+  .tcm__s{flex:0 0 82vw;scroll-snap-align:center;opacity:.42;transform:scale(.94);transform-origin:50% 40%;transition:opacity .5s var(--az-ease),transform .7s var(--az-out)}
+  .tcm__s.is-on{opacity:1;transform:none}
+  .tcm__media{position:relative;margin:0;aspect-ratio:4/5;border-radius:28px;overflow:hidden;background:#1B2A1E;box-shadow:0 34px 60px -38px rgba(20,40,30,.6)}
+  .tcm__media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .tcm__chip{position:absolute;left:12px;bottom:12px;padding:.45rem .85rem;border-radius:99px;background:rgba(255,255,255,.92);font-size:.8rem;color:#17231B}
+  .tcm__copy{padding:1.1rem .2rem 0}
+  .tcm__big{display:flex;align-items:baseline;gap:.5rem}
+  .tcm__big b{font-size:clamp(2.6rem,13vw,3.6rem);font-weight:500;line-height:1;letter-spacing:-.05em;color:#17231B}
+  .tcm__big span{font-size:.86rem;color:#4F8A3F}
+  .tcm__copy h3{display:flex;gap:.6rem;align-items:baseline;margin:.5rem 0 .4rem;font-size:1.25rem;font-weight:500;color:#17231B}
+  .tcm__copy h3 span{font-size:.72rem;color:#8A958D}
+  .tcm__copy p{margin:0;font-size:.92rem;line-height:1.55;color:#55615A}
+  .tcm__book{display:inline-flex;margin:1.6rem 20px 0}
+}

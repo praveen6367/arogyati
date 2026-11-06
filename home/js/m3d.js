@@ -179,9 +179,13 @@ function run(renderer) {
   }, undefined, fail);
 
   /* layout metrics */
-  let W = 1, Hh = 1, mobile = false, base = 6, heroTop = 0, heroR = 1, secTop = 1;
+  let W = 1, Hh = 1, lastW = 0, mobile = false, base = 6, heroTop = 0, heroR = 1, secTop = 1;
   const fit = () => {
-    W = innerWidth; Hh = innerHeight; mobile = W < 900;
+    /* phones: the address bar showing/hiding only changes the height; keep the canvas at the tallest height so it never re-allocates (no blank flash) */
+    const nw = innerWidth; mobile = nw < 900;
+    Hh = mobile && nw === lastW ? Math.max(Hh, innerHeight) : innerHeight;
+    if (nw === lastW && mobile && renderer.domElement.height >= Math.round(Hh * renderer.getPixelRatio()) - 1 && W === nw) { secTop = sec.getBoundingClientRect().top + scrollY; return; }
+    W = nw; lastW = nw;
     renderer.setSize(W, Hh, false); renderer.domElement.style.width = W + 'px'; renderer.domElement.style.height = Hh + 'px';
     cam.aspect = W / Hh;
     const v = THREE.MathUtils.degToRad(cam.fov);
@@ -230,7 +234,7 @@ function run(renderer) {
   };
   let pin = null, prog = 0;
   if (window.ScrollTrigger) {
-    pin = ScrollTrigger.create({ trigger: sec, start: 'top top', end: () => '+=' + Math.round(innerHeight * (K.length - 1) * 1.1), pin: stage, scrub: true, invalidateOnRefresh: true, onRefresh: () => fit(), onUpdate: (s) => { prog = s.progress; } });
+    pin = ScrollTrigger.create({ trigger: sec, start: 'top top', end: () => '+=' + Math.round(innerHeight * (K.length - 1) * 1.1), pin: stage, anticipatePin: 1, scrub: true, invalidateOnRefresh: true, onRefresh: () => fit(), onUpdate: (s) => { prog = s.progress; } });
     ScrollTrigger.sort(); ScrollTrigger.refresh();
     addEventListener('load', () => ScrollTrigger.refresh());
     tabs.forEach((t, i) => t.addEventListener('click', () => {
@@ -272,11 +276,11 @@ function run(renderer) {
     rig.updateMatrixWorld();
     const T = V(PTS[A.f]).lerp(V(PTS[B.f]), u).applyMatrix4(rig.matrixWorld);
     const heroDist = ((H * 1.04) / 2 / Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2)) * (Hh / heroR);
-    const dist = mix(heroDist, base * (A.dist + (B.dist - A.dist) * u), t);
+    const kd = A.dist + (B.dist - A.dist) * u, dist = mix(heroDist, base * (mobile ? 0.7 + kd * 0.42 : kd), t);
     const hy0 = -((heroTop + heroR / 2) - Hh / 2);
     /* while the hero scrolls, the figures ride up with it (offset follows scroll) until the section takes over */
-    cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + y, mobile ? Hh * 0.2 : 0, t), W, Hh);
-    const look = new THREE.Vector3(T.x * t, mix(H * 0.5, T.y, t), T.z * t);
+    cam.setViewOffset(W, Hh, mix(0, mobile ? 0 : -W * 0.17, t), mix(hy0 + y, mobile ? Hh * 0.1 : 0, t), W, Hh);
+    const look = new THREE.Vector3(T.x * t, mix(H * 0.5, mobile ? mix(T.y, H * 0.62, 0.55) : T.y, t), T.z * t);
     cam.position.set(look.x, look.y + H * 0.04 + my * 0.06, look.z + dist); cam.lookAt(look);
     const po = clamp((t - 0.35) / 0.5);
     GU.uT.value = RM ? 0 : clock.elapsedTime; GU.uGrow.value = ss(clamp((t - 0.45) / 0.45)); MU.uA.value = ss(clamp((t - 0.12) / 0.3)); MU.uCam.value.copy(cam.position); grass.visible = po > 0.001;

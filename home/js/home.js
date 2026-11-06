@@ -87,6 +87,24 @@
   sizePerson(); addEventListener('resize', sizePerson); d.fonts && d.fonts.ready.then(sizePerson);
   if (ARC3D) { layout(); applyRing(); }
 
+
+  /* ---------- phone carousels: native scroll-snap tracks; the slide in the middle is active ---------- */
+  const MQm = matchMedia('(max-width: 899px)'), MOB = () => MQm.matches;
+  const mcar = (track, slides, dotsEl, onActive) => {
+    let cur = -1;
+    const dots = dotsEl ? slides.map(() => { const d = document.createElement('i'); dotsEl.appendChild(d); return d; }) : [];
+    const set = (i) => { if (i === cur || i < 0) return; cur = i; slides.forEach((s, k) => s.classList.toggle('is-on', k === i)); dots.forEach((d, k) => d.classList.toggle('is-on', k === i)); if (onActive) onActive(i, slides[i]); };
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) set(slides.indexOf(e.target)); }), { root: track, threshold: 0.6 });
+    slides.forEach((s) => io.observe(s)); set(0);
+    return { go: (d) => { const i = Math.max(0, Math.min(slides.length - 1, cur + d)), s = slides[i]; track.scrollTo({ left: s.offsetLeft - (track.clientWidth - s.offsetWidth) / 2, behavior: RM ? 'auto' : 'smooth' }); }, cur: () => cur };
+  };
+  /* plays only the active slide's clip, only while the track is on screen; clips load on first need */
+  const mplayer = (track) => {
+    let vis = false, act = null; const vids = $$('video', track);
+    const run = () => vids.forEach((v) => { if (v === act && vis) { if (!v.getAttribute('src')) v.src = v.dataset.src; const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else v.pause(); });
+    new IntersectionObserver((es) => { vis = es[0].isIntersecting; run(); }, { threshold: 0.2 }).observe(track);
+    return (slide) => { act = $('video', slide); run(); };
+  };
   /* ---------- CONDITIONS: the row crossing the screen centre becomes active (IntersectionObserver, no scroll handlers) ---------- */
   {
     const cd = $('.cd4'), AR = $('#cd-areas') ? JSON.parse($('#cd-areas').textContent) : null;
@@ -108,23 +126,23 @@
       };
       /* lightbox: the real Instagram reel (full length, with sound), loaded only on open */
       const lb = $('[data-cd-lb]'), lbf = $('[data-cd-lbf]');
-      const openLb = () => {
-        if (!lb) return; const a = AR[cur];
+      const openLb = (k) => {
+        if (!lb) return; const a = AR[typeof k === 'string' ? k : cur];
         $('[data-cd-lba]').textContent = a.n; $('[data-cd-lbt]').innerHTML = a.t; $('[data-cd-lbs]').innerHTML = a.s; $('[data-cd-lbig]').href = `https://www.instagram.com/p/${a.v}/`;
         lbf.innerHTML = `<video src="/home/assets/reels/${a.v}.mp4" poster="/home/assets/reels/${a.v}.webp" muted autoplay loop playsinline></video><iframe src="https://www.instagram.com/p/${a.v}/embed/" title="${a.t.replace(/<[^>]+>/g, '')}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
         const fr = $('iframe', lbf); fr.addEventListener('load', () => lbf.classList.add('is-ready'), { once: true });
-        vid.pause(); if (lenis) lenis.stop();
+        vid.pause(); $$('.cd4m video').forEach((v) => v.pause()); if (lenis) lenis.stop();
         if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
         if (!RM) g.fromTo('.cd-lb__in', { y: 40, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: OUT });
       };
       const closeLb = () => { if (!lb || !lb.open) return; lb.close ? lb.close() : lb.removeAttribute('open'); };
       if (lb) {
-        lb.addEventListener('close', () => { lbf.innerHTML = ''; lbf.classList.remove('is-ready'); if (lenis) lenis.start(); if (inView) vid.play().catch(() => {}); });
+        lb.addEventListener('close', () => { lbf.innerHTML = ''; lbf.classList.remove('is-ready'); if (lenis) lenis.start(); if (inView && !MOB()) vid.play().catch(() => {}); if (cdPlay && cdAct) cdPlay(cdAct); });
         lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
         $('[data-cd-close]').addEventListener('click', closeLb);
         $('[data-cd-lbbook]').addEventListener('click', closeLb);
-        $('[data-cd-open]').addEventListener('click', openLb);
-        vid.addEventListener('click', openLb);
+        $('[data-cd-open]').addEventListener('click', () => openLb());
+        vid.addEventListener('click', () => openLb());
       }
       const io = new IntersectionObserver((es) => { if (performance.now() < hoverLock) return; es.forEach((e) => { if (e.isIntersecting) set(e.target.dataset.area); }); }, { rootMargin: '-48% 0px -48% 0px' });
       rows.forEach((r) => {
@@ -133,9 +151,17 @@
         if (FINE) r.addEventListener('mouseenter', () => { hoverLock = performance.now() + 1200; set(r.dataset.area); });
       });
       ScrollTrigger.create({ trigger: cd, start: 'top 85%', end: 'bottom 15%', onToggle: (s) => {
-        inView = s.isActive;
+        inView = s.isActive && !MOB();
         if (inView) { if (!vid.src) vid.src = `/home/assets/reels/${curV}.mp4`; vid.play().catch(() => {}); } else vid.pause();
       } });
+      let cdPlay = null, cdAct = null;
+      const cdT = $('[data-cd4m]');
+      if (cdT) {
+        cdPlay = mplayer(cdT);
+        const sl = $$('.cd4m__s', cdT);
+        mcar(cdT, sl, $('[data-cd4m-dots]'), (i, s) => { cdAct = s; cdPlay(s); });
+        sl.forEach((s) => $('.cd4m__card', s).addEventListener('click', () => openLb(s.dataset.area)));
+      }
       if (!RM) {
         g.from('.cd4__head > *', { yPercent: 40, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: cd, start: 'top 78%', once: true } });
         ScrollTrigger.batch('.cd4-row', { start: 'top 92%', once: true, onEnter: (els) => g.from(els, { yPercent: 60, opacity: 0, duration: 0.9, stagger: 0.06, ease: OUT }) });
@@ -222,9 +248,12 @@
         return () => st.kill();
       });
       gm.add('(max-width: 899px)', () => {
-        lay(0);
-        const st = ScrollTrigger.create({ trigger: '.hx2', start: 'top 70%', end: 'bottom 40%', scrub: true, onUpdate: (s) => lay(s.progress) });
-        return () => st.kill();
+        const its = $$('.hx2m__i'), lineB = $('.hx2m__line b'); if (!its.length) return;
+        const io1 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io1.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+        const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; const k = +e.target.dataset.k; its.forEach((x, i) => x.classList.toggle('is-on', i <= k)); bgs.forEach((w, i) => w.classList.toggle('is-on', i === k)); }), { rootMargin: '-45% 0px -45% 0px' });
+        its.forEach((i) => { io1.observe(i); io2.observe(i); });
+        const st = ScrollTrigger.create({ trigger: '.hx2m', start: 'top 62%', end: 'bottom 62%', onUpdate: (s) => { lineB.style.transform = `scaleY(${s.progress.toFixed(3)})`; } });
+        return () => { io1.disconnect(); io2.disconnect(); st.kill(); };
       });
     }
     /* TEAM people index: masked name reveals, glass lens follows the cursor */
@@ -255,6 +284,7 @@
     if ($('[data-st-stage]')) {
       const stage = $('[data-st-stage]'); let list = $$('[data-st-card]', stage);
       const lay = () => {
+        if (MOB()) { list.forEach((c) => { c.style.transform = ''; c.style.zIndex = ''; c.style.opacity = ''; }); return; }
         const n = list.length, mid = Math.floor(n / 2), cs = list[0].offsetWidth, sp = Math.min(cs * 0.92, innerWidth * 0.26);
         list.forEach((c, i) => {
           const pos = i - mid, ctr = pos === 0;
@@ -270,17 +300,19 @@
         lay(); t0 = performance.now();
       };
       list.forEach((c) => {
-        c.addEventListener('click', () => { const i = list.indexOf(c), mid = Math.floor(list.length / 2); if (i !== mid) move(i - mid); });
+        c.addEventListener('click', () => { if (MOB()) return; const i = list.indexOf(c), mid = Math.floor(list.length / 2); if (i !== mid) move(i - mid); });
         c.addEventListener('keydown', (e) => { if (e.key === 'Enter') c.click(); });
       });
-      $('[data-st-next]').addEventListener('click', () => move(1));
-      $('[data-st-prev]').addEventListener('click', () => move(-1));
+      const stOrig = $$('[data-st-card]:not(.st-card--dup)', stage);
+      const stCar = mcar(stage, stOrig, $('[data-st-dots]'), (i, s) => { if (MOB()) stOrig.forEach((c) => c.classList.toggle('is-center', c === s)); });
+      $('[data-st-next]').addEventListener('click', () => (MOB() ? stCar.go(1) : move(1)));
+      $('[data-st-prev]').addEventListener('click', () => (MOB() ? stCar.go(-1) : move(-1)));
       $$('.rs-meter b', stage).forEach((b) => { b.style.transition = 'transform 1.4s cubic-bezier(.65,.05,.17,1)'; });
       lay(); addEventListener('resize', lay);
       let t0 = performance.now(), vis = false, hover = false;
       stage.addEventListener('mouseenter', () => { hover = true; }); stage.addEventListener('mouseleave', () => { hover = false; t0 = performance.now(); });
       ScrollTrigger.create({ trigger: '.st', start: 'top 70%', end: 'bottom 30%', onToggle: (s) => { vis = s.isActive; t0 = performance.now(); } });
-      if (!RM) g.ticker.add(() => { if (vis && !hover && performance.now() - t0 > 5000) move(1); });
+      if (!RM) g.ticker.add(() => { if (vis && !hover && !MOB() && performance.now() - t0 > 5000) move(1); });
       if (!RM) g.from('.st__head > *, [data-st-stage], .st__nav', { y: 60, opacity: 0, duration: 1.1, stagger: 0.1, ease: OUT, scrollTrigger: { trigger: '.st', start: 'top 70%', once: true } });
     }
     /* CONTACT: calm editorial entrance */
@@ -517,7 +549,7 @@
         const lines = $$('.tc-call i'), chips = $$('.tc-call span');
         const TILT = [-9, 7, -6, 9, -4];
         let cur = 0, live = false;
-        const playOnly = (i) => vids.forEach((v, k) => { if (k === i && live) { if (v.preload === 'none') v.preload = 'auto'; const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else v.pause(); });
+        const playOnly = (i) => vids.forEach((v, k) => { if (k === i && live && !MOB()) { if (v.preload === 'none') v.preload = 'auto'; const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else v.pause(); });
         const go = (i) => {
           if (i === cur) return; const dir = i > cur ? 1 : -1, prev = scr[cur], next = scr[i]; cur = i; const d = D[i];
           tints.forEach((t, k) => t.classList.toggle('is-on', k === i));
@@ -544,6 +576,8 @@
           stepBars.forEach((b, k) => { b.style.transform = `scaleX(${Math.max(0, Math.min(1, pAll * D.length - k)).toFixed(3)})`; });
         };
         ScrollTrigger.create({ trigger: tcS, start: 'top 80%', end: 'bottom top', onToggle: (s) => { live = s.isActive; playOnly(cur); } });
+        const tcT = $('[data-tcm]');
+        if (tcT) { const tp = mplayer(tcT); mcar(tcT, $$('.tcm__s', tcT), $('[data-tcm-dots]'), (i, s) => { tp(s); if (MOB()) tints.forEach((t, k) => t.classList.toggle('is-on', k === i)); }); }
         mm.add('(min-width: 1024px)', () => {
           const pwPx = () => Math.min(390, innerWidth * 0.26, (innerHeight - 130) / 2.06), phH = () => pwPx() * 2.06;
           const wide = () => Math.min(innerWidth - 48, 1400);
@@ -560,7 +594,7 @@
             onUpdate: (s) => { progress(s.progress); g.set('.tc__word', { xPercent: (0.5 - s.progress) * 18 }); go(Math.min(D.length - 1, Math.floor(s.progress * D.length * 0.999))); } });
           return () => { st.kill(); morph.kill(); g.set(dev, { clearProps: 'width,height,borderRadius,transform' }); g.set('.tc__screens', { clearProps: 'borderRadius' }); g.set(intro, { opacity: 0 }); };
         });
-        mm.add('(max-width: 1023px)', () => {
+        mm.add('(min-width: 900px) and (max-width: 1023px)', () => {
           g.set(intro, { opacity: 0 });
           let t0 = performance.now(), segP = 0;
           const tick = () => { if (!live) { t0 = performance.now() - ((cur + segP) * 5000); return; } const e = (performance.now() - t0) / 5000; const i = Math.floor(e) % D.length; segP = e % 1; progress((i + segP) / D.length); if (i !== cur) go(i); };
