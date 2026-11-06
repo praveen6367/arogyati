@@ -60,7 +60,7 @@
   };
   navLinks.forEach((a) => {
     if (FINE) a.addEventListener('mouseenter', () => moveInd(a));
-    const sec = $(a.getAttribute('href')); if (!sec) return;
+    const hr = a.getAttribute('href'); if (a.getAttribute('aria-current') === 'page') activeLink = a; const sec = hr && hr[0] === '#' ? $(hr) : null; if (!sec) return;
     ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (s) => { if (s.isActive) activeLink = a; else if (activeLink === a) activeLink = null; moveInd(activeLink); } });
   });
   nav.addEventListener('mouseleave', () => moveInd(activeLink));
@@ -79,7 +79,7 @@
   const ARC3D = false;
   /* the photo fills all the space under the button (never overlapping it) and sits on the bottom edge */
   const sizePerson = () => {
-    const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person');
+    const cp = $('.hx__copy'), ct = $('.hx__ctas'), ps = $('.hx__person'); if (!cp || !ct || !ps || !hx) return;
     const ctaB = cp.offsetTop + ct.offsetTop + ct.offsetHeight, Hh = hx.offsetHeight;
     const hgt = Math.max(280, Math.min(Hh - ctaB - 22, Hh * 0.78));
     ps.style.width = Math.round(Math.min(hgt * 1.1492, innerWidth * 0.98)) + 'px';
@@ -410,14 +410,14 @@
         g.to(orb, { x: (x / 100) * innerWidth - orb.offsetWidth / 2, y: (y / 100) * innerHeight - orb.offsetHeight / 2, scale: s, duration: dur, ease: 'az', overwrite: true });
       };
       const secs = $$('[data-az-orb]');
-      setOrb(secs[0].dataset.azOrb, 0);
+      if (orb && secs.length) setOrb(secs[0].dataset.azOrb, 0);
       secs.forEach((sec) => ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%', onToggle: (st) => st.isActive && setOrb(sec.dataset.azOrb, 1.8) }));
     } else {
       g.set(orb, { x: innerWidth * 0.45, y: -innerHeight * 0.1 });
     }
 
     /* IX motion — stats count up, laurels grow leaf by leaf, modalities fade in, mission words darken as you scroll */
-    {
+    if ($('.ix')) {
       const ix = $('.ix');
       g.from('[data-ix-in]', { y: 34, opacity: 0, duration: 1.1, stagger: 0.12, ease: OUT, scrollTrigger: { trigger: ix, start: 'top 85%', once: true } });
       g.from('.ix__icons span, .ix__stats .ix__faces span', { scale: 0, duration: 0.7, stagger: 0.06, ease: 'back.out(2)', scrollTrigger: { trigger: ix, start: 'top 80%', once: true } });
@@ -632,6 +632,7 @@
     });
   }
   function heroIntro() {
+    if (!hx) { if (!RM) g.fromTo('.az-head__bar', { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, ease: OUT }); return; }
     if (RM) return;
     const title = $('[data-hx-title]');
     const blur = (n) => (LITE ? {} : { filter: `blur(${n}px)` });
