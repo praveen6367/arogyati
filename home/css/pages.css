@@ -215,3 +215,19 @@ html.az-rm .pg::before,html.az-lite .pg::before{animation:none}
     radial-gradient(30% 38% at 26% 96%,rgba(206,232,236,.4),rgba(206,232,236,0) 70%)}
 .az-home .pg{background:#F7F9FB!important}
 .az-page .az-orb{display:none}
+
+/* ===== one continuous ambient layer for the whole site (no seams between sections) ===== */
+.rx::before,.ix::before,.cd::before,.tx::before,.st::before,.cx::before,.az-foot::before,.sx::before,.hv::before,.ap::before,.am::before,.mx::before,.al::before,.fd::before,.wy::before,.mp::before,.tt::before,.pn::before,.pg::before{content:none!important;display:none!important}
+html{background:#F7F9FB}
+body.az-home{background:#F7F9FB}
+body.az-home::before{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(34% 42% at 8% 18%,rgba(198,230,190,.42),rgba(198,230,190,0) 70%),
+    radial-gradient(34% 42% at 92% 72%,rgba(196,218,246,.5),rgba(196,218,246,0) 70%),
+    radial-gradient(26% 34% at 62% 4%,rgba(224,240,214,.32),rgba(224,240,214,0) 70%),
+    radial-gradient(30% 38% at 26% 96%,rgba(206,232,236,.4),rgba(206,232,236,0) 70%);
+  animation:azDrift 30s ease-in-out infinite alternate;will-change:transform}
+html.az-rm body.az-home::before,html.az-lite body.az-home::before{animation:none}
+.az-home .rx,.az-home .ix,.az-home .sv,.az-home .tc,.az-home .cd,.az-home .tx,.az-home .st,.az-home .cx,.az-home .az-foot,.az-home .pg,.az-home .pg .ph,.az-home .pn,.az-home main{background:transparent!important}
+.rx,.ix,.cd,.tx,.st,.cx,.az-foot,.sx,.hv,.ap,.am,.mx,.al,.fd,.wy,.mp,.tt,.pn,.pg{isolation:auto}
+body.az-home{background:transparent!important}

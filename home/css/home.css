@@ -2095,3 +2095,23 @@ a.cx2-cell:hover{transform:translateY(-2px);box-shadow:0 0 0 1px #D5DED8,0 24px 
 html.az-rm .rx::before,html.az-rm .ix::before,html.az-rm .cd::before,html.az-rm .tx::before,html.az-rm .st::before,html.az-rm .cx::before,html.az-rm .az-foot::before,
 html.az-lite .rx::before,html.az-lite .ix::before,html.az-lite .cd::before,html.az-lite .tx::before,html.az-lite .st::before,html.az-lite .cx::before,html.az-lite .az-foot::before{animation:none}
 html.az-rm .pg [class]::before,html.az-lite .pg [class]::before{animation:none}
+
+/* ===== one continuous ambient layer for the whole site (no seams between sections) ===== */
+.rx::before,.ix::before,.cd::before,.tx::before,.st::before,.cx::before,.az-foot::before,.sx::before,.hv::before,.ap::before,.am::before,.mx::before,.al::before,.fd::before,.wy::before,.mp::before,.tt::before,.pn::before,.pg::before{content:none!important;display:none!important}
+html{background:#F7F9FB}
+body.az-home{background:#F7F9FB}
+body.az-home::before{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(34% 42% at 8% 18%,rgba(198,230,190,.42),rgba(198,230,190,0) 70%),
+    radial-gradient(34% 42% at 92% 72%,rgba(196,218,246,.5),rgba(196,218,246,0) 70%),
+    radial-gradient(26% 34% at 62% 4%,rgba(224,240,214,.32),rgba(224,240,214,0) 70%),
+    radial-gradient(30% 38% at 26% 96%,rgba(206,232,236,.4),rgba(206,232,236,0) 70%);
+  animation:azDrift 30s ease-in-out infinite alternate;will-change:transform}
+html.az-rm body.az-home::before,html.az-lite body.az-home::before{animation:none}
+.az-home .rx,.az-home .ix,.az-home .sv,.az-home .tc,.az-home .cd,.az-home .tx,.az-home .st,.az-home .cx,.az-home .az-foot,.az-home .pg,.az-home .pg .ph,.az-home .pn,.az-home main{background:transparent!important}
+.rx,.ix,.cd,.tx,.st,.cx,.az-foot,.sx,.hv,.ap,.am,.mx,.al,.fd,.wy,.mp,.tt,.pn,.pg{isolation:auto}
+body.az-home::before{background:radial-gradient(40% 48% at 6% 16%,rgba(196,230,186,.6),rgba(196,230,186,0) 70%),radial-gradient(40% 48% at 94% 74%,rgba(192,216,248,.62),rgba(192,216,248,0) 70%),radial-gradient(30% 38% at 60% 2%,rgba(222,240,206,.45),rgba(222,240,206,0) 70%),radial-gradient(34% 42% at 24% 98%,rgba(202,232,236,.55),rgba(202,232,236,0) 70%)}
+.az-home .az-orb{display:none}
+.az-home .aur--light{display:none}
+body.az-home::before{background:radial-gradient(42% 48% at 18% 24%,rgba(196,230,186,.5),rgba(196,230,186,0) 70%),radial-gradient(42% 48% at 84% 70%,rgba(192,216,248,.55),rgba(192,216,248,0) 70%),radial-gradient(32% 40% at 58% 12%,rgba(224,240,206,.4),rgba(224,240,206,0) 70%),radial-gradient(36% 44% at 30% 88%,rgba(202,232,236,.45),rgba(202,232,236,0) 70%)}
+body.az-home{background:transparent!important}
