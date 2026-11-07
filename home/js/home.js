@@ -136,6 +136,18 @@
       const rows = $$('.cd4-row', cd), vid = $('[data-cd-vid]', cd), pin = $('.cd4__pin', cd);
       const rT = $('[data-cd-rt]', cd), rS = $('[data-cd-rs]', cd), rL = $('[data-cd-rl]', cd), cap = $('.cd4__cap', cd);
       let cur = rows[0].dataset.area, curV = AR[cur].v, inView = false, hoverLock = 0;
+      /* one buffered <video> per reel, stacked in the card: switching areas is a cross-fade between
+         clips that are already decoded, never a fresh download behind a blank frame */
+      const R_ = (v, e) => `/home/assets/reels/${v}.${e}`, pool = { [curV]: vid }; let act = vid, warm = false;
+      vid.style.zIndex = 0; vid.classList.add('is-on');
+      const clip = (v) => {
+        if (!pool[v]) {
+          const e = vid.cloneNode(false); e.removeAttribute('data-cd-vid'); e.poster = R_(v, 'webp'); e.preload = 'auto'; e.src = R_(v, 'mp4');
+          e.classList.remove('is-on'); e.style.zIndex = -2; vid.after(e); pool[v] = e;
+        }
+        return pool[v];
+      };
+      const warmUp = () => { if (warm || MOB()) return; warm = true; if (!vid.src) vid.src = R_(curV, 'mp4'); vid.preload = 'auto'; Object.values(AR).forEach((a) => clip(a.v)); };
       const set = (k) => {
         if (!AR[k] || k === cur) return; cur = k; const a = AR[k];
         rows.forEach((r) => r.classList.toggle('is-on', r.dataset.area === k));
@@ -144,8 +156,14 @@
         if (RM) txt(); else g.timeline({ overwrite: true }).to(cap, { y: 10, opacity: 0, duration: 0.18, ease: 'power2.in' }).add(txt).to(cap, { y: 0, opacity: 1, duration: 0.5, ease: OUT });
         if (a.v !== curV) {
           curV = a.v;
-          const swap = () => { vid.poster = `/home/assets/reels/${a.v}.webp`; vid.src = `/home/assets/reels/${a.v}.mp4`; if (inView) vid.play().catch(() => {}); };
-          if (RM) swap(); else g.timeline().to(vid, { opacity: 0, scale: 1.04, duration: 0.22, onComplete: swap }).to(vid, { opacity: 1, scale: 1, duration: 0.7, ease: OUT, delay: 0.08 });
+          warmUp();
+          const old = act, nu = clip(a.v); act = nu;
+          try { nu.currentTime = 0; } catch (e) {}
+          if (inView) nu.play().catch(() => {});
+          /* CSS cross-fade: the new clip fades in on top, the old one stays underneath until it is covered */
+          Object.values(pool).forEach((e) => { e.style.zIndex = e === nu ? 0 : e === old ? -1 : -2; if (e !== nu && e !== old) { e.pause(); e.classList.remove('is-on'); } });
+          nu.classList.add('is-on');
+          clearTimeout(set.t); set.t = setTimeout(() => { Object.values(pool).forEach((e) => { if (e !== act) { e.pause(); e.classList.remove('is-on'); } }); }, RM ? 0 : 520);
         }
       };
       /* lightbox: the real Instagram reel (full length, with sound), loaded only on open */
@@ -155,18 +173,18 @@
         $('[data-cd-lba]').textContent = a.n; $('[data-cd-lbt]').innerHTML = a.t; $('[data-cd-lbs]').innerHTML = a.s; $('[data-cd-lbig]').href = `https://www.instagram.com/p/${a.v}/`;
         lbf.innerHTML = `<video src="/home/assets/reels/${a.v}.mp4" poster="/home/assets/reels/${a.v}.webp" muted autoplay loop playsinline></video><iframe src="https://www.instagram.com/p/${a.v}/embed/" title="${a.t.replace(/<[^>]+>/g, '')}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
         const fr = $('iframe', lbf); fr.addEventListener('load', () => lbf.classList.add('is-ready'), { once: true });
-        vid.pause(); $$('.cd4m video').forEach((v) => v.pause()); if (lenis) lenis.stop();
+        act.pause(); $$('.cd4m video').forEach((v) => v.pause()); if (lenis) lenis.stop();
         if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
         if (!RM) g.fromTo('.cd-lb__in', { y: 40, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: OUT });
       };
       const closeLb = () => { if (!lb || !lb.open) return; lb.close ? lb.close() : lb.removeAttribute('open'); };
       if (lb) {
-        lb.addEventListener('close', () => { lbf.innerHTML = ''; lbf.classList.remove('is-ready'); if (lenis) lenis.start(); if (inView && !MOB()) vid.play().catch(() => {}); if (cdPlay && cdAct) cdPlay(cdAct); });
+        lb.addEventListener('close', () => { lbf.innerHTML = ''; lbf.classList.remove('is-ready'); if (lenis) lenis.start(); if (inView && !MOB()) act.play().catch(() => {}); if (cdPlay && cdAct) cdPlay(cdAct); });
         lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
         $('[data-cd-close]').addEventListener('click', closeLb);
         $('[data-cd-lbbook]').addEventListener('click', closeLb);
         $('[data-cd-open]').addEventListener('click', () => openLb());
-        vid.addEventListener('click', () => openLb());
+        vid.parentNode.addEventListener('click', (e) => { if (e.target.tagName === 'VIDEO') openLb(); });
       }
       const io = new IntersectionObserver((es) => { if (performance.now() < hoverLock) return; es.forEach((e) => { if (e.isIntersecting) set(e.target.dataset.area); }); }, { rootMargin: '-48% 0px -48% 0px' });
       rows.forEach((r) => {
@@ -174,9 +192,10 @@
         $('button', r).addEventListener('click', () => { hoverLock = performance.now() + 1500; set(r.dataset.area); });
         if (FINE) r.addEventListener('mouseenter', () => { hoverLock = performance.now() + 1200; set(r.dataset.area); });
       });
+      ScrollTrigger.create({ trigger: cd, start: 'top 220%', once: true, onEnter: warmUp });
       ScrollTrigger.create({ trigger: cd, start: 'top 85%', end: 'bottom 15%', onToggle: (s) => {
         inView = s.isActive && !MOB();
-        if (inView) { if (!vid.src) vid.src = `/home/assets/reels/${curV}.mp4`; vid.play().catch(() => {}); } else vid.pause();
+        if (inView) { warmUp(); act.play().catch(() => {}); } else act.pause();
       } });
       let cdPlay = null, cdAct = null;
       const cdT = $('[data-cd4m]');

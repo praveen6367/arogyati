@@ -2242,3 +2242,11 @@ body.az-home{background:transparent!important}
 }
 @media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}.az-dock{transition:none}.az-fade{animation:none}}
 @media (max-width:899px){.az-home .az-dock__a--go,.az-home .az-dock__a--go span{color:#fff!important;opacity:1!important;visibility:visible!important}.az-dock__a span{display:inline!important;transform:none!important}}
+
+/* conditions reel card: the global button reset was inflating the "Play reel" pill past the card edge */
+.az-home .cd4__play{font-size:.78rem;line-height:1;padding:.35rem .95rem .35rem .35rem;white-space:nowrap;max-width:calc(100% - 32px)}
+.az-home .cd4__play span{font-size:inherit}
+.cd4__card video{transform-origin:50% 50%}
+.cd4__card video{opacity:0;transform:scale(1.04);transition:opacity .45s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
+.cd4__card video.is-on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.cd4__card video{transition:none}}
