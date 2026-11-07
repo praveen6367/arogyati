@@ -209,39 +209,15 @@ add('Rehab setup', {theme: 'lime', blob: B.full, orb: O.d, photo: null, html:
 const blk = (lab, d, ic) => `<div class="a" style="display:flex;gap:24px;align-items:flex-start">${tile(ic)}<div><div style="font-size:17px;font-weight:800;letter-spacing:.24em;color:var(--lime)">${lab}</div><div style="font-size:26px;line-height:1.35;margin-top:10px">${d}</div></div></div>`;
 const foot = (t, y = 900) => box(140, y, 1640, `<div class="a" style="padding-top:28px;border-top:1.5px solid var(--line);font-size:26px;color:var(--mut)">${fmt(t)}</div>`);
 
-add('The rehab model', {blob: B.circL, orb: O.d, photo: null, html:
-  box(130, 200, 680, `<div class="a" style="height:680px;display:grid;place-items:center;text-align:center;color:#06261B;font-size:70px;font-weight:800;letter-spacing:-.045em;line-height:1.02">One centre.<br>One coordinated<br>plan.</div>`) +
-  box(930, 170, 860, `<div class="kick a">Rehab setup</div>` + title('*The AROGYATI* {rehabilitation model}', 56) + `<div style="height:50px"></div>` + items([
-    ['{Assess:} understand the patient’s condition, needs, abilities and goals.', 'clip'],
-    ['{Plan:} an individualised plan with the right clinical disciplines.', 'target'],
-    ['{Treat:} structured therapy by skilled teams with the right technology.', 'hand'],
-    ['{Measure:} track progress, functional outcomes and patient experience.', 'growth'],
-  ], {cols: 1, side: true, size: 27, gap: '34px'})) +
-  box(930, 880, 860, `<div class="a" style="font-size:23px;line-height:1.4;color:var(--mut)">Clinical expertise, technology, functional training and coordinated allied-health support, in one place.</div>`)});
-
 add('How the rehab setup looks', {blob: B.orbTRs, orb: O.d, photo: null, html:
   box(140, 130, 1640, `<div class="kick a">Rehab setup</div>` + title('*How the* {rehab setup} *looks*', 62)) +
-  box(140, 360, 1640, items([
+  box(140, 440, 1640, items([
     ['{OPD & assessment:} consultation, baseline assessment, treatment planning and follow-up.', 'clip'],
     ['{Neuro rehabilitation:} gait, balance, coordination, mobility and task-specific practice.', 'brain'],
     ['{Advanced technology:} protocol-led sessions on the modalities we bring in each phase.', 'cpu'],
     ['{Functional gym:} strength, endurance, transfers, mobility and daily living activities.', 'dumbbell'],
     ['{Daycare & allied care:} planned multi-session days with allied-health input.', 'bed'],
-  ], {cols: 3, size: 25, gap: '50px 70px'})) +
-  box(140, 880, 1640, `<div class="a" style="font-size:16px;font-weight:800;letter-spacing:.28em;color:var(--mut);margin-bottom:20px">SERVICES UNDER ONE ROOF</div>` +
-    tags(['Physiotherapy', 'Neuro rehabilitation', 'Occupational therapy', 'Speech therapy', 'Psychological support', 'Diet consultation', 'Orthosis & prosthesis', 'Hydrotherapy'], 24))});
-
-add('Structured programmes', {blob: B.orbTRs, orb: O.d, photo: null, html:
-  box(140, 140, 1640, `<div class="kick a">Rehab setup</div>` + title('{Structured} *rehabilitation programmes*', 62)) +
-  box(140, 360, 1640, items([
-    ['{Stroke recovery:} goal-based neuro rehabilitation and caregiver education.', 'brain'],
-    ['{Joint replacement:} pre- and post-operative mobility, strength and function.', 'person'],
-    ['{Spine care:} assessment-led pain, movement and functional rehabilitation.', 'pulse'],
-    ['{Parkinson’s support:} balance, mobility, gait and daily function.', 'hand'],
-    ['{Sports recovery:} injury rehabilitation and graded return to activity.', 'dumbbell'],
-    ['{Healthy ageing:} strength, balance, mobility and fall-risk reduction.', 'leaf'],
-  ], {cols: 3, size: 26, gap: '64px 70px'})) +
-  foot('Each programme: {assessment → individual goals → planned sessions → outcome review → discharge / follow-up}')});
+  ], {cols: 3, size: 28, gap: '70px 80px'}))});
 
 add('Patient journey', {blob: B.wave, orb: O.d, photo: null, html:
   box(140, 150, 1640, `<div class="kick a">How the setup works</div>` + title('*Patient journey:* {first contact to follow-up}', 62)) +
@@ -255,24 +231,12 @@ add('Patient journey', {blob: B.wave, orb: O.d, photo: null, html:
   ].map((s) => step(...s)).join('')}</div>`) +
   box(140, 880, 1640, `<div class="a" style="font-size:30px;font-weight:600;color:#06261B">Every patient has a <b style="font-weight:800">documented plan,</b> a responsible care team and review milestones.</div>`)});
 
-add('How the centre runs each day', {blob: B.orbTRs, orb: O.d, photo: null, html:
-  box(140, 140, 1640, `<div class="kick a">Rehab setup · Operations</div>` + title('*How the centre* {runs each day}', 62)) +
-  box(140, 370, 1640, `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:60px 70px">${[
-    ['OPENING', 'Team huddle, patient allocation, safety and equipment checks.', 'check'],
-    ['MORNING', 'Scheduled OPD assessments and rehabilitation sessions.', 'clip'],
-    ['MIDDAY', 'Daycare blocks, functional training and case coordination.', 'dumbbell'],
-    ['AFTERNOON', 'Specialist sessions, reassessments and referral consultations.', 'collab'],
-    ['EVENING', 'Follow-up appointments and slots for working patients.', 'clock'],
-    ['CLOSE', 'Documentation, billing checks, cleaning and next-day planning.', 'calendar'],
-  ].map((b) => blk(...b)).join('')}</div>`) +
-  foot('Run on: {appointments • digital records • patient allocation • device logs • daily review}')});
-
 add('Team deployment', {blob: B.circL, orb: O.a, photo: null, html:
   box(130, 200, 680, `<div style="height:680px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:40px;color:#06261B;text-align:center">
     <div class="a"><div class="num cnt" data-to="12" style="font-size:190px;color:#06261B;text-shadow:none">12</div><div style="font-size:30px;font-weight:700">Physiotherapists</div></div>
     <div class="a"><div class="num cnt" data-to="8" style="font-size:130px;color:#06261B;text-shadow:none">8</div><div style="font-size:26px;font-weight:700">Assistant physios</div></div></div>`) +
   box(930, 200, 860, `<div class="kick a">Rehab setup</div>` + title('{20-member} *clinical team, ready to deploy*', 56) + `<div style="height:56px"></div>` + items([
-    ['{Clinical leadership} by Dr. Pranjali, with 28 years of experience.', 'award'],
+    ['{Clinical leadership} and governance under Dr. Pranjali.', 'award'],
     ['{Workstreams:} OPD / orthopaedic, neuro and functional rehabilitation.', 'community'],
     ['{Assistants} handle session support, exercise setup and supervised help.', 'users'],
     ['{Cross-training,} defined responsibilities and workload monitoring.', 'check'],
@@ -281,7 +245,7 @@ add('Team deployment', {blob: B.circL, orb: O.a, photo: null, html:
 add('PHASE 1', {blob: B.behindR, orb: O.c, photo: {at: P.archR, src: IMG('site-sis.png')}, html:
   box(140, 160, 900, `<div class="kick a">Rehab setup · Planning</div>` + title('{PHASE 1:} *build the core*') + `<div style="height:56px"></div>` + items([
     ['Upgrade the facility and launch the priority departments: {OPD, orthopaedic and neuro rehabilitation.}', 'building'],
-    ['Deploy the {existing team} of 12 physiotherapists and 8 assistant physios across defined workstreams.', 'users'],
+    ['Deploy the {existing clinical team} across the new departments.', 'users'],
     ['Install the {phase 1 modalities} and run every device on clinical protocols.', 'cpu'],
     ['Set the {admin management and clinical system} in the first year: scheduling, records, billing and outcome tracking.', 'gear'],
   ], {cols: 1, side: true, size: 27, gap: '40px'}))});
@@ -296,18 +260,8 @@ add('PHASE 2', {blob: B.behindR2, orb: O.a, photo: {at: P.archR, src: IMG('st-ba
     ['{Departments:} geriatric, pediatric, OBG & gynecology, musculoskeletal and sports.', 'leaf'],
     ['{Modalities:} more advanced neuro modalities, added according to patient need.', 'cpu'],
     ['{Partnerships:} collaborate with geriatric, OBG and sports associations.', 'collab'],
-  ], {cols: 1, side: true, size: 25, gap: '30px'}))});
-
-add('Growth roadmap', {blob: B.wave, orb: O.d, photo: null, html:
-  box(140, 150, 1640, `<div class="kick a">Rehab setup · Roadmap</div>` + title('*Phased growth:* {build, validate, scale}', 62)) +
-  box(140, 410, 1640, `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:44px">${[
-    ['01', 'Upgrade the core facility', 'Priority departments, existing team and phase 1 devices.'],
-    ['02', 'Expand specialist capacity', 'Advanced devices, neuro / functional capacity and programmes.'],
-    ['03', 'Broaden multidisciplinary care', 'Onboard allied-health services and daycare pathways.'],
-    ['04', 'Build referral partnerships', 'Hospital, physician, sports and corporate relationships.'],
-    ['05', 'Replicate the model', 'Standardise systems and assess more locations.'],
-  ].map((s) => step('<span style="font-size:20px;letter-spacing:.2em;display:block;margin-bottom:8px">PHASE</span>' + s[0], s[1], s[2])).join('')}</div>`) +
-  box(140, 880, 1640, `<div class="a" style="font-size:30px;font-weight:600;color:#06261B">Each step follows <b style="font-weight:800">demand, capability and capital availability.</b></div>`)});
+  ], {cols: 1, side: true, size: 25, gap: '30px'})) +
+  box(140, 930, 900, `<div class="a" style="padding-top:24px;border-top:1.5px solid var(--line);font-size:23px;color:var(--mut)">${fmt('*Next:* allied-health and daycare pathways, formal referral partnerships, then {replicating the model} in new locations.')}</div>`)});
 
 add('Revenue streams', {blob: B.orbTRs, orb: O.d, photo: null, html:
   box(140, 150, 1640, `<div class="kick a">Rehab setup</div>` + title('*Revenue* {streams}', 62)) +
