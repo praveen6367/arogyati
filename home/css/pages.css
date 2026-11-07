@@ -19,7 +19,7 @@
 .ph__crumb i{width:18px;height:1px;background:#C3CCC6}
 .az-home .ph__h1{margin-top:1rem;font-weight:500;font-size:clamp(2.8rem,6vw,5.8rem);line-height:.96;letter-spacing:-.06em;color:var(--hx-ink)}
 .ph__h1 em{font-style:normal;color:var(--hx-green)}
-.ph__h1 .ph-w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em}
+.ph__h1 .ph-w{display:inline-block;overflow:hidden;vertical-align:top;padding:.16em .03em .26em;margin:-.16em -.03em -.26em}
 .ph__h1 .ph-w>span{display:inline-block}
 .az-home .ph__lede{margin-top:1.5rem;max-width:46ch;font-size:1.06rem;line-height:1.6;color:#4B5650}
 .ph__ctas{display:flex;flex-wrap:wrap;align-items:center;gap:1.2rem;margin-top:2rem}
