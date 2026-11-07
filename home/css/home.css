@@ -2267,3 +2267,6 @@ body.az-home{background:transparent!important}
 .az-home .az-dock__a--wa span{color:#fff!important}
 .az-home .az-dock__a--wa svg{width:18px;height:18px}
 @media (max-width:899px){.az-home .tx-row__n span{line-height:1.25!important;padding:.06em 0 .1em}}
+/* history card right after a dark section (About page): run full-bleed so no light corners or side strips show at the seam */
+.az-home .pr + .hx2{padding:0!important}
+.az-home .pr + .hx2 .hx2__stage{border-radius:0 0 34px 34px}
