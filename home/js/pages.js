@@ -68,3 +68,9 @@
   };
   if (d.readyState === 'complete') start(); else addEventListener('load', start);
 })();
+/* contact map: inject the Google embed only when it nears the screen */
+(() => {
+  const f = document.querySelector('.mp__frame iframe[data-src]'); if (!f) return;
+  const io = new IntersectionObserver((es) => { if (es[0].isIntersecting) { f.src = f.dataset.src; io.disconnect(); } }, { rootMargin: '300px 0px' });
+  io.observe(f);
+})();

@@ -2212,3 +2212,33 @@ body.az-home{background:transparent!important}
 .hx-card__chip.is-closed{background:#8A958D}
 /* QA: tablets keep phone-sized slides (no giant reels) */
 @media (max-width:899px){.cd4m__s,.tcm__s{flex-basis:min(82vw,400px)}.st-card{flex-basis:min(84vw,440px)!important}.hx2m{max-width:560px}.cd4m,.tcm__track{scroll-padding:0 max(9vw,calc(50vw - 200px));padding-left:max(9vw,calc(50vw - 200px));padding-right:max(9vw,calc(50vw - 200px))}}
+
+/* ===================== PREMIUM LAYER ===================== */
+/* page-to-page: the old page lifts away, the new one settles in (cross-document view transitions) */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:azVtOut .32s cubic-bezier(.4,0,.2,1) both}
+::view-transition-new(root){animation:azVtIn .6s cubic-bezier(.2,.7,.2,1) both}
+@keyframes azVtOut{to{opacity:0;transform:translate3d(0,-14px,0)}}
+@keyframes azVtIn{from{opacity:0;transform:translate3d(0,20px,0)}}
+/* reading progress */
+.az-prog{position:fixed;left:0;top:0;right:0;height:2px;z-index:90;pointer-events:none;background:linear-gradient(90deg,#B6E36A,#4F8A3F 55%,#406CB4);transform-origin:0 50%;transform:scaleX(0);opacity:0;transition:opacity .4s}
+.az-prog.is-on{opacity:1}
+/* lazy images ease in instead of popping */
+.az-fade{animation:azFade .8s cubic-bezier(.2,.7,.2,1) backwards}
+@keyframes azFade{from{opacity:0}}
+/* touch: no grey flash, gentle press feedback */
+.az-home a,.az-home button{-webkit-tap-highlight-color:transparent}
+@media (hover:none){.hx-pill:active,.az-dock__a:active,.cd4m__card:active,.st__nav button:active{transform:scale(.97);transition:transform .15s}}
+/* phone action dock: call, WhatsApp, book — always one thumb away */
+.az-dock{display:none}
+@media (max-width:899px){
+  .az-dock{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;gap:6px;padding:6px;border-radius:999px;background:rgba(255,255,255,.84);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);box-shadow:0 18px 40px -18px rgba(20,40,30,.5),inset 0 0 0 1px rgba(255,255,255,.75);transform:translate3d(0,150%,0);transition:transform .6s cubic-bezier(.2,.8,.2,1);will-change:transform}
+  .az-dock.is-on{transform:none}
+  .az-dock__a{flex:1;display:flex;align-items:center;justify-content:center;gap:.45rem;height:46px;border-radius:999px;color:#17231B;font-size:.88rem;font-weight:500;text-decoration:none;letter-spacing:-.01em}
+  .az-dock__a svg{width:17px;height:17px;flex:none}
+  .az-dock__a--go{flex:1.15;background:#17231B;color:#fff}
+  .az-dock__a--go svg{width:26px;height:26px;padding:6px;border-radius:50%;background:#4F8A3F;color:#fff}
+  body.az-menu-open .az-dock{transform:translate3d(0,150%,0)}
+}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}.az-dock{transition:none}.az-fade{animation:none}}
+@media (max-width:899px){.az-home .az-dock__a--go,.az-home .az-dock__a--go span{color:#fff!important;opacity:1!important;visibility:visible!important}.az-dock__a span{display:inline!important;transform:none!important}}

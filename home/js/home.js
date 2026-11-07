@@ -88,6 +88,22 @@
   if (ARC3D) { layout(); applyRing(); }
 
 
+
+  /* ---------- premium layer: reading progress, image ease-in, phone action dock ---------- */
+  {
+    const bar = $('.az-prog');
+    if (bar) { let q = 0; const upd = () => { q = 0; const y = scrollY, m = document.documentElement.scrollHeight - innerHeight; bar.style.transform = `scaleX(${m > 0 ? (y / m).toFixed(4) : 0})`; bar.classList.toggle('is-on', y > 60); };
+      addEventListener('scroll', () => { if (!q) q = requestAnimationFrame(upd); }, { passive: true }); upd(); }
+    $$('img[loading="lazy"]').forEach((im) => { if (!im.complete) im.addEventListener('load', () => im.classList.add('az-fade'), { once: true }); });
+    const dock = $('.az-dock');
+    if (dock) {
+      /* hidden over the hero, the 3D story, the contact section and the footer — shown everywhere in between */
+      const blockers = ['.hx', '.ph', '.m3', '.cx', '.az-foot'].map((s) => $(s)).filter(Boolean), seen = new Set();
+      const set = () => dock.classList.toggle('is-on', seen.size === 0 && scrollY > 200);
+      const io = new IntersectionObserver((es) => { es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target))); set(); }, { rootMargin: '0px 0px -12% 0px' });
+      blockers.forEach((b) => io.observe(b));
+    }
+  }
   /* live clinic status on the hours cards (Kolhapur time) */
   {
     const ist = new Date(Date.now() + (new Date().getTimezoneOffset() + 330) * 60000), dw = (ist.getDay() + 6) % 7, m = ist.getHours() * 60 + ist.getMinutes();
@@ -105,8 +121,10 @@
     return { go: (d) => { const i = Math.max(0, Math.min(slides.length - 1, cur + d)), s = slides[i]; track.scrollTo({ left: s.offsetLeft - (track.clientWidth - s.offsetWidth) / 2, behavior: RM ? 'auto' : 'smooth' }); }, cur: () => cur };
   };
   /* plays only the active slide's clip, only while the track is on screen; clips load on first need */
+  const posters = (els) => els.forEach((v) => { const u = v.dataset.poster; if (u && !v.poster) { v.poster = u; v.style.background = `#1B2A1E url(${u}) center/cover`; } });
   const mplayer = (track) => {
     let vis = false, act = null; const vids = $$('video', track);
+    const near = new IntersectionObserver((es) => { if (es[0].isIntersecting) { posters(vids); near.disconnect(); } }, { rootMargin: '600px 0px' }); near.observe(track);
     const run = () => vids.forEach((v) => { if (v === act && vis) { if (!v.getAttribute('src')) v.src = v.dataset.src; const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else v.pause(); });
     new IntersectionObserver((es) => { vis = es[0].isIntersecting; run(); }, { threshold: 0.2 }).observe(track);
     return (slide) => { act = $('video', slide); run(); };
@@ -584,6 +602,7 @@
           stepBars.forEach((b, k) => { b.style.transform = `scaleX(${Math.max(0, Math.min(1, pAll * D.length - k)).toFixed(3)})`; });
         };
         ScrollTrigger.create({ trigger: tcS, start: 'top 80%', end: 'bottom top', onToggle: (s) => { live = s.isActive; playOnly(cur); } });
+        if (!MOB()) ScrollTrigger.create({ trigger: tcS, start: 'top 260%', once: true, onEnter: () => posters(vids) });
         const tcT = $('[data-tcm]');
         if (tcT) { const tp = mplayer(tcT); mcar(tcT, $$('.tcm__s', tcT), $('[data-tcm-dots]'), (i, s) => { tp(s); if (MOB()) tints.forEach((t, k) => t.classList.toggle('is-on', k === i)); }); }
         mm.add('(min-width: 1024px)', () => {
