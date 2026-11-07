@@ -347,7 +347,7 @@ function setPhoto(ph) {
 /* ---------------- sound ---------------- */
 let sfxOn = true, musicOn = false;
 const sfx = {};
-['whoosh', 'pop', 'tick', 'swell', 'chime'].forEach((n) => { sfx[n] = new Audio(`assets/sfx/${n}.wav`); sfx[n].preload = 'auto'; });
+['pin', 'pin-logo'].forEach((n) => { sfx[n] = new Audio(`assets/sfx/${n}.wav`); sfx[n].preload = 'auto'; });
 const play = (n, v) => { if (!sfxOn) return; const a = IOS ? sfx[n] : sfx[n].cloneNode(); try { a.currentTime = 0; } catch (e) {} a.volume = v; const r = a.play(); if (r && r.catch) r.catch(() => {}); };
 const music = $('#music'); music.volume = 0.4;
 
@@ -447,9 +447,9 @@ function go(n, silent) {
   $('#prog').style.width = ((n + 1) / N) * 100 + '%';
   history.replaceState(null, '', '#' + (n + 1));
   [...$('#ovg').children].forEach((c, i) => c.classList.toggle('cur', i === n));
-  if (!silent) play('whoosh', 0.028);
+  if (!silent) play('pin', 0.1);
   clearTimeout(go.t1); clearTimeout(go.t2); clearTimeout(go.t3);
-  if (n === 0) { go.t1 = setTimeout(() => play('swell', 0.12), 350); go.t3 = setTimeout(() => play('chime', 0.1), 2750); reveal(el); }
+  if (n === 0) { go.t3 = setTimeout(() => play('pin-logo', 0.14), 2650); reveal(el); }
 }
 const locked = () => document.body.classList.contains('intro');
 const next = () => { if (!locked()) go(cur + 1); }, prev = () => { if (!locked()) go(cur - 1); };
