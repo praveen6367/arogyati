@@ -14,6 +14,7 @@
   let lenis = null;
   if (!RM && FINE && !LITE && window.Lenis) {
     lenis = new Lenis({ lerp: 0.1 });
+    window.__azLenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     g.ticker.add((t) => lenis.raf(t * 1000));
     g.ticker.lagSmoothing(0);
@@ -66,7 +67,7 @@
   nav.addEventListener('mouseleave', () => moveInd(activeLink));
 
   /* ---------- hero: 3D card arc state ---------- */
-  ScrollTrigger.create({ trigger: '.hx', start: 'bottom 80px', onEnter: () => head.classList.add('on-light'), onLeaveBack: () => head.classList.remove('on-light') });
+  if ($('.hx')) ScrollTrigger.create({ trigger: '.hx', start: 'bottom 80px', onEnter: () => head.classList.add('on-light'), onLeaveBack: () => head.classList.remove('on-light') });
   const hx = $('.hx'), ring = $('.hx__ring'), hcards = $$('.hx__ring .hx-card');
   const arc = { ry: 0, speed: 6, boost: 0, R: 0 };
   const radius = () => Math.min(innerWidth * 0.62, 1050);
@@ -98,7 +99,7 @@
     const dock = $('.az-dock');
     if (dock) {
       /* hidden over the hero, the 3D story, the contact section and the footer — shown everywhere in between */
-      const blockers = ['.hx', '.ph', '.m3', '.cx', '.az-foot'].map((s) => $(s)).filter(Boolean), seen = new Set();
+      const blockers = ['.hx', '.nch', '.ncs', '.ph', '.m3', '.cx', '.az-foot'].map((s) => $(s)).filter(Boolean), seen = new Set();
       const set = () => dock.classList.toggle('is-on', seen.size === 0 && scrollY > 200);
       const io = new IntersectionObserver((es) => { es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target))); set(); }, { rootMargin: '0px 0px -12% 0px' });
       blockers.forEach((b) => io.observe(b));
@@ -376,7 +377,7 @@
      unbends into a flat filmstrip, then your scroll drives it through the next section ---------- */
   const railIn = { v: RM ? 1 : 0 };
   const rail = (() => {
-    const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE) return null;
+    const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE || !$('.hx')) return null;
     const cards = $$('.rl-card', el), N = cards.length, U = N / 2;
     const sky = $('.hx__sky'), haze = $('.hx__haze'), head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
     let segs = null; if (cap) { const sg = document.createElement('div'); sg.className = 'rx__segs'; sg.innerHTML = '<i></i>'.repeat(U); cap.appendChild(sg); segs = [...sg.children]; }
@@ -467,7 +468,7 @@
       addEventListener('resize', () => { layout(); applyRing(); });
     }
     mm.add('(min-width: 900px)', () => {
-      if (LITE) return;
+      if (LITE || !hx) return;
       /* hero leaves naturally (no pin, no flood): copy lifts, cards spread and fade, photo drifts slower than the page */
       const st = { trigger: hx, start: 'top top', end: 'bottom top', scrub: true, invalidateOnRefresh: true, onUpdate: (s) => { arc.boost = Math.min(arc.boost + Math.abs(s.getVelocity()) / 600, 60); } };
       const tl = g.timeline({ defaults: { ease: 'none' }, scrollTrigger: st });
