@@ -59,3 +59,15 @@
 .ncx__tag.is-flip i{background:linear-gradient(270deg,#1A231E,rgba(26,35,30,.15))}
 .ncx__tag.is-flip i::before{left:auto;right:-4.5px}
 @media (max-width:899px){.ncx__tag span{padding:.42rem .7rem}.ncx__tag b{font-size:.72rem}.ncx__tag em{font-size:.64rem}}
+
+/* headings: always exactly two lines */
+.ncx-ch{max-width:min(54vw,820px)}
+.az-home .ncx-ch__h{font-size:clamp(2.2rem,3.9vw,4.6rem)}
+.ncx-ln{white-space:nowrap}
+.az-home .ncx-ch[data-i="6"] .ncx-ch__h{font-size:clamp(2rem,3.1vw,3.6rem)}
+@media (max-width:899px){
+  .ncx-ch{max-width:none}
+  .az-home .ncx-ch__h{font-size:clamp(1.6rem,7.1vw,2.4rem)}
+  .az-home .ncx-ch[data-i="6"] .ncx-ch__h{font-size:clamp(1.3rem,5.6vw,2rem)}
+  .ncx-ch[data-i="6"] .ncx-ln{white-space:normal}
+}
