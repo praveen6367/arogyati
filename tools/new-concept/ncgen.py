@@ -12,11 +12,12 @@ def ln(*parts):  # masked lines for the rise-in reveal
 
 CH = [
   (None, ln('Working for wellness.', '<em>First time in Kolhapur.</em>'), 'Well Equipped Physiotherapy Center With Ultra Modern German Technologies.', True),
-  ('01 · Locate', ln('Pain,', '<em>located.</em>'), 'Neck · Shoulder · Back · Knee', False),
-  ('02 · Release', ln('Tension,', '<em>released.</em>'), 'Matrix Rhythm Therapy · 8–12 Hz', False),
-  ('03 · Realign', ln('The body,', '<em>realigned.</em>'), 'Osteopathy · FOMT', False),
-  ('04 · Move', ln('Free to', '<em>move again.</em>'), 'Super Inductive System · Class IV Laser', False),
-  ('Arogyati', ln('28 years.', '<em>12 physios + 8 assistant physios.</em>'), 'Working For Holistic Approach.', 'end'),
+  ('01 · Neck', ln('Neck pain,', '<em>realigned by hand.</em>'), 'Osteopathy · FOMT', False),
+  ('02 · Shoulder', ln('Frozen shoulder,', '<em>moving again.</em>'), 'Super Inductive System · 0.85 Tesla', False),
+  ('03 · Lower back', ln('Lower back pain,', '<em>back in rhythm.</em>'), 'Matrix Rhythm Therapy · 8–12 Hz', False),
+  ('04 · Knee', ln('Knee pain,', '<em>healed from within.</em>'), 'Class IV Laser', False),
+  ('05 · Move', ln('Free to', '<em>move again.</em>'), 'Working For Holistic Approach.', False),
+  ('Arogyati', ln('28 years.', '<em>12 physios + 8 assistant physios.</em>'), 'First Big Private Clinic In Kolhapur.', 'end'),
 ]
 chs = ''
 for i, (lab, hd, cap, kind) in enumerate(CH):
@@ -35,7 +36,8 @@ hero = f'''<section class="ncx" id="top" aria-label="From pain to motion">
     <div class="ncx__word" aria-hidden="true"><span data-ncx-word>WELLNESS</span></div>
     <canvas class="ncx__cv" aria-hidden="true"></canvas>
     <div class="ncx__copy az-wrap">{chs}</div>
-    <div class="ncx__rail" aria-hidden="true"><b data-ncx-n>01</b><span class="ncx__bar"><i></i></span><b>06</b></div>
+    <div class="ncx__rail" aria-hidden="true"><b data-ncx-n>01</b><span class="ncx__bar"><i></i></span><b>07</b></div>
+    <div class="ncx__tag" aria-hidden="true"><i></i><span><b data-ncx-tag>Neck pain</b><em data-ncx-tagm>Osteopathy</em></span></div>
     <svg class="ncx__logo" viewBox="129 0 35 42" aria-hidden="true">{FIG}</svg>
   </div>
 </section>
@@ -45,8 +47,8 @@ a = h.index('<section class="hx"'); b = h.index('<section class="rx"')
 out = h[:a] + hero + '\n<!-- RAIL SECTION -->\n' + h[b:]
 m3 = re.search(r'<script>addEventListener\("load",function\(\)\{var go=function\(\)\{import\("/home/js/m3d\.js[^<]*</script>', out)
 assert m3, 'm3d loader'; out = out.replace(m3.group(0), '')
-out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=4">', out, count=1)
-out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/nc.js?v=4" defer></script>', out, count=1)
+out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=5">', out, count=1)
+out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/nc.js?v=5" defer></script>', out, count=1)
 assert 'nc.js' in out and 'nc.css' in out
 out = out.replace('<link rel="canonical" href="https://arogyati-chi.vercel.app/home">', '<link rel="canonical" href="https://arogyati-chi.vercel.app/home">\n<meta name="robots" content="noindex">', 1)
 out = re.sub(r'<link rel="preload"[^>]*(hero-|model-mid)[^>]*>\n?', '', out)

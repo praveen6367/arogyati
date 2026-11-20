@@ -1,7 +1,7 @@
 /* AROGYATI — new concept: one pinned motion-graphic stage. Site language: airy canvas, Jakarta two-tone type,
    faded giant word (as in the technology section), white pills. Minimal copy; the figure does the talking. */
 .az-home{--nc-ink:#14201A;--nc-grey:#8A948E;--nc-soft:#4B5650}
-.az-home .ncx{position:relative;height:720vh}
+.az-home .ncx{position:relative;height:900vh}
 .ncx__stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
 .ncx__tint{position:absolute;inset:0;--t:#E4EEDD;background:radial-gradient(60% 70% at 62% 52%,rgba(255,255,255,.9) 0%,var(--t) 78%);transition:--t 1.2s;opacity:.85}
 @property --t{syntax:'<color>';inherits:false;initial-value:#E4EEDD}
@@ -33,7 +33,7 @@
 .ncx__bar i{position:absolute;inset:0;background:var(--nc-ink);transform:scaleY(0);transform-origin:top}
 
 @media (max-width:899px){
-  .az-home .ncx{height:640vh}
+  .az-home .ncx{height:800vh}
   .ncx__word{padding-left:0;align-items:flex-start;padding-top:18svh}
   .ncx__word span{font-size:clamp(4.6rem,24vw,7rem)}
   .ncx__tint{background:radial-gradient(80% 60% at 50% 38%,rgba(255,255,255,.9) 0%,var(--t) 80%)}
@@ -45,3 +45,17 @@
   .ncx__bar{height:70px}
 }
 @media (prefers-reduced-motion:reduce){.ncx-cue i::after{animation:none}}
+
+/* the label that follows each pain (tc-call style) */
+.ncx__tag{position:absolute;left:0;top:0;z-index:3;display:flex;align-items:center;opacity:0;pointer-events:none;will-change:transform}
+.ncx__tag i{position:relative;display:block;width:clamp(30px,3.6vw,54px);height:1.5px;background:linear-gradient(90deg,#1A231E,rgba(26,35,30,.15))}
+.ncx__tag i::before{content:"";position:absolute;left:-4.5px;top:-3.75px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2.5px #E8705C;transition:box-shadow .5s}
+.ncx__tag.is-calm i::before{box-shadow:0 0 0 2.5px #4F8A3F}
+.ncx__tag span{display:flex;flex-direction:column;gap:2px;padding:.55rem .95rem;border-radius:16px;background:rgba(255,255,255,.92);box-shadow:0 14px 28px -18px rgba(20,40,60,.45);white-space:nowrap}
+.ncx__tag b{font-size:.8rem;font-weight:600;color:#1A231E}
+.ncx__tag em{font-style:normal;font-size:.7rem;font-weight:500;color:#E8705C;transition:color .5s}
+.ncx__tag.is-calm em{color:#4F8A3F}
+.ncx__tag.is-flip{flex-direction:row-reverse}
+.ncx__tag.is-flip i{background:linear-gradient(270deg,#1A231E,rgba(26,35,30,.15))}
+.ncx__tag.is-flip i::before{left:auto;right:-4.5px}
+@media (max-width:899px){.ncx__tag span{padding:.42rem .7rem}.ncx__tag b{font-size:.72rem}.ncx__tag em{font-size:.64rem}}
