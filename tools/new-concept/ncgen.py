@@ -30,13 +30,17 @@ for i, (lab, hd, cap, kind) in enumerate(CH):
     chs += (f'<div class="ncx-ch{" is-on" if i == 0 else ""}" data-i="{i}">' + (f'<span class="rx__label">{lab}</span>' if lab else '<span class="rx__label">First Big Private Clinic In Kolhapur</span>')
             + f'<{tag} class="ncx-ch__h">{hd}</{tag}><p class="ncx-ch__p">{cap}</p>{extra}</div>')
 
-ARCHV = ''.join(f'<video muted playsinline loop preload="none" data-src="/home/assets/video/tech-{n}.mp4" data-poster="/home/assets/video/tech-{n}.jpg"></video>' for n in ('osteo', 'sis', 'mrt', 'laser'))
+MEDIA = [('video', 'video/tech-osteo.mp4', 'video/tech-osteo.jpg', 'Neck · Hands-on osteopathy'), ('img', 'img/shoulder-800.webp', '', 'Shoulder · Mobilisation'),
+  ('img', 'img/back-800.webp', '', 'Lower back · Manual therapy'), ('video', 'video/tech-mrt.mp4', 'video/tech-mrt.jpg', 'Knee · Hands-on therapy'),
+  ('video', 'reels/DfOezDQINUI.mp4', 'reels/DfOezDQINUI.webp', 'Rehab · Moving again'), ('img', 'img/team-800.webp', '', 'The Arogyati team')]
+ARCHV = ''.join((f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}" data-poster="/home/assets/{p}" data-cap="{c}"{' data-crop="1"' if 'DfOez' in s else ''}></video>' if k == 'video'
+  else f'<img alt="" decoding="async" data-src="/home/assets/{s}" data-cap="{c}"{' class="is-soft"' if 'team' in s else ''}>') for k, s, p, c in MEDIA)
 hero = f'''<section class="ncx" id="top" aria-label="From pain to motion">
   <div class="ncx__stage">
     <div class="ncx__tint" aria-hidden="true"></div>
     <div class="ncx__word" aria-hidden="true"><span data-ncx-word>WELLNESS</span></div>
     <figure class="ncx__arch" aria-hidden="true">{ARCHV}</figure>
-    <div class="ncx__archcap" aria-hidden="true"><i></i>Real session · Arogyati, Kolhapur</div>
+    <div class="ncx__archcap" aria-hidden="true"><i></i><span></span></div>
     <canvas class="ncx__cv" aria-hidden="true"></canvas>
     <div class="ncx__copy az-wrap">{chs}</div>
     <div class="ncx__rail" aria-hidden="true"><b data-ncx-n>01</b><span class="ncx__bar"><i></i></span><b>07</b></div>
@@ -50,8 +54,8 @@ a = h.index('<section class="hx"'); b = h.index('<section class="rx"')
 out = h[:a] + hero + '\n<!-- RAIL SECTION -->\n' + h[b:]
 m3 = re.search(r'<script>addEventListener\("load",function\(\)\{var go=function\(\)\{import\("/home/js/m3d\.js[^<]*</script>', out)
 assert m3, 'm3d loader'; out = out.replace(m3.group(0), '')
-out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=14">', out, count=1)
-out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/nc.js?v=28"></script>\n<link rel="preload" href="/home/assets/3d/body.glb" as="fetch" crossorigin>', out, count=1)
+out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=16">', out, count=1)
+out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/nc.js?v=30"></script>\n<link rel="preload" href="/home/assets/3d/body.glb" as="fetch" crossorigin>', out, count=1)
 assert 'nc.js' in out and 'nc.css' in out
 out = out.replace('<link rel="canonical" href="https://arogyati-chi.vercel.app/home">', '<link rel="canonical" href="https://arogyati-chi.vercel.app/home">\n<meta name="robots" content="noindex">', 1)
 out = re.sub(r'<link rel="preload"[^>]*(hero-|model-mid)[^>]*>\n?', '', out)

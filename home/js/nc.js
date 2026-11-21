@@ -104,29 +104,56 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     }
   };
 
-  /* ---------- the arch: a window behind the figure into the real session; it opens from a hairline for each treatment ---------- */
-  const arch = $('.ncx__arch', sec), vids = arch ? $$('video', arch) : [], acap = $('.ncx__archcap', sec);
-  let vOn = -1, aw = 0, ah = 0;
-  const setVid = (k) => {
-    if (k === vOn) return; vOn = k;
-    vids.forEach((v, i) => { if (i === k) { if (!v.getAttribute('src')) { v.poster = v.dataset.poster; v.src = v.dataset.src; } v.classList.add('is-on'); const pr = v.play(); if (pr) pr.catch(() => {}); } else { v.classList.remove('is-on'); v.pause(); } });
+  /* ---------- the window: behind the figure, footage of the body part in pain; each chapter opens it a different way ---------- */
+  const arch = $('.ncx__arch', sec), meds = arch ? [...arch.children] : [], acap = $('.ncx__archcap', sec), acapT = acap && $('span', acap);
+  const SHAPE = ['arch', 'lens', 'doors', 'blinds', 'arch', 'arch'];
+  let mOn = -1, aw = 0, ah = 0;
+  const setMed = (k) => {
+    if (k === mOn) return; mOn = k;
+    meds.forEach((m, i) => {
+      const on = i === k;
+      if (on && !m.getAttribute('src')) { if (m.dataset.poster) m.poster = m.dataset.poster; m.src = m.dataset.src; }
+      m.classList.toggle('is-on', on);
+      if (m.tagName === 'VIDEO') { if (on) { const pr = m.play(); if (pr) pr.catch(() => {}); } else m.pause(); }
+    });
+    if (k >= 0 && acapT) acapT.textContent = meds[k].dataset.cap;
+  };
+  const f1 = (v) => v.toFixed(1);
+  const clipFor = (sh, r, w, h, px, py) => {
+    if (sh === 'lens') { const rad = ease(r) * Math.hypot(Math.max(px, w - px), Math.max(py, h - py)); return `circle(${f1(rad)}px at ${f1(px)}px ${f1(py)}px)`; }
+    if (sh === 'doors') {
+      const gp = 7, lw = w / 2 - gp, rx = w / 2 + gp, a = lw * ease(clamp(r * 1.25)), b = (w - rx) * ease(clamp(r * 1.25 - 0.25));
+      return `polygon(${f1(lw - a)}px 0px,${f1(lw)}px 0px,${f1(lw)}px ${h}px,${f1(lw - a)}px ${h}px,${f1(lw - a)}px 0px,${f1(rx)}px 0px,${f1(rx + b)}px 0px,${f1(rx + b)}px ${h}px,${f1(rx)}px ${h}px,${f1(rx)}px 0px)`;
+    }
+    if (sh === 'blinds') {
+      const n = 7, sh2 = h / n, pts = [];
+      for (let i = 0; i < n; i++) { const y0 = i * sh2, y1 = y0 + sh2 * ease(clamp(r * 1.7 - i * 0.1)); pts.push(`0px ${f1(y0)}px`, `${w}px ${f1(y0)}px`, `${w}px ${f1(y1)}px`, `0px ${f1(y1)}px`, `0px ${f1(y0)}px`); }
+      pts.push('0px 0px'); return `polygon(${pts.join(',')})`;
+    }
+    const hi = (1 - r) * (w / 2 - 0.75), vi = (1 - ease(clamp(r * 1.6))) * h * 0.12, rt = Math.max(0.75, w / 2 - hi), rb = Math.min(rt, 22);
+    return `inset(${f1(vi)}px ${f1(hi)}px ${f1(vi)}px ${f1(hi)}px round ${f1(rt)}px ${f1(rt)}px ${f1(rb)}px ${f1(rb)}px)`;
   };
   const drawArch = (p, states, act, lg, formed, t) => {
     if (!arch) return 0;
-    let r = 0;
-    if (act >= 0) { const c = states[act].c; r = seg(c, 0.1, 0.32) * (1 - seg(c, 0.8, 0.97)); }
-    r *= formed * (1 - lg);
-    if (r < 0.002) { arch.style.visibility = 'hidden'; if (acap) acap.style.opacity = 0; setVid(-1); return 0; }
-    setVid(act);
-    const S0 = MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6), w = Math.round(S0 * (MOB ? 0.8 : 0.72)), h = Math.round(S0 * 1.04);
+    let k = -1, r = 0;
+    if (act >= 0) { const c = states[act].c; k = act; r = seg(c, 0.1, 0.32) * (1 - seg(c, 0.8, 0.97)) * (1 - lg); }
+    else if (p >= R[5][0] && p < R[5][1]) { const c = (p - R[5][0]) / (R[5][1] - R[5][0]); k = 4; r = seg(c, 0.15, 0.38) * (1 - seg(c, 0.78, 0.96)); }
+    else if (p >= R[6][0]) { k = 5; r = seg(p, 0.89, 0.97); }
+    r *= formed;
+    if (r < 0.002) { arch.style.visibility = 'hidden'; if (acap) acap.style.opacity = 0; setMed(-1); return 0; }
+    setMed(k);
+    const sh = SHAPE[k], S0 = MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6);
+    const w = Math.round(Math.min(W - 24, S0 * (sh === 'doors' ? (MOB ? 0.86 : 0.84) : sh === 'lens' ? (MOB ? 0.86 : 0.8) : MOB ? 0.8 : 0.72))), h = Math.round(S0 * 1.04);
     if (w !== aw || h !== ah) { aw = w; ah = h; arch.style.width = w + 'px'; arch.style.height = h + 'px'; }
     const x = (MOB ? W * 0.5 : W * 0.66) - smx * 10 - w / 2, y = (MOB ? H * 0.35 : H * 0.5) - smy * 6 - S0 * 0.54;
-    const hi = (1 - r) * (w / 2 - 0.75), vi = (1 - ease(clamp(r * 1.6))) * h * 0.12, rt = Math.max(0.75, w / 2 - hi);
+    let px = w / 2, py = h / 2; if (act >= 0) { const [qx2, qy2] = proj(areaPos(act)); px = qx2 - x; py = qy2 - y; }
     arch.style.visibility = 'visible';
-    arch.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
-    arch.style.clipPath = `inset(${vi.toFixed(1)}px ${hi.toFixed(1)}px ${vi.toFixed(1)}px ${hi.toFixed(1)}px round ${rt.toFixed(1)}px ${rt.toFixed(1)}px ${Math.min(rt, 22).toFixed(1)}px ${Math.min(rt, 22).toFixed(1)}px)`;
-    const v = vids[act]; if (v) v.style.transform = `scale(${(1.22 - 0.22 * ease(r)).toFixed(4)}) translateY(${((1 - r) * 4).toFixed(2)}%)`;
-    if (acap) { const ca = clamp((r - 0.7) / 0.3); acap.style.opacity = ca.toFixed(3); acap.style.transform = `translate3d(${(x - 16).toFixed(1)}px,${(y + h * 0.62 + (1 - ca) * 10).toFixed(1)}px,0) rotate(-90deg)`; }
+    arch.style.transform = `translate3d(${f1(x)}px,${f1(y)}px,0)`;
+    arch.style.clipPath = clipFor(sh, r, w, h, px, py);
+    const m = meds[k];
+    if (m) m.style.transform = m.tagName === 'VIDEO' ? `scale(${(1.22 - 0.22 * ease(r) + (m.dataset.crop ? 0.2 : 0)).toFixed(4)}) translateY(${((1 - r) * 4).toFixed(2)}%)`
+      : `scale(${(1.2 - 0.12 * ease(r) + 0.025 * Math.sin(t * 0.18)).toFixed(4)}) translate3d(${(Math.sin(t * 0.13) * 1.4).toFixed(2)}%,${(Math.cos(t * 0.11) * 1.1).toFixed(2)}%,0)`;
+    if (acap) { const ca = clamp((r - 0.7) / 0.3); acap.style.opacity = ca.toFixed(3); acap.style.transform = `translate3d(${f1(x - 16)}px,${f1(y + h * 0.62 + (1 - ca) * 10)}px,0) rotate(-90deg)`; }
     return r;
   };
 
