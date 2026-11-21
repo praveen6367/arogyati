@@ -159,12 +159,22 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
       
       if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
-      if (uIntro < 1.0 && aKind < 5.5) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159); a = mix(0.8, a, k); col = mix(mix(vec3(0.37, 0.42, 0.24), vec3(0.16, 0.22, 0.17), aRnd), col, k); }
+      float kI = 1.0;
+      if (uIntro < 1.0 && aKind < 5.5) {
+        float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); kI = k;
+        wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159);
+        vec2 hd = aHeap.xz / vec2(1.0, 0.8); float hr = max(length(hd), 1e-4), sl = 0.12 * 1.15 / 0.2 * pow(max(0.0, 1.0 - hr / 0.2), 0.15);
+        vec3 hn = normalize(vec3(hd.x / hr * sl, 1.0, hd.y / hr * sl));
+        float sh = clamp(0.35 + 0.75 * max(dot(hn, normalize(vec3(-0.5, 0.75, 0.45))), 0.0), 0.0, 1.0) * (0.86 + 0.14 * fract(aRnd * 41.0));
+        vec3 sand = mix(vec3(0.42, 0.37, 0.27), vec3(0.86, 0.78, 0.62), sh);
+        col = mix(sand, col, smoothstep(0.0, 0.6, k)); a = mix(0.92, a, k);
+      }
       vec4 mv = viewMatrix * wp;
       vec4 cp = projectionMatrix * mv;
       // cursor parts the particles
       vec2 s = (cp.xy / cp.w * 0.5 + 0.5) * uRes; vec2 md = s - vec2(uMouse.x, uRes.y - uMouse.y); float ml = length(md);
       if (ml < uMouse.z && (aKind < 3.5 || aKind > 4.5)) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
+      if (kI < 0.35) cp.z = -cp.w * 0.98; // grains still in the pile are never hidden by the (invisible) body
       gl_Position = cp;
       float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
       gl_PointSize = uSize * (0.95 + aRnd * 0.1) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3 + band * 0.7) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
@@ -284,8 +294,9 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     for (let c = 0; c < NH && n < N; c++, n++) { sI[n * 4] = 0; sW[n * 4] = 1; nor.set([0, 0, 1], n * 3); pos.set([Math.random(), Math.random(), Math.random()], n * 3); hgt[n] = Math.random(); kind[n] = 6; }
     const NT = n;
     for (let i = 0; i < NT; i++) {
-      const hx = (Math.random() + Math.random() + Math.random() - 1.5) * 0.24, hz = (Math.random() + Math.random() - 1) * 0.16;
-      heap[i * 3] = hx; heap[i * 3 + 1] = 0.09 * Math.exp(-((hx / 0.13) ** 2) - ((hz / 0.1) ** 2)) * Math.sqrt(Math.random()) + 0.002; heap[i * 3 + 2] = hz;
+      const loose = Math.random() < 0.05, R = 0.2, ang = Math.random() * TAU, rr = loose ? R * (0.85 + Math.random() * 0.75) : R * Math.sqrt(Math.random());
+      const hgtC = loose ? 0.002 * Math.random() : 0.12 * Math.pow(Math.max(0, 1 - rr / R), 1.15) * (0.9 + 0.1 * Math.random()) * (1 + 0.06 * Math.sin(ang * 5.0 + rr * 40.0));
+      heap[i * 3] = Math.cos(ang) * rr; heap[i * 3 + 1] = hgtC + 0.001; heap[i * 3 + 2] = Math.sin(ang) * rr * 0.8;
       rnd[i] = Math.random(); dly[i] = clamp(hgt[i]) * 0.5 + Math.random() * 0.08;
     }
     // logo targets, paired by height so the body flows into the mark
@@ -393,7 +404,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       U.uSpine.value = spineGlow;
       const sc = (t - scanT) / 1.8; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 && lg < 0.05 ? mix(1.03, -0.02, ease(sc)) : -2;
       U.uMouse.value.set(mx, my, 80); U.uCz.value = -D;
-      const solid = intro > 0.995 && lg < 0.002; occ.forEach((m) => { m.visible = solid; });
+      const solid = lg < 0.002; occ.forEach((m) => { m.visible = solid; });
       U.uSize.value = (MOB ? 1.5 : 1.55) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
       renderer.render(scene, camera);
     }
