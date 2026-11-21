@@ -6,6 +6,8 @@
 .ncx__tint{position:absolute;inset:0;--t:#E4EEDD;background:radial-gradient(60% 70% at 62% 52%,rgba(255,255,255,.9) 0%,var(--t) 78%);transition:--t 1.2s;opacity:.85}
 @property --t{syntax:'<color>';inherits:false;initial-value:#E4EEDD}
 .ncx__word{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-left:24vw;pointer-events:none}
+.ncx__word{will-change:transform}
+.ncx__word i{display:inline-block;font-style:normal;transform-origin:50% 100%}
 .ncx__word span{display:block;font-weight:600;font-size:clamp(6rem,19vw,22rem);line-height:.8;letter-spacing:-.07em;color:rgba(20,32,26,.045);white-space:nowrap}
 .az-home .ncx__cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ncx__logo{position:absolute;width:1px!important;height:1px!important;opacity:0;pointer-events:none}

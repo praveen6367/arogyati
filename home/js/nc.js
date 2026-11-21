@@ -87,14 +87,21 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const WORDS = ['WELLNESS', 'NECK', 'SHOULDER', 'BACK', 'KNEE', 'MOVE', 'AROGYATI'];
   const TINTS = ['#E4EEDD', '#F6E6DA', '#DFEAF6', '#E8E5F5', '#F3E9DC', '#E3F0E6', '#E4EEDD'];
   const TAGS = [null, ['Neck pain', 'Osteopathy'], ['Frozen shoulder', 'Super Inductive System'], ['Lower back pain', 'Matrix Rhythm Therapy'], ['Knee pain', 'Class IV Laser']];
-  let cur = -1, scanT = -10;
+  let cur = -1, scanT = -10, chT = -10, wTok = 0;
+  const wordBox = word && word.parentNode;
+  const setWord = (txt) => { word.innerHTML = [...txt].map((ch) => `<i>${ch}</i>`).join(''); return $$('i', word); };
+  const wordIn = (k) => { const ls = setWord(WORDS[k]); g.fromTo(ls, { yPercent: 90, opacity: 0, rotate: 5 }, { yPercent: 0, opacity: 1, rotate: 0, duration: 1.2, stagger: 0.045, ease: 'expo.out' }); };
   const setChapter = (k) => {
-    if (k === cur) return; cur = k; scanT = performance.now() / 1000;
+    if (k === cur) return; cur = k; scanT = performance.now() / 1000; chT = g.ticker.time;
     chs.forEach((c, i) => c.classList.toggle('is-on', i === k));
     if (num) num.textContent = String(k + 1).padStart(2, '0');
     if (tint) tint.style.setProperty('--t', TINTS[k]);
     if (TAGS[k] && tagB) { tagB.textContent = TAGS[k][0]; tagE.textContent = TAGS[k][1]; }
-    if (word) g.to(word, { opacity: 0, y: -20, duration: 0.35, ease: 'power2.in', overwrite: true, onComplete: () => { word.textContent = WORDS[k]; g.fromTo(word, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out' }); } });
+    if (word) {
+      const tok = ++wTok, old = $$('i', word);
+      if (!old.length || RM) { if (RM) word.textContent = WORDS[k]; else wordIn(k); }
+      else g.to(old, { yPercent: -70, opacity: 0, duration: 0.4, stagger: 0.02, ease: 'power2.in', overwrite: true, onComplete: () => { if (tok === wTok) wordIn(k); } });
+    }
   };
 
   /* ---------- layers: back 2D (dust, platform) · GPU particles · front 2D (treatment graphics) ---------- */
@@ -108,7 +115,6 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     uRes: { value: new THREE.Vector2(1, 1) }, uIntro: { value: RM ? 1 : 0 }, uLogo: { value: 0 }, uTime: { value: 0 }, uSize: { value: 2 },
     uMouse: { value: new THREE.Vector3(-9999, -9999, 90) }, uArea: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) },
     uPain: { value: Array.from({ length: 4 }, () => new THREE.Vector2()) }, uSpine: { value: 0 }, uScan: { value: -2 }, uCz: { value: 0 },
-    uWave: { value: new THREE.Vector4(0, 0, 0, -1) }, uWaveA: { value: 0 }, uRip: { value: new THREE.Vector4() },
   };
 
   // the living logo: side petals sway like leaves around the junction, the figure breathes, light drifts up it
@@ -132,7 +138,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     #include <common>
     #include <skinning_pars_vertex>
     attribute vec3 aLogo; attribute float aLv; attribute float aRnd; attribute float aDelay; attribute float aKind;
-    uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4]; uniform vec4 uWave; uniform float uWaveA; uniform vec4 uRip;
+    uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4];
     varying vec3 vCol; varying float vA; varying float vGlow;
     float e3(float t){ return t < 0.5 ? 4.0*t*t*t : 1.0 - pow(-2.0*t + 2.0, 3.0) / 2.0; }
     ${LEAF}
@@ -175,17 +181,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       else if (aKind > 0.5) { col = mix(vec3(0.97, 0.58, 0.20), vec3(1.0, 0.72, 0.30), uSpine); a = (0.55 + 0.3 * uSpine) * (0.75 + 0.25 * sin(uTime * 3.0 + aRnd * 60.0)); glow = 1.0; }
       float hot = 0.0, calm = 0.0;
       for (int k = 0; k < 4; k++) { vec3 dd = body - uArea[k].xyz; float h = exp(-dot(dd,dd) / (uArea[k].w*uArea[k].w)); hot = max(hot, h * uPain[k].x); calm = max(calm, h * uPain[k].y); }
-      // pain: the area is restless — grains shiver off the skin and flicker warm
-      float jit = hot * (0.5 + 0.5 * sin(uTime * 11.0 + aRnd * 90.0));
-      wp.xyz += nW * hot * (0.004 + 0.012 * fract(aRnd * 17.0 + uTime * 1.3)) + (vec3(fract(aRnd * 3.1), fract(aRnd * 5.7), fract(aRnd * 9.3)) - 0.5) * 0.01 * jit;
-      col = mix(col, mix(vec3(0.86, 0.33, 0.25), vec3(0.98, 0.56, 0.38), jit), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
-      col = mix(col, vec3(0.36, 0.62, 0.3), clamp(calm * 0.55, 0.0, 1.0));
-      // healing: a wave of light runs from the treated spot over the whole body
-      float dw = length(body - uWave.xyz), wv = exp(-pow((dw - uWave.w) / 0.022, 2.0)) * uWaveA;
-      wp.xyz += nW * wv * 0.008; col = mix(col, mix(vec3(0.42, 0.68, 0.38), vec3(0.62, 0.8, 0.95), smoothstep(0.1, 0.6, uWave.w)), clamp(wv, 0.0, 1.0) * 0.7); a = mix(a, 1.0, clamp(wv, 0.0, 1.0));
-      // rhythm therapy: the skin around the lower back breathes in fine concentric ripples
-      float dr = length(body - uRip.xyz), rp = sin(dr * 110.0 - uTime * 6.5) * exp(-dr * 6.0) * uRip.w;
-      wp.xyz += nW * rp * 0.0045; col = mix(col, vec3(0.3, 0.5, 0.82), max(rp, 0.0) * 0.55);
+      col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
+      col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
       
       if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, leafPos(aLogo, aRnd, uTime), k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, leafCol(aLogo, uTime), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95 * aLv, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
       float kI = 1.0;
@@ -215,75 +212,6 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (a < 0.01) discard; gl_FragColor = vec4(col * a, a); }`;
 
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
-
-  /* ---------- treatment particles: each modality draws itself in particles around the pain ---------- */
-  const NF = MOB ? 3200 : 6400;
-  const FXU = { uT: U.uTime, uSize: U.uSize, uMode: { value: -1 }, uAmt: { value: 0 }, uHeal: { value: 0 }, uAlign: { value: 0 },
-    uC: { value: new THREE.Vector3() }, uAx: { value: new THREE.Vector3(0, 1, 0) }, uSrc: { value: new THREE.Vector3() }, uSp: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) } };
-  const fxPts = (() => {
-    const gf = new THREE.BufferGeometry(), r4 = new Float32Array(NF * 4); for (let i = 0; i < NF * 4; i++) r4[i] = Math.random();
-    gf.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NF * 3), 3)); gf.setAttribute('aR', new THREE.BufferAttribute(r4, 4));
-    const m = new THREE.ShaderMaterial({ uniforms: FXU, transparent: true, depthTest: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
-      vertexShader: /* glsl */`
-        attribute vec4 aR; uniform float uT, uSize, uMode, uAmt, uHeal, uAlign; uniform vec3 uC, uAx, uSrc; uniform vec3 uSp[5];
-        varying vec3 vCol; varying float vA, vG;
-        const float TAU = 6.28318;
-        void basis(vec3 a, out vec3 u, out vec3 v){ vec3 h = abs(a.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0); u = normalize(cross(a, h)); v = cross(a, u); }
-        void main(){
-          vec3 CO = vec3(0.88, 0.38, 0.29), BL = vec3(0.25, 0.42, 0.71), BD = vec3(0.14, 0.25, 0.48), GR = vec3(0.31, 0.55, 0.25), OL = vec3(0.37, 0.43, 0.16);
-          vec3 p = uC, col = BL; float a = 0.0, g = 0.0, sz = 1.0, near = 0.0;
-          if (uMode < 0.5) {
-            // osteopathy: two tilted rings of touch around the neck settle into one aligned ring
-            float side = aR.x < 0.5 ? -1.0 : 1.0, hl = smoothstep(0.0, 1.0, uHeal);
-            vec3 ax = normalize(mix(normalize(uAx + vec3(0.5 * side, 0.0, 0.2 * side)), uAx, hl)), u, v; basis(ax, u, v);
-            float an = aR.y * TAU + uT * 0.8 * side, R = mix(0.09, 0.074, hl) * (1.0 + (aR.z - 0.5) * 0.03);
-            p = uC + (u * cos(an) + v * sin(an)) * R + ax * (aR.w - 0.5) * 0.005;
-            col = mix(CO, BL, smoothstep(0.1, 0.8, uHeal));
-            a = uAmt * (0.2 + 0.8 * pow(0.5 + 0.5 * sin(an * 3.0 - uT * 3.0), 2.0)) * step(0.5, fract(aR.z * 13.0)); g = 0.3; sz = 0.85;
-          } else if (uMode < 1.5) {
-            // super inductive system: magnetic field lines flowing around the shoulder joint
-            float L = floor(aR.x * 14.0), phi = L / 14.0 * TAU + uT * 0.12, sh = (0.075 + 0.04 * floor(aR.z * 3.0)) * (0.55 + 0.45 * uAmt);
-            float u0 = fract(aR.y + uT * (0.16 + 0.05 * fract(L * 0.37))), th = mix(0.28, 3.14159 - 0.28, u0), r = sh * pow(sin(th), 2.0);
-            vec3 e1, e2; basis(uAx, e1, e2); vec3 rad = e1 * cos(phi) + e2 * sin(phi);
-            p = uC + uAx * r * cos(th) + rad * r * sin(th) + (aR.w - 0.5) * 0.003;
-            float pulse = pow(0.5 + 0.5 * sin(u0 * TAU * 3.0 - uT * 4.0), 3.0);
-            col = mix(mix(BD, BL, pulse), GR, smoothstep(0.3, 1.0, uHeal) * 0.6); a = uAmt * (0.35 + 0.65 * pulse) * smoothstep(0.0, 0.25, sin(th)); g = 0.3 * pulse;
-          } else if (uMode < 2.5) {
-            // matrix rhythm: the spine lights up vertebra by vertebra, a rhythm pulse travels up it
-            float vi = floor(aR.x * 18.0), f = (vi + 0.5 + (aR.y - 0.5) * 0.45) / 18.0, sg = f * 4.0, fs = fract(sg); vec3 A = uSp[0], B = uSp[1];
-            if (sg >= 1.0 && sg < 2.0) { A = uSp[1]; B = uSp[2]; } else if (sg >= 2.0 && sg < 3.0) { A = uSp[2]; B = uSp[3]; } else if (sg >= 3.0) { A = uSp[3]; B = uSp[4]; }
-            float an = aR.z * TAU, rr = 0.0075 * sqrt(aR.w) * (1.0 - f * 0.3);
-            p = mix(A, B, fs) + vec3(cos(an) * rr * 1.5, (aR.w - 0.5) * 0.004, sin(an) * rr);
-            float on = clamp(uAlign * 22.0 - vi, 0.0, 1.0), pl = exp(-pow(fract(uT * 0.7) * 1.3 - 0.15 - f, 2.0) / 0.006);
-            col = mix(mix(CO, BL, smoothstep(0.2, 0.9, uHeal)), vec3(0.98, 0.72, 0.42), pl * (1.0 - uHeal) * 0.8);
-            a = uAmt * on * (0.55 + 0.45 * pl) * step(0.4, fract(aR.z * 11.0)); g = 0.4 + pl * 0.6; sz = 0.85; near = 1.0;
-          } else if (uMode < 3.5) {
-            if (aR.x < 0.62) {
-              // class IV laser: a fine beam of light streams into the knee
-              float u0 = fract(aR.y + uT * 1.2); vec3 dir = normalize(uC - uSrc), e1, e2; basis(dir, e1, e2); float an = aR.z * TAU, rr = mix(0.0045, 0.001, u0) * sqrt(aR.w);
-              p = mix(uSrc, uC, u0) + (e1 * cos(an) + e2 * sin(an)) * rr;
-              col = CO; a = uAmt * (1.0 - uHeal * 0.85) * smoothstep(0.0, 0.3, u0) * (0.3 + 0.7 * pow(0.5 + 0.5 * sin(u0 * 60.0 - uT * 14.0), 2.0)) * step(0.55, fract(aR.z * 7.0)); g = 0.2; sz = 0.8;
-            } else {
-              // the absorbed light glows inside the joint
-              float lf = fract(aR.y + uT * 0.45); vec3 dd = normalize(vec3(aR.z - 0.5, aR.w - 0.5, fract(aR.y * 7.3) - 0.5));
-              p = uC + dd * (0.008 + lf * 0.045); col = mix(CO, GR, smoothstep(0.2, 0.9, uHeal)); a = uAmt * sin(3.14159 * lf) * 0.85; g = 0.5;
-            }
-          } else {
-            // free to move: light motes drift up around the body
-            float lf = fract(aR.y + uT * 0.05), an = aR.x * TAU + uT * 0.12, rr = 0.24 + aR.z * 0.3;
-            p = vec3(cos(an) * rr, lf * 1.2 - 0.05, sin(an) * rr * 0.7); col = mix(OL, BL, lf);
-            a = uAmt * 0.55 * sin(3.14159 * lf) * step(0.45, aR.w); sz = 1.15;
-          }
-          vec4 cp = projectionMatrix * viewMatrix * vec4(p, 1.0);
-          if (near > 0.5) cp.z = -cp.w * 0.98; // the spine is seen through the skin
-          gl_Position = cp; gl_PointSize = uSize * sz * (1.0 + g * 0.8) * (0.9 + aR.w * 0.2);
-          vCol = col; vA = a; vG = g;
-        }`,
-      fragmentShader: /* glsl */`varying vec3 vCol; varying float vA, vG;
-        void main(){ float r = length(gl_PointCoord - 0.5), core = smoothstep(0.5, 0.34, r), halo = exp(-r * r * 12.0) * smoothstep(0.5, 0.3, r);
-          float a = mix(core, max(core * 0.9, halo), clamp(vG, 0.0, 1.0)) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }` });
-    const o = new THREE.Points(gf, m); o.frustumCulled = false; o.renderOrder = 2; o.visible = false; scene.add(o); return o;
-  })();
 
   /* ---------- the logo, on screen at once: same particles the body will unfold from ---------- */
   const LV = 0.26; // share of particles that draw the leaf mark
@@ -497,8 +425,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     rig.position.y = WK * 0.006 * (Math.cos(2 * PH) - 1);
     pose(p, t); rig.updateMatrixWorld(true);
     const states = AREAS.map((_, a) => areaState(a, p)); let act = -1, zf = 0; const foc = new THREE.Vector3(0, 0.5, 0);
-    states.forEach((st, a) => { if (st.c >= 0 && st.c <= 1) { act = a; zf = seg(st.c, 0, 0.25) * (1 - seg(st.c, 0.82, 1)); const at = areaPos(a), wf = MOB ? (a === 3 ? 0.3 : 0.45) : a === 3 ? 0.72 : a === 2 ? 0.85 : 1; foc.set(mix(0, at.x, zf), mix(0.5, at.y, zf * wf), 0); } });
-    const Zm = MOB ? 1.18 : 1.5, zoom = (1 + (Zm - 1) * zf) * mix(1, MOB ? 0.78 : 0.95, lg);
+    states.forEach((st, a) => { if (st.c >= 0 && st.c <= 1) { act = a; zf = seg(st.c, 0, 0.25) * (1 - seg(st.c, 0.82, 1)); const at = areaPos(a), wf = a === 3 ? (MOB ? 0.15 : 0.08) : a === 2 ? (MOB ? 0.3 : 0.4) : 1; foc.set(mix(0, at.x, zf), mix(0.5, at.y, zf * wf), 0); } });
+    const Zm = MOB ? 1.2 : 1.12, zoom = (1 + (Zm - 1) * zf) * mix(1, MOB ? 0.78 : 0.95, lg);
     foc.y += mix(0, 0.06, lg);
     const S = (MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6)) * zoom, CX = (MOB ? W * 0.5 : W * 0.66) + smx * 14, CY = (MOB ? H * 0.35 : H * 0.5) + smy * 8;
     const D = H / (2 * S * FOVT);
@@ -509,6 +437,33 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     // ---- back layer: dust + floor platform ----
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
     for (const o of DUST) { const yy = ((o.y - t * 0.012 * o.z) % 1 + 1) % 1, xx = o.x + Math.sin(t * 0.3 + o.ph) * 0.01; ctx.fillStyle = `rgba(255,255,255,${(0.55 * o.z).toFixed(3)})`; ctx.beginPath(); ctx.arc(xx * W - smx * 30 * o.z, yy * H - smy * 20 * o.z, o.r * o.z * 1.4, 0, 6.283); ctx.fill(); }
+
+    { // chapter change: the new colour washes out from the figure
+      const e = (t - chT) / 1.8;
+      if (e > 0 && e < 1 && ready) {
+        const hx = TINTS[cur] || TINTS[0], rgb = [1, 3, 5].map((i) => parseInt(hx.slice(i, i + 2), 16)).join(','), [bx2, by2] = proj(V2.set(0, 0.5, 0)), rr = (0.1 + ease(e) * 1.6) * Math.max(W, H) * 0.7;
+        const gw = ctx.createRadialGradient(bx2, by2, 0, bx2, by2, rr); gw.addColorStop(0, `rgba(${rgb},0)`); gw.addColorStop(0.72, `rgba(${rgb},${(0.75 * (1 - e)).toFixed(3)})`); gw.addColorStop(1, `rgba(${rgb},0)`);
+        ctx.fillStyle = gw; ctx.fillRect(0, 0, W, H);
+      }
+    }
+    { // flow lines behind the figure: restless while a pain is active, smooth and green-tinged once it heals, settling flat for the logo
+      let pn = 0, cl = 0; states.forEach((st) => { pn = Math.max(pn, st.pain); cl = Math.max(cl, st.calm); }); pn *= formed; cl *= formed;
+      const [bx] = proj(V2.set(0, 0.5, 0)), NL = MOB ? 9 : 14, calmA = (1 - lg * 0.85) * clamp(intro * 1.5);
+      const rC = Math.round(mix(mix(20, 79, cl), 232, pn)), gC = Math.round(mix(mix(32, 138, cl), 112, pn)), bC = Math.round(mix(mix(26, 63, cl), 92, pn)), c0 = `rgba(${rC},${gC},${bC},`;
+      const fx = clamp(bx / W, 0.36, 0.78), st0 = MOB ? 10 : 14, amp = (MOB ? 5 : 8) * (1 - lg), shake = pn * (MOB ? 7 : 11);
+      ctx.lineWidth = 1;
+      for (let l = 0; l < NL; l++) {
+        const y0 = H * (0.1 + (0.8 * l) / (NL - 1)), ph = l * 0.9, al = ((0.12 + pn * 0.14 + cl * 0.05) * calmA).toFixed(3);
+        const gr = ctx.createLinearGradient(0, 0, W, 0);
+        gr.addColorStop(0, c0 + '0)'); gr.addColorStop(0.16, c0 + al + ')'); gr.addColorStop(fx - 0.15, c0 + al + ')'); gr.addColorStop(fx, c0 + (al * 0.12).toFixed(3) + ')'); gr.addColorStop(fx + 0.15, c0 + al + ')'); gr.addColorStop(1, c0 + '0)');
+        ctx.strokeStyle = gr; ctx.beginPath();
+        for (let x = -st0; x <= W + st0; x += st0) {
+          const u = x / W, y = y0 + Math.sin(u * 5.2 + t * 0.35 + ph) * amp + Math.sin(u * 11 - t * 0.6 + ph * 1.7) * amp * 0.35 + shake * Math.sin(u * 64 + t * 7 + ph) * Math.sin(u * 9 - t * 1.6 + l);
+          x < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
     { // soft light behind the body
       const [ax, ay] = proj(V2.set(0, 0.55, 0)), al = clamp(intro * 1.2) * (1 - lg * 0.6), ag = ctx.createRadialGradient(ax, ay, 0, ax, ay, 0.62 * S);
       ag.addColorStop(0, `rgba(255,255,250,${(0.85 * al).toFixed(3)})`); ag.addColorStop(0.55, `rgba(255,255,248,${(0.35 * al).toFixed(3)})`); ag.addColorStop(1, 'rgba(255,255,248,0)');
@@ -527,22 +482,6 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       U.uTime.value = t; U.uLogo.value = lg;
       states.forEach((st, a) => { const at = areaPos(a); U.uArea.value[a].set(at.x, at.y, at.z, AREAS[a][3]); U.uPain.value[a].set(st.pain * formed * (1 - lg), st.calm * (1 - lg)); });
       U.uSpine.value = spineGlow;
-      let fm = -1, fa = 0, fh = 0, wA = 0, wR = -1, rA = 0;
-      if (act >= 0) {
-        const c = states[act].c; fm = act; fa = seg(c, 0.14, 0.3) * (1 - seg(c, 0.78, 0.94)); fh = seg(c, 0.42, 0.78);
-        areaPos(act, FXU.uC.value); wR = seg(c, 0.46, 0.92) * 1.15; wA = bell(c, 0.46, 0.95);
-        if (act === 0) FXU.uAx.value.subVectors(wpos('Head', V2), wpos('Neck', FXU.uAx.value)).normalize();
-        else if (act === 1) { wpos('LeftArm', FXU.uC.value); FXU.uAx.value.subVectors(wpos('LeftForeArm', V2), FXU.uC.value).normalize(); }
-        else if (act === 2) {
-          const yy = rig.rotation.y, bx = -Math.sin(yy) * 0.035, bz = -Math.cos(yy) * 0.035;
-          ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck'].forEach((n, i) => { wpos(n, FXU.uSp.value[i]); FXU.uSp.value[i].x += bx; FXU.uSp.value[i].z += bz; });
-          rA = fa * (1 - fh * 0.6); FXU.uAlign.value = seg(c, 0.16, 0.5);
-        } else FXU.uSrc.value.copy(FXU.uC.value).add(V2.set(0.3, 0.42, 0.34));
-      } else if (p >= R[5][0] && p < R[5][1]) { const c = (p - R[5][0]) / (R[5][1] - R[5][0]); fm = 4; fa = seg(c, 0.15, 0.4) * (1 - seg(c, 0.8, 1)); }
-      fa *= formed * (1 - lg);
-      FXU.uMode.value = fm; FXU.uAmt.value = fa; FXU.uHeal.value = fh; fxPts.visible = fa > 0.003;
-      U.uWave.value.set(FXU.uC.value.x, FXU.uC.value.y, FXU.uC.value.z, wR); U.uWaveA.value = wA * formed * (1 - lg);
-      U.uRip.value.set(FXU.uC.value.x, FXU.uC.value.y, FXU.uC.value.z, rA);
       const sc = (t - scanT) / 1.8; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 && lg < 0.05 ? mix(1.03, -0.02, ease(sc)) : -2;
       U.uMouse.value.set(mx, my, 80); U.uCz.value = -D;
       const solid = lg < 0.002; occ.forEach((m) => { m.visible = solid; });
@@ -553,7 +492,24 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     // ---- front layer: treatment motion graphics, pulses, spine, arcs ----
     fctx.setTransform(DPR, 0, 0, DPR, 0, 0); fctx.clearRect(0, 0, W, H);
     if (act >= 0 && lg < 0.1 && formed > 0.5) {
-      const st = states[act], [Xp, Yp] = proj(areaPos(act));
+      const st = states[act], eff = bell(st.c, 0.22, 0.8), [Xp, Yp] = proj(areaPos(act)), u = S;
+      if (st.c < 0.32) for (let r = 0; r < 3; r++) { const fr = (t * 0.45 + r / 3) % 1, al = 0.55 * (1 - fr) * seg(st.c, 0, 0.15) * (1 - seg(st.c, 0.22, 0.32)); fctx.strokeStyle = `rgba(232,112,92,${al.toFixed(3)})`; fctx.lineWidth = 1.2; fctx.beginPath(); fctx.arc(Xp, Yp, (0.03 + fr * 0.11) * u, 0, 6.283); fctx.stroke(); }
+      const sw = clamp((st.c - 0.3) / 0.16);
+      if (sw > 0 && sw < 1) { fctx.strokeStyle = `rgba(255,255,255,${(0.85 * (1 - sw)).toFixed(3)})`; fctx.lineWidth = 2 * (1 - sw) + 0.5; fctx.beginPath(); fctx.arc(Xp, Yp, (0.02 + sw * 0.32) * u, 0, 6.283); fctx.stroke(); }
+      if (eff > 0.01) {
+        fctx.lineWidth = 1.4;
+        if (act === 0) { for (let k = 0; k < 2; k++) { const a0 = t * 0.9 + k * Math.PI; fctx.strokeStyle = `rgba(255,255,255,${(0.9 * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, 0.065 * u, a0, a0 + 1.6); fctx.stroke(); } }
+        else if (act === 1) { for (let r = 0; r < 3; r++) { const fr = (t * 0.6 + r / 3) % 1; fctx.strokeStyle = `rgba(64,108,180,${(0.65 * (1 - fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, (0.035 + fr * 0.15) * u, 0, 6.283); fctx.stroke(); } }
+        else if (act === 2) {
+          const clean = seg(st.c, 0.3, 0.7), w = 0.2 * u; fctx.strokeStyle = `rgba(255,255,255,${(0.95 * eff).toFixed(3)})`; fctx.beginPath();
+          for (let k = 0; k <= 60; k++) { const f = k / 60, xx = Xp - w + f * 2 * w, env = Math.sin(Math.PI * f), nn = 0.6 * Math.sin(f * 58 + t * 9) + 0.4 * Math.sin(f * 97 - t * 13), cl = Math.sin(f * 25 - t * 5), yy = Yp + env * 0.026 * u * mix(nn, cl, clean); k ? fctx.lineTo(xx, yy) : fctx.moveTo(xx, yy); }
+          fctx.stroke();
+        } else {
+          const sx = Xp + 0.32 * u, sy = Yp - 0.4 * u, lb = fctx.createLinearGradient(sx, sy, Xp, Yp); lb.addColorStop(0, 'rgba(232,112,92,0)'); lb.addColorStop(1, `rgba(232,112,92,${(0.9 * eff).toFixed(3)})`);
+          fctx.strokeStyle = lb; fctx.beginPath(); fctx.moveTo(sx, sy); fctx.lineTo(Xp, Yp); fctx.stroke();
+          for (let k = 0; k < 5; k++) { const fr = (t * 0.7 + k / 5) % 1; fctx.fillStyle = `rgba(232,112,92,${(Math.sin(Math.PI * fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(mix(sx, Xp, fr), mix(sy, Yp, fr), 2.4, 0, 6.283); fctx.fill(); }
+        }
+      }
       if (tag) {
         const vis = clamp(seg(st.c, 0.08, 0.2) * (1 - seg(st.c, 0.86, 0.98)));
         const flip = Xp + 280 > W; tag.classList.toggle('is-flip', flip);
@@ -563,10 +519,14 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
         tag.classList.toggle('is-calm', st.c > 0.55);
       }
     } else if (tag) tag.style.opacity = 0;
+    if (spineGlow > 0.02 && formed > 0.5) {
+      const ch = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck'];
+      for (let v = 0; v < 12; v++) { const f = v / 11, on = clamp(align * 14 - v * 0.9) * spineGlow; if (on <= 0) continue; const [Xp, Yp] = proj(along(ch, f)); fctx.fillStyle = `rgba(255,255,255,${(0.95 * on).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, 3, 0, 6.283); fctx.fill(); fctx.strokeStyle = `rgba(64,108,180,${on.toFixed(3)})`; fctx.lineWidth = 1.4; fctx.stroke(); }
+    }
   };
 
   /* ---------- drive ---------- */
-  ST.create({ trigger: sec, start: 'top top', end: 'bottom bottom', onUpdate: (s) => { prog = s.progress; const k = R.findIndex(([a, b]) => prog >= a && prog < b); setChapter(k < 0 ? R.length - 1 : k); if (bar) bar.style.transform = `scaleY(${prog.toFixed(4)})`; } });
+  ST.create({ trigger: sec, start: 'top top', end: 'bottom bottom', onUpdate: (s) => { prog = s.progress; const k = R.findIndex(([a, b]) => prog >= a && prog < b); setChapter(k < 0 ? R.length - 1 : k); if (bar) bar.style.transform = `scaleY(${prog.toFixed(4)})`; if (wordBox && !RM) { const [a0, b0] = R[k < 0 ? R.length - 1 : k], c = clamp((prog - a0) / (b0 - a0)); wordBox.style.transform = `translate3d(${((0.5 - c) * (MOB ? 10 : 7)).toFixed(2)}vw,0,0)`; } } });
   new IntersectionObserver((es) => es.forEach((e) => (inView = e.isIntersecting))).observe(sec);
   setChapter(0);
   const hd = $('.az-head'); if (hd) hd.classList.add('on-light');
