@@ -76,7 +76,10 @@
     const anc = AREAS.map((a) => a.at(UP));
     for (let i = 0; i < M; i++) {
       const x = rx[i], y = ry[i], fy = y + 0.997, side = x < 0 ? 'A' : 'B', ax = Math.abs(x);
-      const leg = fy > 0.5 && ax < 0.13, arm = !leg && fy > 0.16 && ax > (fy > 0.24 ? 0.089 : 0.1);
+      // arm/torso split follows the measured gap between them (arms separate below the armpit at fy≈0.29)
+      const AT = [[0.29, 0.096], [0.36, 0.097], [0.4, 0.106], [0.44, 0.125], [0.48, 0.138], [0.56, 0.152]];
+      let thr = 0.102; if (fy >= 0.29) { thr = AT[AT.length - 1][1]; for (let k = 0; k < AT.length - 1; k++) if (fy < AT[k + 1][0]) { thr = mix(AT[k][1], AT[k + 1][1], (fy - AT[k][0]) / (AT[k + 1][0] - AT[k][0])); break; } }
+      const leg = fy > 0.5 && ax < 0.15, arm = !leg && fy > 0.16 && ax > thr;
       const ok = (bb) => (arm ? bb.b === 's' + side || bb.a === 's' + side || bb.a === 'e' + side || bb.a === 'w' + side
         : leg ? (bb.a === 'P' && bb.b === 'i' + side) || bb.a === 'i' + side || bb.a === 'k' + side || bb.a === 'a' + side
         : bb.a === 'P' || bb.a === 'C' || bb.a === 'N');
