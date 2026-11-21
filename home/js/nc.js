@@ -1,7 +1,7 @@
 /* AROGYATI — new concept: "From pain to motion".
    A 3D particle human. The body is an athletic rigged base character (CC0, "Superhero Male" from Quaternius'
-   Universal Base Characters, quaternius.com) sampled on smooth curved patches into points, a wire network and glowing
-   nodes, all skinned on the GPU to its real skeleton — so every
+   Universal Base Characters, quaternius.com) sampled on smooth curved patches into brand-coloured points,
+   skinned on the GPU to its real skeleton — so every
    movement is a true joint rotation with smooth skin, never cut-out parts. Inside it, a particle spine and nerve
    paths. It rises from a heap of particles, four pains (neck, shoulder, lower back, knee) are located, treated and
    healed, the body turns and moves freely, then its particles reform into the Arogyati logo figure. */
@@ -17,7 +17,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
   const bell = (p, a, b) => Math.sin(Math.PI * clamp((p - a) / (b - a)));
-  const MOB = innerWidth < 900, NS = MOB ? 18000 : 34000, NI = MOB ? 2400 : 4200, NR = MOB ? 1700 : 3400, NN = MOB ? 1100 : 2400, ND = MOB ? 0.024 : 0.0165;
+  const MOB = innerWidth < 900, NS = MOB ? 30000 : 62000, NI = 0, NH = MOB ? 2600 : 5200;
   const MODEL = '/home/assets/3d/body.glb', DEG = Math.PI / 180, TAU = Math.PI * 2;
 
   /* ---------- poses: rotations about world axes, applied relative to each bone's rest frame ---------- */
@@ -125,26 +125,33 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       vec4 wp = modelMatrix * vec4(transformed, 1.0);
       vec3 body = wp.xyz;
       if (aKind < 3.5 || aKind > 4.5) wp.xyz += 0.0012 * vec3(sin(uTime*0.9 + aRnd*40.0), cos(uTime*0.8 + aRnd*31.0), sin(uTime*0.7 + aRnd*17.0));
+      if (aKind > 5.5) { // spiral streams around the body
+        vec3 rq = position; float u = fract(aRnd + uTime * 0.03), st = step(0.5, rq.z), ang = u * 6.2832 * 1.6 + uTime * 0.35 + st * 3.14159;
+        float rr = 0.22 + 0.025 * sin(u * 18.0 + uTime) + (rq.x - 0.5) * 0.07;
+        wp.xyz = vec3(cos(ang) * rr, u * 1.1 - 0.03 + (rq.y - 0.5) * 0.05, sin(ang) * rr * 0.8); body = wp.xyz;
+      }
       vec3 nW = normalize(mat3(modelMatrix) * objectNormal), nV = normalize(mat3(viewMatrix) * nW);
       vec4 mv0 = viewMatrix * vec4(body, 1.0);
       float fr = 1.0 - abs(dot(nV, normalize(-mv0.xyz)));
       // skin: soft studio light (key from upper left, fill, brand-blue rim); inside: spine (kind 1), nerves (kind 2)
       float key = max(dot(nV, normalize(vec3(-0.45, 0.65, 0.6))), 0.0), fill = max(dot(nV, normalize(vec3(0.7, -0.1, 0.5))), 0.0);
       float lit = clamp(key * 0.8 + fill * 0.25, 0.0, 1.0);
-      vec3 col = mix(vec3(0.09, 0.18, 0.42), vec3(0.50, 0.66, 0.94), lit);
-      col = mix(col, vec3(0.20, 0.42, 0.92), pow(fr, 2.5) * 0.8);
-      float a = 0.1 + 0.16 * (1.0 - lit) + 0.4 * pow(fr, 2.2);
+      // brand palette: olive green rising into Arogyati blue, lit softly, a slow light wave travelling up the body
+      vec3 OL = vec3(0.37, 0.43, 0.16), BL = vec3(0.25, 0.42, 0.71);
+      float hy = clamp(smoothstep(0.05, 0.95, body.y) + 0.1 * sin(uTime * 0.6 + body.y * 7.0), 0.0, 1.0);
+      vec3 base = mix(OL, BL, hy);
+      vec3 col = mix(base * 0.72, mix(base, vec3(1.0), 0.14), lit);
+      col = mix(col, BL * 1.12, pow(fr, 2.5) * 0.55);
+      float a = 0.3 + 0.24 * (1.0 - lit) + 0.36 * pow(fr, 2.2);
+      float band = aKind < 0.5 ? exp(-pow((body.y - (fract(uTime * 0.14) * 1.4 - 0.2)) / 0.045, 2.0)) : 0.0;
+      col = mix(col, vec3(0.42, 0.62, 0.96), band * 0.7); a = mix(a, 0.95, band * 0.6);
+      a *= 0.82 + 0.18 * sin(uTime * 2.1 + aRnd * 80.0);
       float glow = 0.0;
-      if (aKind > 4.5) { col = vec3(0.97, 0.6, 0.28); a = 0.5; glow = 0.4; } // ribs
-      else if (aKind > 3.5) { // network nodes
-        bool warm = fract(aRnd * 7.0) < 0.16;
-        col = warm ? vec3(0.98, 0.56, 0.20) : mix(vec3(0.16, 0.40, 0.92), vec3(0.36, 0.60, 1.0), fr);
-        a = (0.75 + 0.25 * fr) * (0.7 + 0.3 * sin(uTime * 1.7 + aRnd * 40.0)); glow = 1.0;
-      }
+      if (aKind > 5.5) { col = mix(OL * 1.15, BL * 1.15, fract(aRnd + uTime * 0.03)); a = 0.8 * sin(3.14159 * fract(aRnd + uTime * 0.03)) * smoothstep(0.8, 1.0, uIntro) * (1.0 - clamp(uLogo * 3.0, 0.0, 1.0)) * (0.5 + 0.5 * sin(uTime * 3.0 + aRnd * 70.0)); }
       else if (aKind > 2.5) {
         float life = fract(uTime * 0.07 + aRnd * 9.0);
         wp.xyz += nW * life * 0.03 + vec3(0.0, life * 0.05, 0.0);
-        col = mix(vec3(0.30, 0.50, 0.82), vec3(0.42, 0.62, 0.30), fract(aRnd * 13.0)); a = sin(3.14159 * life) * 0.75;
+        col = mix(BL, OL * 1.2, fract(aRnd * 13.0)); a = sin(3.14159 * life) * 0.6;
       }
       else if (aKind > 1.5) { col = vec3(0.97, 0.55, 0.22); a = 0.42 + 0.25 * sin(uTime * 2.3 + aRnd * 50.0); glow = 0.6; }
       else if (aKind > 0.5) { col = mix(vec3(0.97, 0.58, 0.20), vec3(1.0, 0.72, 0.30), uSpine); a = (0.55 + 0.3 * uSpine) * (0.75 + 0.25 * sin(uTime * 3.0 + aRnd * 60.0)); glow = 1.0; }
@@ -153,8 +160,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
       col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
       float sb = uScan > -1.5 ? exp(-pow((body.y - uScan) / 0.009, 2.0)) : 0.0; col = mix(col, vec3(0.25, 0.42, 0.71), sb * 0.6); a = mix(a, 0.8, sb * 0.7);
-      if (uLogo > 0.0) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
-      if (uIntro < 1.0) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159); a = mix(0.8, a, k); col = mix(mix(vec3(0.37, 0.42, 0.24), vec3(0.16, 0.22, 0.17), aRnd), col, k); }
+      if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
+      if (uIntro < 1.0 && aKind < 5.5) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159); a = mix(0.8, a, k); col = mix(mix(vec3(0.37, 0.42, 0.24), vec3(0.16, 0.22, 0.17), aRnd), col, k); }
       vec4 mv = viewMatrix * wp;
       vec4 cp = projectionMatrix * mv;
       // cursor parts the particles
@@ -162,7 +169,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (ml < uMouse.z && (aKind < 3.5 || aKind > 4.5)) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
       gl_Position = cp;
       float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
-      gl_PointSize = uSize * (0.85 + aRnd * 0.3) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
+      gl_PointSize = uSize * (0.85 + aRnd * 0.3) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3 + band * 0.7) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
       vCol = col; vA = a * (1.0 - back * 0.55); vGlow = glow;
     }`;
   const FRAG = /* glsl */`
@@ -172,33 +179,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (vGlow > 0.01) { float core = smoothstep(0.22, 0.08, r), halo = exp(-r * r * 14.0) * 0.5 * smoothstep(0.5, 0.3, r); a = (core + halo * vGlow) * vA; col = mix(vCol, min(vCol * 1.2 + 0.12, vec3(1.0)), core); }
       else a = smoothstep(0.5, 0.05, r) * vA;
       if (a < 0.01) discard; gl_FragColor = vec4(col * a, a); }`;
-  // the wire network that connects the nodes over the skin
-  const LVERT = /* glsl */`
-    #include <common>
-    #include <skinning_pars_vertex>
-    uniform float uIntro, uLogo, uCz; uniform vec4 uArea[4]; uniform vec2 uPain[4];
-    varying vec3 vCol; varying float vA;
-    void main(){
-      vec3 objectNormal = normal;
-      #include <skinbase_vertex>
-      #include <skinnormal_vertex>
-      vec3 transformed = position;
-      #include <skinning_vertex>
-      vec4 wp = modelMatrix * vec4(transformed, 1.0);
-      vec3 nV = normalize(mat3(viewMatrix) * normalize(mat3(modelMatrix) * objectNormal));
-      vec4 mv = viewMatrix * wp;
-      float fr = 1.0 - abs(dot(nV, normalize(-mv.xyz)));
-      vec3 col = mix(vec3(0.10, 0.27, 0.74), vec3(0.22, 0.48, 0.98), fr);
-      float a = 0.3 + 0.45 * pow(fr, 1.4);
-      float hot = 0.0, calm = 0.0;
-      for (int k = 0; k < 4; k++) { vec3 dd = wp.xyz - uArea[k].xyz; float h = exp(-dot(dd,dd) / (uArea[k].w*uArea[k].w)); hot = max(hot, h * uPain[k].x); calm = max(calm, h * uPain[k].y); }
-      col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 0.75, max(hot, calm));
-      float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
-      vCol = col; vA = a * (1.0 - back * 0.6) * smoothstep(0.72, 1.0, uIntro) * (1.0 - clamp(uLogo * 2.5, 0.0, 1.0));
-      gl_Position = projectionMatrix * mv;
-    }`;
-  const LFRAG = /* glsl */`varying vec3 vCol; varying float vA; void main(){ if (vA < 0.01) discard; gl_FragColor = vec4(vCol * vA, vA); }`;
-  const lmat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: LVERT, fragmentShader: LFRAG, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
+
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
 
   /* ---------- the body ---------- */
@@ -242,7 +223,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       const nn = n1.clone().multiplyScalar(w).addScaledVector(n2, u).addScaledVector(n3, v).normalize();
       return { p, nn };
     };
-    const N = NS + NI + NR + NN, WS = new Float32Array(NS * 3), pos = new Float32Array(N * 3), nor = new Float32Array(N * 3), sI = new Float32Array(N * 4), sW = new Float32Array(N * 4);
+    const N = NS + NI + NH, WS = new Float32Array(NS * 3), pos = new Float32Array(N * 3), nor = new Float32Array(N * 3), sI = new Float32Array(N * 4), sW = new Float32Array(N * 4);
     const heap = new Float32Array(N * 3), logo = new Float32Array(N * 3), rnd = new Float32Array(N), dly = new Float32Array(N), kind = new Float32Array(N), hgt = new Float32Array(N);
     const acc = new Map(), toWorld = new THREE.Matrix4().multiplyMatrices(sk.bones[0].matrixWorld, sk.boneInverses[0]).multiply(host.bindMatrix);
     const wv = new THREE.Vector3();
@@ -278,45 +259,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
         sI[n * 4] = sg.j; sW[n * 4] = 1; kind[n] = sg.kd;
       }
     });
-    // ribcage: arcs from the spine round to the sternum, sized from the chest it sits in
-    {
-      const yTop = wpos('Neck').y - 0.035, nr = 11, perRib = Math.floor(NR / nr), jU = bi('Spine2'), jL = bi('Spine1');
-      if (!inv.has(jU)) inv.set(jU, bindInv(jU)); if (!inv.has(jL)) inv.set(jL, bindInv(jL));
-      for (let r = 0; r < nr; r++) {
-        const yr = yTop - (r / (nr - 1)) * 0.16; let ax = 0, z0 = 9, z1 = -9;
-        for (let i = 0; i < NS; i++) { const y = WS[i * 3 + 1], x = WS[i * 3], z = WS[i * 3 + 2]; if (Math.abs(y - yr) < 0.008 && Math.abs(x) < 0.105) { ax = Math.max(ax, Math.abs(x)); z0 = Math.min(z0, z); z1 = Math.max(z1, z); } }
-        if (ax === 0) continue;
-        const A = ax * 0.8 * (r === 0 ? 0.75 : 1), Bz = (z1 - z0) * 0.4, zc = (z0 + z1) / 2, sx = wpos('Spine2').x, M = inv.get(r < 6 ? jU : jL);
-        for (let c = 0; c < perRib && n < N; c++, n++) {
-          const side = c % 2 ? 1 : -1, f = Math.random(), ph = -Math.PI / 2 + f * (Math.PI - 0.5);
-          const w = new THREE.Vector3(sx + side * A * Math.cos(ph), yr - 0.03 * f + (Math.random() - 0.5) * 0.003, zc + Bz * Math.sin(ph) + (Math.random() - 0.5) * 0.003);
-          hgt[n] = w.y; const p = w.applyMatrix4(M); pos.set([p.x, p.y, p.z], n * 3); nor.set([0, 0, 1], n * 3); sI[n * 4] = r < 6 ? jU : jL; sW[n * 4] = 1; kind[n] = 5;
-        }
-      }
-    }
-    // network nodes: evenly spaced surface samples, wired to their nearest neighbours
-    const cell = ND, grid = new Map(), gk = (x, y, z) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`, nodes = [];
-    for (let i = 0; i < NS && nodes.length < NN; i++) {
-      if (kind[i]) continue; const x = WS[i * 3], y = WS[i * 3 + 1], z = WS[i * 3 + 2]; let ok = true;
-      const cx0 = Math.floor(x / cell), cy0 = Math.floor(y / cell), cz0 = Math.floor(z / cell);
-      for (let a = -1; a <= 1 && ok; a++) for (let b = -1; b <= 1 && ok; b++) for (let c = -1; c <= 1 && ok; c++) { const L = grid.get(`${cx0 + a},${cy0 + b},${cz0 + c}`); if (L) for (const j of L) { const dx = WS[j * 3] - x, dy = WS[j * 3 + 1] - y, dz = WS[j * 3 + 2] - z; if (dx * dx + dy * dy + dz * dz < cell * cell) { ok = false; break; } } }
-      if (!ok) continue; const k = gk(x, y, z); (grid.get(k) || grid.set(k, []).get(k)).push(i); nodes.push(i);
-    }
-    const edges = [], seen = new Set(), R2 = (cell * 2.1) ** 2;
-    nodes.forEach((i) => {
-      const x = WS[i * 3], y = WS[i * 3 + 1], z = WS[i * 3 + 2], cand = [];
-      const cx0 = Math.floor(x / cell), cy0 = Math.floor(y / cell), cz0 = Math.floor(z / cell);
-      for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) for (let c = -2; c <= 2; c++) { const L = grid.get(`${cx0 + a},${cy0 + b},${cz0 + c}`); if (L) for (const j of L) { if (j === i) continue; const dx = WS[j * 3] - x, dy = WS[j * 3 + 1] - y, dz = WS[j * 3 + 2] - z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < R2 && nor[i * 3] * nor[j * 3] + nor[i * 3 + 1] * nor[j * 3 + 1] + nor[i * 3 + 2] * nor[j * 3 + 2] > 0.2) cand.push([j, d2]); } }
-      cand.sort((p, q) => p[1] - q[1]).slice(0, 4).forEach(([j]) => { const key = i < j ? i * 1e6 + j : j * 1e6 + i; if (!seen.has(key)) { seen.add(key); edges.push(i, j); } });
-    });
-    nodes.forEach((i) => { if (n >= N) return; pos.set(pos.subarray(i * 3, i * 3 + 3), n * 3); nor.set(nor.subarray(i * 3, i * 3 + 3), n * 3); sI.set(sI.subarray(i * 4, i * 4 + 4), n * 4); sW.set(sW.subarray(i * 4, i * 4 + 4), n * 4); hgt[n] = hgt[i]; kind[n] = 4; n++; });
-    {
-      const E = edges.length, lp3 = new Float32Array(E * 3), ln3 = new Float32Array(E * 3), li = new Float32Array(E * 4), lw = new Float32Array(E * 4);
-      edges.forEach((i, k) => { lp3.set(pos.subarray(i * 3, i * 3 + 3), k * 3); ln3.set(nor.subarray(i * 3, i * 3 + 3), k * 3); li.set(sI.subarray(i * 4, i * 4 + 4), k * 4); lw.set(sW.subarray(i * 4, i * 4 + 4), k * 4); });
-      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lp3, 3)); lg.setAttribute('normal', new THREE.BufferAttribute(ln3, 3)); lg.setAttribute('skinIndex', new THREE.BufferAttribute(li, 4)); lg.setAttribute('skinWeight', new THREE.BufferAttribute(lw, 4));
-      const lines = new THREE.SkinnedMesh(lg, lmat); lines.isMesh = false; lines.isLine = true; lines.isLineSegments = true; lines.frustumCulled = false;
-      host.parent.add(lines); lines.position.copy(host.position); lines.quaternion.copy(host.quaternion); lines.scale.copy(host.scale); lines.bind(sk, host.bindMatrix);
-    }
+    for (let c = 0; c < NH && n < N; c++, n++) { sI[n * 4] = 0; sW[n * 4] = 1; nor.set([0, 0, 1], n * 3); pos.set([Math.random(), Math.random(), Math.random()], n * 3); hgt[n] = Math.random(); kind[n] = 6; }
     const NT = n;
     for (let i = 0; i < NT; i++) {
       const hx = (Math.random() + Math.random() + Math.random() - 1.5) * 0.24, hz = (Math.random() + Math.random() - 1) * 0.16;
@@ -430,7 +373,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       U.uSpine.value = spineGlow;
       const sc = (t - scanT) / 1.8; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 && lg < 0.05 ? mix(1.03, -0.02, ease(sc)) : -2;
       U.uMouse.value.set(mx, my, 80); U.uCz.value = -D;
-      U.uSize.value = (MOB ? 1.9 : 2.0) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
+      U.uSize.value = (MOB ? 1.75 : 1.8) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
       renderer.render(scene, camera);
     }
 
@@ -439,7 +382,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     if (formed > 0.6 && lg < 0.3) {
       CHAINS.forEach((chn, k) => {
         const u = (t * 0.16 + k * 0.37) % 1, [Xp, Yp] = proj(along(chn, u));
-        const gr = fctx.createRadialGradient(Xp, Yp, 0, Xp, Yp, 11); gr.addColorStop(0, 'rgba(250,150,60,0.55)'); gr.addColorStop(1, 'rgba(250,150,60,0)');
+        const gr = fctx.createRadialGradient(Xp, Yp, 0, Xp, Yp, 11); gr.addColorStop(0, 'rgba(64,108,180,0.45)'); gr.addColorStop(1, 'rgba(64,108,180,0)');
         fctx.fillStyle = gr; fctx.fillRect(Xp - 11, Yp - 11, 22, 22);
       });
     }
