@@ -1,10 +1,12 @@
 /* AROGYATI — new concept: "From pain to motion".
-   An all-particle anatomical body rendered on the GPU (three.js points). The body is rigged like cut-out
-   animation: 14 parts (head, torso, upper arm / forearm / hand, thigh / shin / foot per side), each rotating at
-   a real joint with a round joint cap — every particle belongs to exactly one part and moves rigidly with it, so
-   joints can never tear or thin out. It rises from a heap of particles, four pains (neck, shoulder, lower back,
-   knee) are located, treated and healed, then the body moves freely and its particles reform into the logo. */
+   A 3D particle human. The body is a rigged anatomical base mesh (CC0, "Male Base Mesh" by Orange Juice Games,
+   github.com/BoQsc/Godot-Male-Base-Mesh) sampled on smooth curved patches into tens of thousands of points that are
+   skinned on the GPU to its real skeleton — so every
+   movement is a true joint rotation with smooth skin, never cut-out parts. Inside it, a particle spine and nerve
+   paths. It rises from a heap of particles, four pains (neck, shoulder, lower back, knee) are located, treated and
+   healed, the body turns and moves freely, then its particles reform into the Arogyati logo figure. */
 import * as THREE from '/home/vendor/three/three.module.min.js';
+import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
 
 (() => {
   const d = document, $ = (s, r = d) => r.querySelector(s), $$ = (s, r = d) => [...r.querySelectorAll(s)];
@@ -15,57 +17,38 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
   const bell = (p, a, b) => Math.sin(Math.PI * clamp((p - a) / (b - a)));
-  const MOB = innerWidth < 900, NP = MOB ? 32000 : 70000;
-  const RIG = '/home/assets/img/rig/';
-  const ORDER = ['thighA', 'shinA', 'footA', 'thighB', 'shinB', 'footB', 'torso', 'head', 'uarmA', 'farmA', 'handA', 'uarmB', 'farmB', 'handB'];
+  const MOB = innerWidth < 900, NS = MOB ? 20000 : 38000, NI = MOB ? 2600 : 4200;
+  const MODEL = '/home/assets/3d/body.glb', DEG = Math.PI / 180, TAU = Math.PI * 2;
 
-  /* ---------- skeleton & poses ---------- */
-  let meta = null, IW = 1, IH = 1, REST = null, KEYS = null;
-  const BONES = [['P', 'C'], ['C', 'N'], ['N', 'H'], ['C', 'sA'], ['sA', 'eA'], ['eA', 'wA'], ['wA', 'tA'], ['C', 'sB'], ['sB', 'eB'], ['eB', 'wB'], ['wB', 'tB'], ['P', 'iA'], ['iA', 'kA'], ['kA', 'aA'], ['aA', 'oA'], ['P', 'iB'], ['iB', 'kB'], ['kB', 'aB'], ['aB', 'oB']];
-  const clone = (P) => Object.fromEntries(Object.entries(P).map(([k, v]) => [k, v.slice()]));
-  const rot = (P, keys, pivot, deg) => { const [px, py] = P[pivot], a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a); keys.forEach((k) => { const [x, y] = P[k], dx = x - px, dy = y - py; P[k] = [px + dx * c - dy * s, py + dx * s + dy * c]; }); return P; };
-  const mv = (P, keys, dx, dy) => { keys.forEach((k) => { P[k] = [P[k][0] + dx, P[k][1] + dy]; }); return P; };
-  const ARM_A = ['eA', 'wA', 'tA'], ARM_B = ['eB', 'wB', 'tB'];
-  const makePoses = () => {
-    const UP = clone(REST);
-    const SH = rot(clone(REST), ARM_B, 'sB', -64);
-    const KNEE = (() => { const P = clone(REST); rot(P, ['kA', 'aA', 'oA'], 'iA', 6); rot(P, ['aA', 'oA'], 'kA', -24); mv(P, ['P', 'C', 'N', 'H', 'sA', 'sB', ...ARM_A, ...ARM_B, 'iB', 'kB', 'aB', 'oB'], 0.004, 0); return P; })();
-    const TP = (() => { const P = clone(REST); rot(P, ARM_A, 'sA', 54); rot(P, ARM_B, 'sB', -54); return P; })();
-    const VP = (() => { const P = clone(REST); rot(P, ARM_A, 'sA', 104); rot(P, ARM_B, 'sB', -104); rot(P, ['wA', 'tA'], 'eA', 8); rot(P, ['wB', 'tB'], 'eB', -8); return P; })();
-    KEYS = [[0, UP], [0.355, UP], [0.385, SH], [0.405, SH], [0.43, UP], [0.67, UP], [0.7, KNEE], [0.72, KNEE], [0.745, UP], [0.78, TP], [0.84, VP], [1, VP]];
+  /* ---------- poses: rotations about world axes, applied relative to each bone's rest frame ---------- */
+  const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
+  const q = (...rs) => rs.reduce((acc, [ax, deg]) => acc.premultiply(new THREE.Quaternion().setFromAxisAngle(ax, deg * DEG)), new THREE.Quaternion());
+  // arm poses are written as abduction angles (0 = hanging, 90 = horizontal) and converted from the model's rest angle
+  let POSE = null;
+  const makePoses = (rest) => {
+    const arms = (l, r, o = {}) => ({ LeftArm: q([Z, l - rest]), RightArm: q([Z, rest - r]), ...o });
+    const RELAX = { ...arms(9, 9), LeftForeArm: q([Z, 4]), RightForeArm: q([Z, -4]) };
+    const P = (o) => ({ ...RELAX, ...o });
+    POSE = {
+      UP: P({}),
+      NECK: P({ Neck: q([Z, 10], [X, 8]), Head: q([Z, 6]), LeftShoulder: q([Z, 5]) }),           // guarded, tilted neck
+      SH: P({ LeftArm: q([Z, 88 - rest], [Y, -14]), LeftForeArm: q([Z, 8]) }),                    // shoulder lifts freely
+      SLUMP: P({ Spine: q([X, 10], [Z, -4]), Spine1: q([X, 7]), Neck: q([X, -6]) }),              // bent lower back
+      KNEE: P({ RightUpLeg: q([X, -18]), RightLeg: q([X, 34]), RightFoot: q([X, -12]), Hips: q([Z, 2]) }),
+      TP: P({ ...arms(78, 78), LeftForeArm: q(), RightForeArm: q() }),
+      VP: P({ ...arms(140, 140), LeftForeArm: q([Z, 6]), RightForeArm: q([Z, -6]), Spine1: q([X, -4]), Head: q([X, -8]) }),
+    };
   };
-  const poseAt = (p) => {
-    let k = 0; while (k < KEYS.length - 2 && p > KEYS[k + 1][0]) k++;
-    const [t0, A] = KEYS[k], [t1, B] = KEYS[k + 1], t = ease(clamp((p - t0) / Math.max(1e-4, t1 - t0))), o = {};
-    o.P = [mix(A.P[0], B.P[0], t), mix(A.P[1], B.P[1], t)];
-    for (const [a, b] of BONES) { // blend by angle so limbs swing without shrinking
-      const aa = Math.atan2(A[b][1] - A[a][1], A[b][0] - A[a][0]); let ab = Math.atan2(B[b][1] - B[a][1], B[b][0] - B[a][0]);
-      while (ab - aa > Math.PI) ab -= 2 * Math.PI; while (ab - aa < -Math.PI) ab += 2 * Math.PI;
-      const an = mix(aa, ab, t), L = mix(Math.hypot(A[b][0] - A[a][0], A[b][1] - A[a][1]), Math.hypot(B[b][0] - B[a][0], B[b][1] - B[a][1]), t);
-      o[b] = [o[a][0] + Math.cos(an) * L, o[a][1] + Math.sin(an) * L];
-    }
-    return o;
-  };
-  // per part: image px → figure units (rigid rotation at the proximal joint, optional stretch along the bone)
-  const xf = {};
-  const partXform = (Pz) => {
-    for (const n of ORDER) {
-      const pt = meta.parts[n], A0 = REST[pt.a], B0 = REST[pt.b], A1 = Pz[pt.a], B1 = Pz[pt.b];
-      const fr = Math.atan2(B0[1] - A0[1], B0[0] - A0[0]), fp = Math.atan2(B1[1] - A1[1], B1[0] - A1[0]);
-      const s = Math.hypot(B1[0] - A1[0], B1[1] - A1[1]) / Math.hypot(B0[0] - A0[0], B0[1] - A0[1]);
-      const cr = Math.cos(-fr), sr = Math.sin(-fr), cp = Math.cos(fp), sp = Math.sin(fp);
-      const m11 = cp * s * cr - sp * sr, m12 = -cp * s * sr - sp * cr, m21 = sp * s * cr + cp * sr, m22 = -sp * s * sr + cp * cr;
-      const k = 1 / IH, ox = -IW / 2 / IH - A0[0], oy = -0.997 - A0[1];
-      xf[n] = [m11 * k, m21 * k, m12 * k, m22 * k, A1[0] + m11 * ox + m12 * oy, A1[1] + m21 * ox + m22 * oy];
-    }
-  };
+  const KEYS = [[0, 'UP'], [0.105, 'UP'], [0.13, 'NECK'], [0.19, 'NECK'], [0.225, 'UP'], [0.355, 'UP'], [0.385, 'SH'], [0.405, 'SH'], [0.43, 'UP'],
+    [0.44, 'SLUMP'], [0.5, 'SLUMP'], [0.545, 'UP'], [0.67, 'UP'], [0.7, 'KNEE'], [0.72, 'KNEE'], [0.745, 'UP'], [0.78, 'TP'], [0.84, 'VP'], [1, 'VP']];
+  const YAW = [[0, -0.3], [0.1, -0.3], [0.14, -0.12], [0.26, -0.12], [0.3, -0.55], [0.42, -0.55], [0.47, Math.PI], [0.56, Math.PI], [0.61, TAU + 0.38], [0.72, TAU + 0.38], [0.75, TAU], [0.86, 2 * TAU], [1, 2 * TAU]];
+  const keyAt = (K, p) => { let k = 0; while (k < K.length - 2 && p > K[k + 1][0]) k++; const [t0, a] = K[k], [t1, b] = K[k + 1]; return [a, b, ease(clamp((p - t0) / Math.max(1e-4, t1 - t0)))]; };
+  const RIGMAP = { spine: 'Hips', spine001: 'Spine', spine002: 'Spine1', spine003: 'Spine2', spine004: 'Neck', spine005: 'Head', shoulderL: 'LeftShoulder', upperarmL: 'LeftArm', forearmL: 'LeftForeArm', handL: 'LeftHand', shoulderR: 'RightShoulder', upperarmR: 'RightArm', forearmR: 'RightForeArm', handR: 'RightHand', thighL: 'LeftUpLeg', shinL: 'LeftLeg', footL: 'LeftFoot', toeL: 'LeftToe', thighR: 'RightUpLeg', shinR: 'RightLeg', footR: 'RightFoot', toeR: 'RightToe' };
+  const BONE_NAMES = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'LeftShoulder', 'LeftArm', 'LeftForeArm', 'LeftHand', 'RightShoulder', 'RightArm', 'RightForeArm', 'RightHand', 'LeftUpLeg', 'LeftLeg', 'LeftFoot', 'RightUpLeg', 'RightLeg', 'RightFoot'];
 
   /* ---------- pains & chapters ---------- */
-  const AREAS = [
-    { at: (P) => [mix(P.C[0], P.N[0], 0.35), mix(P.C[1], P.N[1], 0.35)], s: 0.05 },
-    { at: (P) => [mix(P.sB[0], P.eB[0], 0.12), mix(P.sB[1], P.eB[1], 0.12)], s: 0.05 },
-    { at: (P) => [mix(P.P[0], P.C[0], 0.22), mix(P.P[1], P.C[1], 0.22)], s: 0.06 },
-    { at: (P) => P.kA.slice(), s: 0.045 },
+  const AREAS = [ // [bone, toward bone, t, radius]
+    ['Neck', 'Head', 0.25, 0.05], ['LeftArm', 'LeftForeArm', 0.08, 0.05], ['Spine', 'Hips', 0.2, 0.065], ['RightLeg', 'RightUpLeg', 0.04, 0.045],
   ];
   const R = [[0, 0.1], [0.1, 0.26], [0.26, 0.42], [0.42, 0.58], [0.58, 0.74], [0.74, 0.86], [0.86, 1.01]];
   const areaState = (a, p) => {
@@ -94,82 +77,179 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const glc = mkCanvas(), fxc = mkCanvas(); cv.after(glc); glc.after(fxc); const fctx = fxc.getContext('2d');
   let renderer = null;
   try { renderer = new THREE.WebGLRenderer({ canvas: glc, alpha: true, antialias: false, premultipliedAlpha: true, powerPreference: 'high-performance' }); renderer.setClearColor(0x000000, 0); } catch (e) { renderer = null; }
-  const scene = new THREE.Scene(), camera = new THREE.Camera();
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(26, 1, 0.05, 50), FOVT = Math.tan((26 * DEG) / 2);
+  const rig = new THREE.Group(); scene.add(rig);
   const U = {
-    uMa: { value: Array.from({ length: 14 }, () => new THREE.Vector3()) }, uMb: { value: Array.from({ length: 14 }, () => new THREE.Vector3()) },
-    uView: { value: new THREE.Vector4() }, uFocus: { value: new THREE.Vector2() }, uRes: { value: new THREE.Vector2(1, 1) },
-    uIntro: { value: RM ? 1 : 0 }, uLogo: { value: 0 }, uTime: { value: 0 }, uSize: { value: 2 }, uMouse: { value: new THREE.Vector3(-9999, -9999, 90) },
-    uArea: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) }, uPain: { value: Array.from({ length: 4 }, () => new THREE.Vector2()) },
-    uSpine: { value: 0 }, uScan: { value: -1 },
+    uRes: { value: new THREE.Vector2(1, 1) }, uIntro: { value: RM ? 1 : 0 }, uLogo: { value: 0 }, uTime: { value: 0 }, uSize: { value: 2 },
+    uMouse: { value: new THREE.Vector3(-9999, -9999, 90) }, uArea: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) },
+    uPain: { value: Array.from({ length: 4 }, () => new THREE.Vector2()) }, uSpine: { value: 0 }, uScan: { value: -2 }, uCz: { value: 0 },
   };
   const VERT = /* glsl */`
-    attribute float aPart; attribute vec2 aUV; attribute vec3 aColor; attribute vec2 aHeap; attribute vec2 aLogo; attribute vec2 aRest; attribute float aRnd; attribute float aDelay;
-    uniform vec3 uMa[14]; uniform vec3 uMb[14]; uniform vec4 uView; uniform vec2 uFocus; uniform vec2 uRes;
-    uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan; uniform vec3 uMouse; uniform vec3 uArea[4]; uniform vec2 uPain[4];
+    #include <common>
+    #include <skinning_pars_vertex>
+    attribute vec3 aHeap; attribute vec3 aLogo; attribute float aRnd; attribute float aDelay; attribute float aKind;
+    uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4];
     varying vec3 vCol; varying float vA;
     float e3(float t){ return t < 0.5 ? 4.0*t*t*t : 1.0 - pow(-2.0*t + 2.0, 3.0) / 2.0; }
     void main(){
-      int i = int(aPart + 0.5); vec3 p = vec3(aUV, 1.0);
-      vec2 u = vec2(dot(uMa[i], p), dot(uMb[i], p));
-      vec2 body = u;
-      u += 0.0007 * vec2(sin(uTime*0.9 + aRnd*40.0), cos(uTime*0.8 + aRnd*31.0));
-      // pains: colour by distance to each posed pain centre
-      vec3 col = aColor; float hot = 0.0, calm = 0.0;
-      for (int k = 0; k < 4; k++) { vec2 dd = body - uArea[k].xy; float h = exp(-dot(dd,dd) / (uArea[k].z*uArea[k].z)); hot = max(hot, h * uPain[k].x); calm = max(calm, h * uPain[k].y); }
-      col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.15, 0.0, 1.0));
-      col = mix(col, vec3(0.42, 0.72, 0.31), clamp(calm, 0.0, 1.0));
-      float sp = step(abs(aRest.x), 0.007) * step(aRest.y, -0.52) * step(-0.865, aRest.y);
-      col = mix(col, vec3(0.30, 0.48, 0.80), sp * uSpine);
-      // diagnostic scan: a bright band passing down the body
-      float sb = uScan > -1.5 ? exp(-pow((body.y - uScan) / 0.012, 2.0)) : 0.0; col = mix(col, vec3(1.0, 1.0, 0.92), sb * 0.32);
-      // logo: flow into the brand mark
-      if (uLogo > 0.0) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); u = mix(u, aLogo, k) + vec2(sin(k*3.14159) * (aRnd - 0.5) * 0.08, 0.0); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
-      // intro: rise from the heap on the floor, feet first
-      if (uIntro < 1.0) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); u = mix(aHeap, u, k) + vec2(sin(k*3.14159) * (aRnd - 0.5) * 0.06, 0.0); }
-      vec2 s = uView.xy + (u - uFocus) * uView.z;
+      vec3 objectNormal = normal;
+      #include <skinbase_vertex>
+      #include <skinnormal_vertex>
+      vec3 transformed = position;
+      #include <skinning_vertex>
+      vec4 wp = modelMatrix * vec4(transformed, 1.0);
+      vec3 body = wp.xyz;
+      wp.xyz += 0.0016 * vec3(sin(uTime*0.9 + aRnd*40.0), cos(uTime*0.8 + aRnd*31.0), sin(uTime*0.7 + aRnd*17.0));
+      vec3 nV = normalize(mat3(viewMatrix) * normalize(mat3(modelMatrix) * objectNormal));
+      vec4 mv0 = viewMatrix * vec4(body, 1.0);
+      float rim = 1.0 - abs(dot(nV, normalize(-mv0.xyz)));
+      // skin: a translucent shell whose silhouette reads darker; inside: spine (kind 1) and nerve paths (kind 2)
+      vec3 col = mix(vec3(0.44, 0.52, 0.47), vec3(0.08, 0.15, 0.12), pow(rim, 1.3));
+      float a = mix(0.32, 0.95, pow(rim, 1.6));
+      if (aKind > 1.5) { col = vec3(0.35, 0.52, 0.80); a = 0.55; }
+      else if (aKind > 0.5) { col = mix(vec3(0.25, 0.42, 0.71), vec3(0.42, 0.62, 0.95), uSpine); a = 0.5 + 0.45 * uSpine; }
+      float hot = 0.0, calm = 0.0;
+      for (int k = 0; k < 4; k++) { vec3 dd = body - uArea[k].xyz; float h = exp(-dot(dd,dd) / (uArea[k].w*uArea[k].w)); hot = max(hot, h * uPain[k].x); calm = max(calm, h * uPain[k].y); }
+      col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
+      col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
+      float sb = uScan > -1.5 ? exp(-pow((body.y - uScan) / 0.014, 2.0)) : 0.0; col = mix(col, vec3(0.25, 0.42, 0.71), sb * 0.85); a = mix(a, 1.0, sb);
+      if (uLogo > 0.0) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
+      if (uIntro < 1.0) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159); a = mix(0.8, a, k); col = mix(mix(vec3(0.37, 0.42, 0.24), vec3(0.16, 0.22, 0.17), aRnd), col, k); }
+      vec4 mv = viewMatrix * wp;
+      vec4 cp = projectionMatrix * mv;
       // cursor parts the particles
-      vec2 md = s - uMouse.xy; float ml = length(md); if (ml < uMouse.z) s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 14.0;
-      gl_Position = vec4(s.x / uRes.x * 2.0 - 1.0, 1.0 - s.y / uRes.y * 2.0, 0.0, 1.0);
-      gl_PointSize = uSize * (0.8 + aRnd * 0.45) * (1.0 + hot * 0.35);
-      vCol = col; vA = 1.0;
+      vec2 s = (cp.xy / cp.w * 0.5 + 0.5) * uRes; vec2 md = s - vec2(uMouse.x, uRes.y - uMouse.y); float ml = length(md);
+      if (ml < uMouse.z) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
+      gl_Position = cp;
+      float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
+      gl_PointSize = uSize * (0.7 + aRnd * 0.6) * (1.0 + hot * 0.5 + calm * 0.3) * (1.0 - back * 0.3) * (aKind > 0.5 ? 1.15 : 1.0);
+      vCol = col; vA = a * (1.0 - back * 0.5);
     }`;
   const FRAG = /* glsl */`
     varying vec3 vCol; varying float vA;
-    void main(){ vec2 c = gl_PointCoord - 0.5; float r = length(c); float a = smoothstep(0.5, 0.32, r) * vA; if (a < 0.02) discard; gl_FragColor = vec4(vCol * a, a); }`;
+    void main(){ vec2 c = gl_PointCoord - 0.5; float r = length(c); float a = smoothstep(0.5, 0.1, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }`;
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
-  let points = null, NPa = 0, bodyArea = 1;
 
-  /* sample the rig into particles: every spot of the body gets particles only from the part visible there */
-  const build = (imgs) => {
-    const data = {}; ORDER.forEach((n) => { const im = imgs[n], c = d.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0); data[n] = x.getImageData(0, 0, im.width, im.height).data; });
-    const top = (X, Y) => { for (let k = ORDER.length - 1; k >= 0; k--) { const n = ORDER[k], pt = meta.parts[n], u = X - pt.x, v = Y - pt.y; if (u < 0 || v < 0 || u >= pt.w || v >= pt.h) continue; const o = ((v | 0) * pt.w + (u | 0)) * 4; if (data[n][o + 3] >= 128) return [k, o]; } return null; };
-    let area = 0; for (let y = 0; y < IH; y += 2) for (let x = 0; x < IW; x += 2) if (top(x, y)) area += 4;
-    bodyArea = area;
-    const step = Math.sqrt(area / NP), P = new Float32Array(NP * 3), part = new Float32Array(NP), uv = new Float32Array(NP * 2), col = new Float32Array(NP * 3), heap = new Float32Array(NP * 2), logo = new Float32Array(NP * 2), rest = new Float32Array(NP * 2), rnd = new Float32Array(NP), dly = new Float32Array(NP);
-    let n = 0;
-    for (let gy = 0; gy < IH && n < NP; gy += step) for (let gx = 0; gx < IW && n < NP; gx += step) {
-      const X = gx + Math.random() * step, Y = gy + Math.random() * step, hit = top(X, Y); if (!hit) continue;
-      const [k, o] = hit, px = data[ORDER[k]];
-      part[n] = k; uv[n * 2] = X; uv[n * 2 + 1] = Y; col[n * 3] = px[o] / 255; col[n * 3 + 1] = px[o + 1] / 255; col[n * 3 + 2] = px[o + 2] / 255;
-      const rx = (X - IW / 2) / IH, ry = Y / IH - 0.997; rest[n * 2] = rx; rest[n * 2 + 1] = ry;
-      const hx = (Math.random() + Math.random() + Math.random() - 1.5) * 0.22; heap[n * 2] = hx; heap[n * 2 + 1] = -0.085 * Math.exp(-((hx / 0.12) ** 2)) * Math.sqrt(Math.random()) + 0.004;
-      rnd[n] = Math.random(); dly[n] = clamp(Y / IH) * 0.5 + Math.random() * 0.08; n++;
+  /* ---------- the body ---------- */
+  const B = {}, REST = {}; let pts = null, bodyH = 1;
+  const wpos = (n, v = new THREE.Vector3()) => B[n].getWorldPosition(v);
+  const build = (gltf) => {
+    const root = gltf.scene; rig.add(root);
+    root.traverse((o) => { const k = RIGMAP[o.name.replace(/[^A-Za-z0-9]/g, '')]; if (k) B[k] = o; });
+    const skinned = []; root.traverse((o) => { if (o.isSkinnedMesh) { skinned.push(o); o.visible = false; } });
+    // fit: feet on the floor, height 1, centred
+    rig.updateMatrixWorld(true);
+    { const fw = wpos('LeftToe').sub(wpos('LeftFoot')).add(wpos('RightToe').sub(wpos('RightFoot'))); root.rotation.y -= Math.atan2(fw.x, fw.z); rig.updateMatrixWorld(true); } // toes point at the camera
+    const bb = new THREE.Box3().setFromObject(root, true), sc = 1 / (bb.max.y - bb.min.y);
+    const o0 = root.position.clone(), cx = (bb.min.x + bb.max.x) / 2, cz = (bb.min.z + bb.max.z) / 2;
+    root.scale.multiplyScalar(sc); root.position.set((o0.x - cx) * sc, (o0.y - bb.min.y) * sc, (o0.z - cz) * sc); rig.updateMatrixWorld(true);
+    { const s2 = wpos('LeftArm'), e2 = wpos('LeftForeArm'); makePoses(Math.atan2(Math.abs(e2.x - s2.x), s2.y - e2.y) / DEG); }
+    BONE_NAMES.forEach((n) => { const b = B[n]; REST[n] = { L: b.quaternion.clone(), P: b.parent.getWorldQuaternion(new THREE.Quaternion()), Pi: null }; REST[n].Pi = REST[n].P.clone().invert(); });
+    const host = skinned.find((m) => /surface/i.test(m.name)) || skinned[0], sk = host.skeleton, bi = (n) => sk.bones.indexOf(B[n]);
+    // --- surface samples (area weighted), skin weights blended from the triangle's corners
+    const tris = []; let tot = 0;
+    const va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3();
+    skinned.forEach((m) => { const ps = m.geometry.attributes.position, ix = m.geometry.index.array; for (let i = 0; i < ix.length; i += 3) { va.fromBufferAttribute(ps, ix[i]); vb.fromBufferAttribute(ps, ix[i + 1]); vc.fromBufferAttribute(ps, ix[i + 2]); const ar = e1.subVectors(vb, va).cross(e2.subVectors(vc, va)).length() * 0.5; if (ar <= 0) continue; tot += ar; tris.push([m, ix[i], ix[i + 1], ix[i + 2], tot]); } });
+    // smooth (welded) vertex normals, then sample curved PN-triangle patches so the low-poly mesh reads as a smooth body
+    const SN = new Map();
+    skinned.forEach((m) => {
+      if (!m.geometry.attributes.normal) m.geometry.computeVertexNormals();
+      const ps = m.geometry.attributes.position, nr = m.geometry.attributes.normal, key = (i) => `${Math.round(ps.getX(i) * 1e4)},${Math.round(ps.getY(i) * 1e4)},${Math.round(ps.getZ(i) * 1e4)}`, sum = new Map(), out = new Float32Array(ps.count * 3);
+      for (let i = 0; i < ps.count; i++) { const k = key(i), a = sum.get(k) || [0, 0, 0]; a[0] += nr.getX(i); a[1] += nr.getY(i); a[2] += nr.getZ(i); sum.set(k, a); }
+      for (let i = 0; i < ps.count; i++) { const a = sum.get(key(i)), l = Math.hypot(a[0], a[1], a[2]) || 1; out[i * 3] = a[0] / l; out[i * 3 + 1] = a[1] / l; out[i * 3 + 2] = a[2] / l; }
+      SN.set(m, out);
+    });
+    const n1 = new THREE.Vector3(), n2 = new THREE.Vector3(), n3 = new THREE.Vector3();
+    const pn = (nrm, P1, P2, P3, i0, i1, i2, w, u, v) => {
+      n1.fromArray(nrm, i0 * 3); n2.fromArray(nrm, i1 * 3); n3.fromArray(nrm, i2 * 3);
+      const b = (Pi, Pj, Ni) => Pi.clone().multiplyScalar(2).add(Pj).addScaledVector(Ni, -Pj.clone().sub(Pi).dot(Ni)).multiplyScalar(1 / 3);
+      const b210 = b(P1, P2, n1), b120 = b(P2, P1, n2), b021 = b(P2, P3, n2), b012 = b(P3, P2, n3), b102 = b(P3, P1, n3), b201 = b(P1, P3, n1);
+      const E = b210.clone().add(b120).add(b021).add(b012).add(b102).add(b201).multiplyScalar(1 / 6), Vc = P1.clone().add(P2).add(P3).multiplyScalar(1 / 3), b111 = E.clone().addScaledVector(E.clone().sub(Vc), 0.5);
+      const p = P1.clone().multiplyScalar(w * w * w).addScaledVector(P2, u * u * u).addScaledVector(P3, v * v * v)
+        .addScaledVector(b210, 3 * w * w * u).addScaledVector(b120, 3 * w * u * u).addScaledVector(b201, 3 * w * w * v)
+        .addScaledVector(b021, 3 * u * u * v).addScaledVector(b102, 3 * w * v * v).addScaledVector(b012, 3 * u * v * v).addScaledVector(b111, 6 * w * u * v);
+      const nn = n1.clone().multiplyScalar(w).addScaledVector(n2, u).addScaledVector(n3, v).normalize();
+      return { p, nn };
+    };
+    const N = NS + NI, pos = new Float32Array(N * 3), nor = new Float32Array(N * 3), sI = new Float32Array(N * 4), sW = new Float32Array(N * 4);
+    const heap = new Float32Array(N * 3), logo = new Float32Array(N * 3), rnd = new Float32Array(N), dly = new Float32Array(N), kind = new Float32Array(N), hgt = new Float32Array(N);
+    const acc = new Map(), toWorld = new THREE.Matrix4(); toWorld.copy(host.matrixWorld);
+    const wv = new THREE.Vector3();
+    for (let n = 0; n < NS; n++) {
+      const r = Math.random() * tot; let lo = 0, hi = tris.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (tris[m][4] < r) lo = m + 1; else hi = m; }
+      const [m, i0, i1, i2] = tris[lo], ps = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight;
+      let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; } const w0 = 1 - u - v, bw = [w0, u, v], id = [i0, i1, i2];
+      va.fromBufferAttribute(ps, i0); vb.fromBufferAttribute(ps, i1); vc.fromBufferAttribute(ps, i2);
+      const { p, nn } = pn(SN.get(m), va, vb, vc, i0, i1, i2, w0, u, v);
+      pos.set([p.x, p.y, p.z], n * 3); nor.set([nn.x, nn.y, nn.z], n * 3);
+      acc.clear(); for (let c = 0; c < 3; c++) for (let k = 0; k < 4; k++) { const wt = sw.getComponent(id[c], k) * bw[c]; if (wt > 0) { const j = si.getComponent(id[c], k); acc.set(j, (acc.get(j) || 0) + wt); } }
+      const best = [...acc].sort((x, y) => y[1] - x[1]).slice(0, 4), sum = best.reduce((s, x) => s + x[1], 0) || 1;
+      best.forEach(([j, wt], k) => { sI[n * 4 + k] = j; sW[n * 4 + k] = wt / sum; });
+      wv.copy(p).applyMatrix4(toWorld); hgt[n] = wv.y;
     }
-    NPa = n;
+    // --- inner anatomy: spine (vertebrae) and nerve paths, each point rigid to its bone
+    const bindInv = (j) => new THREE.Matrix4().multiplyMatrices(sk.bones[j].matrixWorld, sk.boneInverses[j]).multiply(host.bindMatrix).invert();
+    const CH = [[1, ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head'], 0.5],
+      [2, ['Spine2', 'LeftShoulder', 'LeftArm', 'LeftForeArm', 'LeftHand'], 0.11], [2, ['Spine2', 'RightShoulder', 'RightArm', 'RightForeArm', 'RightHand'], 0.11],
+      [2, ['Hips', 'LeftUpLeg', 'LeftLeg', 'LeftFoot'], 0.14], [2, ['Hips', 'RightUpLeg', 'RightLeg', 'RightFoot'], 0.14]];
+    const segs = []; let ltot = 0;
+    CH.forEach(([kd, ch, share]) => { for (let i = 1; i < ch.length; i++) { const a = wpos(ch[i - 1]), b = wpos(ch[i]), l = a.distanceTo(b); segs.push({ kd, a, b, j: bi(ch[i - 1]), l, share: (share * l) / ch.slice(1).reduce((s, n, k) => s + wpos(ch[k]).distanceTo(wpos(n)), 0) }); } });
+    let n = NS; const inv = new Map();
+    segs.forEach((sg) => {
+      const cnt = Math.round(sg.share * NI); if (!inv.has(sg.j)) inv.set(sg.j, bindInv(sg.j)); const M = inv.get(sg.j);
+      for (let c = 0; c < cnt && n < N; c++, n++) {
+        let f = Math.random(), rad = sg.kd === 1 ? 0.008 : 0.0035;
+        if (sg.kd === 1) { const nv = 22, vi = Math.floor(f * nv); f = (vi + 0.5 + (Math.random() - 0.5) * 0.55) / nv; rad *= 0.7 + 0.5 * Math.random(); }
+        const a3 = Math.random() * TAU, rr = rad * Math.sqrt(Math.random());
+        const w = sg.a.clone().lerp(sg.b, f).add(new THREE.Vector3(Math.cos(a3) * rr, (Math.random() - 0.5) * rad * 0.4, Math.sin(a3) * rr * (sg.kd === 1 ? 0.6 : 1)));
+        if (sg.kd === 1) w.z -= 0.012; // spine sits toward the back
+        hgt[n] = w.y; const p = w.clone().applyMatrix4(M); pos.set([p.x, p.y, p.z], n * 3); nor.set([0, 0, 1], n * 3);
+        sI[n * 4] = sg.j; sW[n * 4] = 1; kind[n] = sg.kd;
+      }
+    });
+    const NT = n;
+    for (let i = 0; i < NT; i++) {
+      const hx = (Math.random() + Math.random() + Math.random() - 1.5) * 0.24, hz = (Math.random() + Math.random() - 1) * 0.16;
+      heap[i * 3] = hx; heap[i * 3 + 1] = 0.09 * Math.exp(-((hx / 0.13) ** 2) - ((hz / 0.1) ** 2)) * Math.sqrt(Math.random()) + 0.002; heap[i * 3 + 2] = hz;
+      rnd[i] = Math.random(); dly[i] = clamp(hgt[i]) * 0.5 + Math.random() * 0.08;
+    }
     // logo targets, paired by height so the body flows into the mark
-    const paths = $$('.ncx__logo path').map((q) => new Path2D(q.getAttribute('d'))), oc = d.createElement('canvas').getContext('2d'), pts = []; let gd = 0;
-    while (pts.length < NPa && gd++ < NPa * 40) { const x = mix(129.8, 163.1, Math.random()), y = Math.random() * 41.7; if (paths.some((q) => oc.isPointInPath(q, x, y))) pts.push([x, y]); }
-    while (pts.length < NPa) pts.push(pts[pts.length % Math.max(1, pts.length)] || [146, 20]);
-    const S = 1.18 / 41.7, lp = pts.map(([x, y]) => [(x - 146.42) * S, (y - 41.7) * S]).sort((a, b) => a[1] + a[0] * 0.02 - (b[1] + b[0] * 0.02));
-    partXform(KEYS[KEYS.length - 1][1]);
-    const order = Array.from({ length: NPa }, (_, i) => { const m = xf[ORDER[part[i]]], X = uv[i * 2], Y = uv[i * 2 + 1]; return [i, m[1] * X + m[3] * Y + m[5] + (m[0] * X + m[2] * Y + m[4]) * 0.02]; }).sort((a, b) => a[1] - b[1]);
-    order.forEach(([i], k) => { logo[i * 2] = lp[k][0]; logo[i * 2 + 1] = lp[k][1]; });
-    const geo = new THREE.BufferGeometry(), sl = (a, c) => a.subarray(0, NPa * c);
-    geo.setAttribute('position', new THREE.BufferAttribute(sl(P, 3), 3));
-    geo.setAttribute('aPart', new THREE.BufferAttribute(sl(part, 1), 1)); geo.setAttribute('aUV', new THREE.BufferAttribute(sl(uv, 2), 2)); geo.setAttribute('aColor', new THREE.BufferAttribute(sl(col, 3), 3));
-    geo.setAttribute('aHeap', new THREE.BufferAttribute(sl(heap, 2), 2)); geo.setAttribute('aLogo', new THREE.BufferAttribute(sl(logo, 2), 2)); geo.setAttribute('aRest', new THREE.BufferAttribute(sl(rest, 2), 2));
-    geo.setAttribute('aRnd', new THREE.BufferAttribute(sl(rnd, 1), 1)); geo.setAttribute('aDelay', new THREE.BufferAttribute(sl(dly, 1), 1));
-    points = new THREE.Points(geo, mat); points.frustumCulled = false; scene.add(points);
+    const paths = $$('.ncx__logo path').map((q) => new Path2D(q.getAttribute('d'))), oc = d.createElement('canvas').getContext('2d'), lp = []; let gd = 0;
+    while (lp.length < NT && gd++ < NT * 40) { const x = mix(129.8, 163.1, Math.random()), y = Math.random() * 41.7; if (paths.some((pp) => oc.isPointInPath(pp, x, y))) lp.push([x, y]); }
+    while (lp.length < NT) lp.push(lp[lp.length % Math.max(1, lp.length)] || [146, 20]);
+    const S = 1.0 / 41.7; lp.sort((a, b) => b[1] - a[1]);
+    const order = Array.from({ length: NT }, (_, i) => i).sort((a, b) => hgt[a] - hgt[b]);
+    order.forEach((i, k) => { logo[i * 3] = (lp[k][0] - 146.42) * S; logo[i * 3 + 1] = (41.7 - lp[k][1]) * S + 0.02; logo[i * 3 + 2] = (Math.random() - 0.5) * 0.02; });
+    const geo = new THREE.BufferGeometry(), sl = (a, c) => new THREE.BufferAttribute(a.subarray(0, NT * c), c);
+    geo.setAttribute('position', sl(pos, 3)); geo.setAttribute('normal', sl(nor, 3)); geo.setAttribute('skinIndex', sl(sI, 4)); geo.setAttribute('skinWeight', sl(sW, 4));
+    geo.setAttribute('aHeap', sl(heap, 3)); geo.setAttribute('aLogo', sl(logo, 3)); geo.setAttribute('aRnd', sl(rnd, 1)); geo.setAttribute('aDelay', sl(dly, 1)); geo.setAttribute('aKind', sl(kind, 1));
+    // a skinned mesh drawn as points: the GPU skins every particle with the real skeleton
+    pts = new THREE.SkinnedMesh(geo, mat); pts.isMesh = false; pts.isPoints = true; pts.frustumCulled = false;
+    host.parent.add(pts); pts.position.copy(host.position); pts.quaternion.copy(host.quaternion); pts.scale.copy(host.scale);
+    pts.bind(sk, host.bindMatrix);
+  };
+
+  /* ---------- posing ---------- */
+  const QI = new THREE.Quaternion(), qa = new THREE.Quaternion(), qb = new THREE.Quaternion(), qx = new THREE.Quaternion(), qt = new THREE.Quaternion();
+  const idle = (n, t) => {
+    switch (n) {
+      case 'Spine1': return q([X, 1.1 * Math.sin(t * 1.4)]);
+      case 'Neck': return q([Z, 1.6 * Math.sin(t * 0.5)], [Y, smx * 22]);
+      case 'Head': return q([X, -smy * 10]);
+      case 'LeftArm': return q([Z, 1.4 * Math.sin(t * 0.7)]);
+      case 'RightArm': return q([Z, -1.4 * Math.sin(t * 0.7 + 0.6)]);
+      case 'Hips': return q([Z, 0.6 * Math.sin(t * 0.35)]);
+      default: return null;
+    }
+  };
+  const pose = (p, t) => {
+    const [a, b, k] = keyAt(KEYS, p), A = POSE[a], Bp = POSE[b];
+    BONE_NAMES.forEach((n) => {
+      const r = REST[n]; if (!r) return;
+      qx.slerpQuaternions(A[n] || QI, Bp[n] || QI, k);
+      const id = idle(n, t); if (id) qx.premultiply(id);
+      qt.copy(r.Pi).multiply(qx).multiply(r.P).multiply(r.L); B[n].quaternion.copy(qt);
+    });
   };
 
   /* ---------- canvas sizing & input ---------- */
@@ -178,37 +258,42 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     DPR = Math.min(devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight;
     [cv, fxc].forEach((c) => { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); });
     if (renderer) { renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); }
-    U.uRes.value.set(W, H);
+    camera.aspect = W / Math.max(1, H); U.uRes.value.set(W, H);
   };
   resize(); addEventListener('resize', resize);
   if (FINE) { sec.addEventListener('pointermove', (e) => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; }, { passive: true }); sec.addEventListener('pointerleave', () => { mx = my = -9999; }); }
   const DUST = Array.from({ length: MOB ? 26 : 48 }, () => ({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7, r: 0.6 + Math.random() * 1.8, ph: Math.random() * 6.28 }));
-  const CHAINS = [['H', 'N', 'C', 'P', 'iA', 'kA', 'aA'], ['C', 'P', 'iB', 'kB', 'aB'], ['C', 'sA', 'eA', 'wA', 'tA'], ['C', 'sB', 'eB', 'wB', 'tB'], ['N', 'C', 'sB', 'eB', 'wB'], ['P', 'iA', 'kA', 'aA', 'oA']];
-  const along = (Pz, ch, u) => { const pts = ch.map((k) => Pz[k]), L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(l); tot += l; } let r = u * tot; for (let i = 0; i < L.length; i++) { if (r <= L[i]) { const f = r / L[i]; return [mix(pts[i][0], pts[i + 1][0], f), mix(pts[i][1], pts[i + 1][1], f)]; } r -= L[i]; } return pts[pts.length - 1]; };
+  const CHAINS = [['Head', 'Neck', 'Spine2', 'Spine', 'Hips', 'RightUpLeg', 'RightLeg', 'RightFoot'], ['Spine2', 'Hips', 'LeftUpLeg', 'LeftLeg', 'LeftFoot'], ['Spine2', 'RightShoulder', 'RightArm', 'RightForeArm', 'RightHand'], ['Spine2', 'LeftShoulder', 'LeftArm', 'LeftForeArm', 'LeftHand'], ['Neck', 'Spine2', 'LeftShoulder', 'LeftArm', 'LeftForeArm']];
+  const V = new THREE.Vector3(), V2 = new THREE.Vector3();
+  const proj = (w) => { V.copy(w).project(camera); return [(V.x * 0.5 + 0.5) * W, (-V.y * 0.5 + 0.5) * H]; };
+  const along = (ch, u) => { const ps = ch.map((n) => wpos(n, new THREE.Vector3())); let tot = 0; const L = []; for (let i = 1; i < ps.length; i++) { L.push(ps[i].distanceTo(ps[i - 1])); tot += L[i - 1]; } let r = u * tot; for (let i = 0; i < L.length; i++) { if (r <= L[i]) return ps[i].lerp(ps[i + 1], r / L[i]); r -= L[i]; } return ps[ps.length - 1]; };
+  const areaPos = (a, v = new THREE.Vector3()) => { const [b0, b1, f] = AREAS[a]; wpos(b0, v); return v.lerp(wpos(b1, V2), f); };
 
   const render = (time) => {
     if (!ready) return;
-    const p = prog, t = time, Pz = poseAt(p);
-    const br = Math.sin(t * 1.4) * 0.0035; ['H', 'N', 'C', 'sA', 'sB', 'eA', 'eB', 'wA', 'wB', 'tA', 'tB'].forEach((k) => { Pz[k][1] += br; });
-    rot(Pz, ARM_A, 'sA', 1.2 * Math.sin(t * 0.7)); rot(Pz, ARM_B, 'sB', -1.2 * Math.sin(t * 0.7 + 0.6)); rot(Pz, ['H'], 'N', 1.4 * Math.sin(t * 0.5));
-    partXform(Pz);
-    const lg = seg(p, 0.86, 0.95), states = AREAS.map((_, a) => areaState(a, p)), intro = U.uIntro.value;
-    let fx = 0, fy = -0.5, zf = 0, act = -1;
-    states.forEach((st, a) => { if (st.c >= 0 && st.c <= 1) { act = a; zf = seg(st.c, 0, 0.25) * (1 - seg(st.c, 0.82, 1)); const at = AREAS[a].at(Pz), wf = a === 3 ? (MOB ? 0.35 : 0.6) : 1; fx = mix(0, at[0], zf); fy = mix(-0.5, at[1], zf * wf); } });
-    const Z = MOB ? 1.2 : 1.3, zoom = (1 + (Z - 1) * zf) * mix(1, MOB ? 0.72 : 0.92, lg);
-    fy += mix(0, -0.05, lg);
+    const p = prog, t = time, intro = U.uIntro.value, lg = seg(p, 0.86, 0.95), formed = clamp((intro - 0.7) / 0.3);
     if (mx > -9000) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; } else { smx *= 0.95; smy *= 0.95; }
-    const S = (MOB ? Math.min(H * 0.48, W * 1.25) : Math.min(H * 0.82, W * 0.6)) * zoom, CX = (MOB ? W * 0.5 : W * 0.66) + smx * 14, CY = (MOB ? H * 0.34 : H * 0.5) + smy * 8;
-    const toX = (x) => CX + (x - fx) * S, toY = (y) => CY + (y - fy) * S;
-    const align = seg(p, 0.5, 0.57), spineGlow = bell(p, 0.5, 0.6), lift = bell(p, 0.74, 0.88), formed = clamp((intro - 0.7) / 0.3);
+    // body: yaw by scroll (turns to show the back, spins when it moves freely), pose by scroll
+    const [y0, y1, yk] = keyAt(YAW, p);
+    rig.rotation.y = mix(y0, y1, yk) + (1 - lg) * (0.06 * Math.sin(t * 0.3) + smx * 0.5);
+    pose(p, t); rig.updateMatrixWorld(true);
+    const states = AREAS.map((_, a) => areaState(a, p)); let act = -1, zf = 0; const foc = new THREE.Vector3(0, 0.5, 0);
+    states.forEach((st, a) => { if (st.c >= 0 && st.c <= 1) { act = a; zf = seg(st.c, 0, 0.25) * (1 - seg(st.c, 0.82, 1)); const at = areaPos(a), wf = a === 3 ? (MOB ? 0.15 : 0.08) : a === 2 ? (MOB ? 0.3 : 0.4) : 1; foc.set(mix(0, at.x, zf), mix(0.5, at.y, zf * wf), 0); } });
+    const Zm = MOB ? 1.2 : 1.12, zoom = (1 + (Zm - 1) * zf) * mix(1, MOB ? 0.78 : 0.95, lg);
+    foc.y += mix(0, 0.06, lg);
+    const S = (MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6)) * zoom, CX = (MOB ? W * 0.5 : W * 0.66) + smx * 14, CY = (MOB ? H * 0.35 : H * 0.5) + smy * 8;
+    const D = H / (2 * S * FOVT);
+    camera.position.set(foc.x, foc.y + D * 0.05, D); camera.lookAt(foc.x, foc.y, 0);
+    camera.setViewOffset(W, H, W / 2 - CX, H / 2 - CY, W, H); camera.updateMatrixWorld();
+    const align = seg(p, 0.5, 0.57), spineGlow = bell(p, 0.44, 0.58), lift = bell(p, 0.74, 0.88);
 
     // ---- back layer: dust + floor platform ----
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
-    for (const q of DUST) { const yy = ((q.y - t * 0.012 * q.z) % 1 + 1) % 1, xx = q.x + Math.sin(t * 0.3 + q.ph) * 0.01; ctx.fillStyle = `rgba(255,255,255,${(0.55 * q.z).toFixed(3)})`; ctx.beginPath(); ctx.arc(xx * W - smx * 30 * q.z, yy * H - smy * 20 * q.z, q.r * q.z * 1.4, 0, 6.283); ctx.fill(); }
+    for (const o of DUST) { const yy = ((o.y - t * 0.012 * o.z) % 1 + 1) % 1, xx = o.x + Math.sin(t * 0.3 + o.ph) * 0.01; ctx.fillStyle = `rgba(255,255,255,${(0.55 * o.z).toFixed(3)})`; ctx.beginPath(); ctx.arc(xx * W - smx * 30 * o.z, yy * H - smy * 20 * o.z, o.r * o.z * 1.4, 0, 6.283); ctx.fill(); }
     {
-      const gx = toX(0), gy = toY(0.012), pa = clamp(intro * 1.4) * (1 - lg);
-      const sh = ctx.createRadialGradient(gx, gy, 0, gx, gy, 0.28 * S); sh.addColorStop(0, `rgba(20,32,26,${(0.22 * pa).toFixed(3)})`); sh.addColorStop(1, 'rgba(20,32,26,0)');
-      ctx.save(); ctx.translate(gx, gy); ctx.scale(1, 0.13); ctx.fillStyle = sh; ctx.fillRect(-0.3 * S, -0.3 * S, 0.6 * S, 0.6 * S); ctx.restore();
+      const [gx, gy] = proj(V2.set(0, 0, 0)), pa = clamp(intro * 1.4) * (1 - lg);
+      const sh = ctx.createRadialGradient(gx, gy, 0, gx, gy, 0.26 * S); sh.addColorStop(0, `rgba(20,32,26,${(0.2 * pa).toFixed(3)})`); sh.addColorStop(1, 'rgba(20,32,26,0)');
+      ctx.save(); ctx.translate(gx, gy); ctx.scale(1, 0.16); ctx.fillStyle = sh; ctx.fillRect(-0.3 * S, -0.3 * S, 0.6 * S, 0.6 * S); ctx.restore();
       if (pa > 0.01) {
         ctx.save(); ctx.translate(gx, gy); ctx.scale(1, 0.16); ctx.lineWidth = 0.9 / 0.16;
         [[0.3, 0.32, [4, 10], 1], [0.38, 0.22, [1, 7], -1], [0.46, 0.14, [24, 18], 1]].forEach(([r, al, dash, dir]) => { ctx.setLineDash(dash.map((v) => (v / 0.16) * 0.5)); ctx.lineDashOffset = dir * t * 30; ctx.strokeStyle = `rgba(93,106,41,${(al * pa).toFixed(3)})`; ctx.beginPath(); ctx.arc(0, 0, r * S, 0, 6.283); ctx.stroke(); });
@@ -219,63 +304,59 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     }
 
     // ---- GPU particles ----
-    if (renderer && points) {
-      ORDER.forEach((n, k) => { const m = xf[n]; U.uMa.value[k].set(m[0], m[2], m[4]); U.uMb.value[k].set(m[1], m[3], m[5]); });
-      U.uView.value.set(CX, CY, S, 0); U.uFocus.value.set(fx, fy); U.uTime.value = t; U.uLogo.value = lg;
-      states.forEach((st, a) => { const at = AREAS[a].at(Pz); U.uArea.value[a].set(at[0], at[1], AREAS[a].s); U.uPain.value[a].set(st.pain * formed * (1 - lg), st.calm * (1 - lg)); });
+    if (renderer && pts) {
+      U.uTime.value = t; U.uLogo.value = lg;
+      states.forEach((st, a) => { const at = areaPos(a); U.uArea.value[a].set(at.x, at.y, at.z, AREAS[a][3]); U.uPain.value[a].set(st.pain * formed * (1 - lg), st.calm * (1 - lg)); });
       U.uSpine.value = spineGlow;
-      const sc = (t - scanT) / 1.6; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 ? mix(-1.02, 0.01, ease(sc)) : -2;
-      U.uMouse.value.set(mx, my, 80);
-      const area = bodyArea * (S / IH) * (S / IH);
-      U.uSize.value = clamp(Math.sqrt(area / NPa) * 2.7, 1.8, 6) * DPR;
+      const sc = (t - scanT) / 1.8; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 && lg < 0.05 ? mix(1.03, -0.02, ease(sc)) : -2;
+      U.uMouse.value.set(mx, my, 80); U.uCz.value = -D;
+      U.uSize.value = (MOB ? 1.9 : 2.1) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.6 * DPR;
       renderer.render(scene, camera);
     }
 
     // ---- front layer: treatment motion graphics, pulses, spine, arcs ----
     fctx.setTransform(DPR, 0, 0, DPR, 0, 0); fctx.clearRect(0, 0, W, H);
     if (formed > 0.6 && lg < 0.3) {
-      fctx.globalCompositeOperation = 'lighter';
       CHAINS.forEach((chn, k) => {
-        const u = (t * 0.16 + k * 0.37) % 1, q = along(Pz, chn, u), X = toX(q[0]), Y = toY(q[1]);
-        const gr = fctx.createRadialGradient(X, Y, 0, X, Y, 12); gr.addColorStop(0, 'rgba(210,255,150,0.55)'); gr.addColorStop(1, 'rgba(210,255,150,0)');
-        fctx.fillStyle = gr; fctx.fillRect(X - 12, Y - 12, 24, 24);
+        const u = (t * 0.16 + k * 0.37) % 1, [Xp, Yp] = proj(along(chn, u));
+        const gr = fctx.createRadialGradient(Xp, Yp, 0, Xp, Yp, 11); gr.addColorStop(0, 'rgba(64,108,180,0.5)'); gr.addColorStop(1, 'rgba(64,108,180,0)');
+        fctx.fillStyle = gr; fctx.fillRect(Xp - 11, Yp - 11, 22, 22);
       });
-      fctx.globalCompositeOperation = 'source-over';
     }
     if (act >= 0 && lg < 0.1 && formed > 0.5) {
-      const st = states[act], eff = bell(st.c, 0.22, 0.8), at = AREAS[act].at(Pz), X = toX(at[0]), Y = toY(at[1]), u = S;
-      if (st.c < 0.32) for (let r = 0; r < 3; r++) { const fr = (t * 0.45 + r / 3) % 1, al = 0.55 * (1 - fr) * seg(st.c, 0, 0.15) * (1 - seg(st.c, 0.22, 0.32)); fctx.strokeStyle = `rgba(232,112,92,${al.toFixed(3)})`; fctx.lineWidth = 1.2; fctx.beginPath(); fctx.arc(X, Y, (0.03 + fr * 0.11) * u, 0, 6.283); fctx.stroke(); }
+      const st = states[act], eff = bell(st.c, 0.22, 0.8), [Xp, Yp] = proj(areaPos(act)), u = S;
+      if (st.c < 0.32) for (let r = 0; r < 3; r++) { const fr = (t * 0.45 + r / 3) % 1, al = 0.55 * (1 - fr) * seg(st.c, 0, 0.15) * (1 - seg(st.c, 0.22, 0.32)); fctx.strokeStyle = `rgba(232,112,92,${al.toFixed(3)})`; fctx.lineWidth = 1.2; fctx.beginPath(); fctx.arc(Xp, Yp, (0.03 + fr * 0.11) * u, 0, 6.283); fctx.stroke(); }
       const sw = clamp((st.c - 0.3) / 0.16);
-      if (sw > 0 && sw < 1) { fctx.strokeStyle = `rgba(255,255,255,${(0.85 * (1 - sw)).toFixed(3)})`; fctx.lineWidth = 2 * (1 - sw) + 0.5; fctx.beginPath(); fctx.arc(X, Y, (0.02 + sw * 0.32) * u, 0, 6.283); fctx.stroke(); }
+      if (sw > 0 && sw < 1) { fctx.strokeStyle = `rgba(255,255,255,${(0.85 * (1 - sw)).toFixed(3)})`; fctx.lineWidth = 2 * (1 - sw) + 0.5; fctx.beginPath(); fctx.arc(Xp, Yp, (0.02 + sw * 0.32) * u, 0, 6.283); fctx.stroke(); }
       if (eff > 0.01) {
         fctx.lineWidth = 1.4;
-        if (act === 0) { for (let k = 0; k < 2; k++) { const a0 = t * 0.9 + k * Math.PI; fctx.strokeStyle = `rgba(255,255,255,${(0.9 * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(X, Y, 0.065 * u, a0, a0 + 1.6); fctx.stroke(); } }
-        else if (act === 1) { for (let r = 0; r < 3; r++) { const fr = (t * 0.6 + r / 3) % 1; fctx.strokeStyle = `rgba(64,108,180,${(0.65 * (1 - fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(X, Y, (0.035 + fr * 0.15) * u, 0, 6.283); fctx.stroke(); } }
+        if (act === 0) { for (let k = 0; k < 2; k++) { const a0 = t * 0.9 + k * Math.PI; fctx.strokeStyle = `rgba(255,255,255,${(0.9 * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, 0.065 * u, a0, a0 + 1.6); fctx.stroke(); } }
+        else if (act === 1) { for (let r = 0; r < 3; r++) { const fr = (t * 0.6 + r / 3) % 1; fctx.strokeStyle = `rgba(64,108,180,${(0.65 * (1 - fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, (0.035 + fr * 0.15) * u, 0, 6.283); fctx.stroke(); } }
         else if (act === 2) {
           const clean = seg(st.c, 0.3, 0.7), w = 0.2 * u; fctx.strokeStyle = `rgba(255,255,255,${(0.95 * eff).toFixed(3)})`; fctx.beginPath();
-          for (let k = 0; k <= 60; k++) { const f = k / 60, xx = X - w + f * 2 * w, env = Math.sin(Math.PI * f), nn = 0.6 * Math.sin(f * 58 + t * 9) + 0.4 * Math.sin(f * 97 - t * 13), cl = Math.sin(f * 25 - t * 5), yy = Y + env * 0.026 * u * mix(nn, cl, clean); k ? fctx.lineTo(xx, yy) : fctx.moveTo(xx, yy); }
+          for (let k = 0; k <= 60; k++) { const f = k / 60, xx = Xp - w + f * 2 * w, env = Math.sin(Math.PI * f), nn = 0.6 * Math.sin(f * 58 + t * 9) + 0.4 * Math.sin(f * 97 - t * 13), cl = Math.sin(f * 25 - t * 5), yy = Yp + env * 0.026 * u * mix(nn, cl, clean); k ? fctx.lineTo(xx, yy) : fctx.moveTo(xx, yy); }
           fctx.stroke();
         } else {
-          const sx = X + 0.32 * u, sy = Y - 0.4 * u, lb = fctx.createLinearGradient(sx, sy, X, Y); lb.addColorStop(0, 'rgba(232,112,92,0)'); lb.addColorStop(1, `rgba(232,112,92,${(0.9 * eff).toFixed(3)})`);
-          fctx.strokeStyle = lb; fctx.beginPath(); fctx.moveTo(sx, sy); fctx.lineTo(X, Y); fctx.stroke();
-          for (let k = 0; k < 5; k++) { const fr = (t * 0.7 + k / 5) % 1; fctx.fillStyle = `rgba(232,112,92,${(Math.sin(Math.PI * fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(mix(sx, X, fr), mix(sy, Y, fr), 2.4, 0, 6.283); fctx.fill(); }
+          const sx = Xp + 0.32 * u, sy = Yp - 0.4 * u, lb = fctx.createLinearGradient(sx, sy, Xp, Yp); lb.addColorStop(0, 'rgba(232,112,92,0)'); lb.addColorStop(1, `rgba(232,112,92,${(0.9 * eff).toFixed(3)})`);
+          fctx.strokeStyle = lb; fctx.beginPath(); fctx.moveTo(sx, sy); fctx.lineTo(Xp, Yp); fctx.stroke();
+          for (let k = 0; k < 5; k++) { const fr = (t * 0.7 + k / 5) % 1; fctx.fillStyle = `rgba(232,112,92,${(Math.sin(Math.PI * fr) * eff).toFixed(3)})`; fctx.beginPath(); fctx.arc(mix(sx, Xp, fr), mix(sy, Yp, fr), 2.4, 0, 6.283); fctx.fill(); }
         }
       }
       if (tag) {
         const vis = clamp(seg(st.c, 0.08, 0.2) * (1 - seg(st.c, 0.86, 0.98)));
-        const flip = X + 280 > W; tag.classList.toggle('is-flip', flip);
-        const tx = flip ? X - 16 - tag.offsetWidth : X + 16;
-        tag.style.transform = `translate(${clamp(tx, 8, W - tag.offsetWidth - 8).toFixed(1)}px,${(Y - tag.offsetHeight / 2).toFixed(1)}px)`; tag.style.opacity = vis.toFixed(3);
+        const flip = Xp + 280 > W; tag.classList.toggle('is-flip', flip);
+        const tx = flip ? Xp - 16 - tag.offsetWidth : Xp + 16;
+        tag.style.transform = `translate(${clamp(tx, 8, W - tag.offsetWidth - 8).toFixed(1)}px,${(Yp - tag.offsetHeight / 2).toFixed(1)}px)`; tag.style.opacity = vis.toFixed(3);
         tag.classList.toggle('is-calm', st.c > 0.55);
       }
     } else if (tag) tag.style.opacity = 0;
     if (spineGlow > 0.02 && formed > 0.5) {
-      const A = Pz.P, Cc = Pz.N;
-      for (let v = 0; v < 12; v++) { const f = v / 11, on = clamp(align * 14 - v * 0.9) * spineGlow; if (on <= 0) continue; const X = toX(mix(A[0], Cc[0], f)), Y = toY(mix(A[1], Cc[1], f)); fctx.fillStyle = `rgba(255,255,255,${(0.95 * on).toFixed(3)})`; fctx.beginPath(); fctx.arc(X, Y, 3, 0, 6.283); fctx.fill(); fctx.strokeStyle = `rgba(64,108,180,${on.toFixed(3)})`; fctx.lineWidth = 1.4; fctx.stroke(); }
+      const ch = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck'];
+      for (let v = 0; v < 12; v++) { const f = v / 11, on = clamp(align * 14 - v * 0.9) * spineGlow; if (on <= 0) continue; const [Xp, Yp] = proj(along(ch, f)); fctx.fillStyle = `rgba(255,255,255,${(0.95 * on).toFixed(3)})`; fctx.beginPath(); fctx.arc(Xp, Yp, 3, 0, 6.283); fctx.fill(); fctx.strokeStyle = `rgba(64,108,180,${on.toFixed(3)})`; fctx.lineWidth = 1.4; fctx.stroke(); }
     }
     if (lift > 0.02 && lg < 0.6) {
       const a = seg(p, 0.745, 0.84);
-      [['sA', -1], ['sB', 1]].forEach(([si, sg]) => { const s0 = Pz[si], Rr = 0.36 * S, cx = toX(s0[0]), cy = toY(s0[1]), a0 = Math.PI / 2 - sg * 0.55, a1 = a0 - sg * (Math.PI * 0.62) * a; fctx.strokeStyle = `rgba(125,142,57,${(0.55 * lift * (1 - lg)).toFixed(3)})`; fctx.lineWidth = 1.2; fctx.beginPath(); fctx.arc(cx, cy, Rr, Math.min(a0, a1), Math.max(a0, a1)); fctx.stroke(); });
+      [['RightArm', -1], ['LeftArm', 1]].forEach(([bn, sg]) => { const [cx, cy] = proj(wpos(bn, V2)), Rr = 0.36 * S, sd = Math.sign(Math.cos(rig.rotation.y)) * sg, a0 = Math.PI / 2 - sd * 0.55, a1 = a0 - sd * (Math.PI * 0.62) * a; fctx.strokeStyle = `rgba(125,142,57,${(0.5 * lift * (1 - lg)).toFixed(3)})`; fctx.lineWidth = 1.2; fctx.beginPath(); fctx.arc(cx, cy, Rr, Math.min(a0, a1), Math.max(a0, a1)); fctx.stroke(); });
     }
   };
 
@@ -285,19 +366,14 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   setChapter(0);
   const hd = $('.az-head'); if (hd) hd.classList.add('on-light');
   g.ticker.add((time) => { if (inView) render(time); });
-  const imgs = {};
-  fetch(RIG + 'rig.json').then((r) => r.json()).then((m) => {
-    meta = m; IW = m.w; IH = m.h;
-    REST = Object.fromEntries(Object.entries(m.joints).map(([k, [x, y]]) => [k, [(x - IW / 2) / IH, y / IH - 0.997]]));
-    makePoses();
-    return Promise.all(ORDER.map((n) => new Promise((res, rej) => { const im = new Image(); im.onload = () => res((imgs[n] = im)); im.onerror = rej; im.src = RIG + n + '.png'; })));
-  }).then(() => {
-    build(imgs); ready = true; scanT = performance.now() / 1000 + 3.6;
+  if (!renderer) return;
+  new GLTFLoader().load(MODEL, (gltf) => {
+    build(gltf); ready = true; scanT = performance.now() / 1000 + 3.6;
     if (RM) return;
     const go = () => {
       g.to(U.uIntro, { value: 1, duration: 3.4, delay: 0.3, ease: 'power1.inOut' });
       g.fromTo('[data-ncx-in]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.08, delay: 1, ease: 'expo.out' });
     };
     const t0 = performance.now(), chk = () => (!$('.az-pre') || performance.now() - t0 > 7000 ? go() : setTimeout(chk, 120)); chk();
-  }).catch((e) => console.error(e));
+  }, undefined, (e) => console.error(e));
 })();
