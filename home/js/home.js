@@ -377,7 +377,8 @@
      unbends into a flat filmstrip, then your scroll drives it through the next section ---------- */
   const railIn = { v: RM ? 1 : 0 };
   const rail = (() => {
-    const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE || !$('.hx')) return null;
+    const el = $('.rl'), rx = $('.rx'); if (!el || !rx || LITE) return null;
+    const NOHX = !hx; if (NOHX) railIn.v = 1; // pages without the photo hero (new concept): the loop arrives with the section instead
     const cards = $$('.rl-card', el), N = cards.length, U = N / 2;
     const sky = $('.hx__sky'), haze = $('.hx__haze'), head = $('.rx__head'), cap = $('.rx__cap'), CAP = JSON.parse($('#rx-cap').textContent), capI = $('[data-rx-i]'), capT = $('[data-rx-t]'), capD = $('[data-rx-d]'), bar = $('.rx__bar i');
     let segs = null; if (cap) { const sg = document.createElement('div'); sg.className = 'rx__segs'; sg.innerHTML = '<i></i>'.repeat(U); cap.appendChild(sg); segs = [...sg.children]; }
@@ -389,7 +390,7 @@
       cw = Math.round(Math.max(250, Math.min(330, innerWidth * 0.19, innerHeight - 520)));
       sp = cw * 1.26; L = sp * N; laneF = Math.max(190 + cw * 0.55, Math.min(innerHeight * 0.47, innerHeight - 300 - cw * 0.58)); R0 = L / (2 * Math.PI);
       cards.forEach((c) => c.style.setProperty('--cw', cw + 'px'));
-      const cp = $('.hx__copy'), ct = $('.hx__ctas'); lane0 = cp.offsetTop + ct.offsetTop + ct.offsetHeight + 46 + cw * 0.45;
+      const cp = $('.hx__copy'), ct = $('.hx__ctas'); lane0 = cp && ct ? cp.offsetTop + ct.offsetTop + ct.offsetHeight + 46 + cw * 0.45 : laneF;
     };
     const setCap = (i) => {
       if (i === active) return; active = i; const c = CAP[i];
@@ -397,11 +398,11 @@
       g.fromTo([capT, capD], { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power3.out', overwrite: true, onStart: () => { capT.innerHTML = c.t; capD.innerHTML = c.d; } });
     };
     const render = (dt) => {
-      const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx.offsetHeight;
-      const SPLIT = window.__railSplit && pin;
+      const y = scrollY, vw = innerWidth, vh = innerHeight, heroH = hx ? hx.offsetHeight : vh;
+      const SPLIT = (window.__railSplit || NOHX) && pin;
       /* split mode (3D page): the loop fades out with the hero, then reappears and flattens just before the filmstrip */
       const aRaw = SPLIT ? clamp((y - (pin.start - vh)) / vh) : clamp(y / Math.max(1, (pin ? pin.start : heroH))), a = io3(aRaw);
-      const heroP = clamp(y / heroH), visMul = SPLIT ? Math.max(1 - clamp(y / (heroH * 0.45)), clamp((y - (pin.start - vh * 0.7)) / (vh * 0.5))) : 1;
+      const heroP = clamp(y / heroH), visMul = SPLIT ? (NOHX ? clamp((y - (pin.start - vh * 0.3)) / (vh * 0.3)) : Math.max(1 - clamp(y / (heroH * 0.45)), clamp((y - (pin.start - vh * 0.7)) / (vh * 0.5)))) : 1;
       const p = pin ? clamp((y - pin.start) / (pin.end - pin.start)) : 0;
       const after = pin ? Math.max(0, y - pin.end) : 0;
       if (after > vh * 1.2) { el.style.visibility = 'hidden'; return; } el.style.visibility = '';
