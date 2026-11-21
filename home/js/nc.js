@@ -17,7 +17,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
   const bell = (p, a, b) => Math.sin(Math.PI * clamp((p - a) / (b - a)));
-  const MOB = innerWidth < 900, NS = MOB ? 20000 : 38000, NI = MOB ? 2600 : 4200;
+  const MOB = innerWidth < 900, NS = MOB ? 44000 : 85000, NI = MOB ? 2400 : 4200;
   const MODEL = '/home/assets/3d/body.glb', DEG = Math.PI / 180, TAU = Math.PI * 2;
 
   /* ---------- poses: rotations about world axes, applied relative to each bone's rest frame ---------- */
@@ -39,9 +39,34 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       VP: P({ ...arms(140, 140), LeftForeArm: q([Z, 6]), RightForeArm: q([Z, -6]), Spine1: q([X, -4]), Head: q([X, -8]) }),
     };
   };
-  const KEYS = [[0, 'UP'], [0.105, 'UP'], [0.13, 'NECK'], [0.19, 'NECK'], [0.225, 'UP'], [0.355, 'UP'], [0.385, 'SH'], [0.405, 'SH'], [0.43, 'UP'],
-    [0.44, 'SLUMP'], [0.5, 'SLUMP'], [0.545, 'UP'], [0.67, 'UP'], [0.7, 'KNEE'], [0.72, 'KNEE'], [0.745, 'UP'], [0.78, 'TP'], [0.84, 'VP'], [1, 'VP']];
-  const YAW = [[0, -0.3], [0.1, -0.3], [0.14, -0.12], [0.26, -0.12], [0.3, -0.55], [0.42, -0.55], [0.47, Math.PI], [0.56, Math.PI], [0.61, TAU + 0.38], [0.72, TAU + 0.38], [0.75, TAU], [0.86, 2 * TAU], [1, 2 * TAU]];
+  const KEYS = [[0, 'UP'], [0.105, 'UP'], [0.13, 'NECK'], [0.19, 'NECK'], [0.225, 'UP'], [0.34, 'UP'], [0.36, 'SH'], [0.38, 'SH'], [0.395, 'UP'],
+    [0.44, 'SLUMP'], [0.5, 'SLUMP'], [0.545, 'UP'], [0.655, 'UP'], [0.675, 'KNEE'], [0.69, 'KNEE'], [0.705, 'UP'], [0.82, 'UP'], [0.852, 'VP'], [1, 'VP']];
+  // walking: full in the hero and between chapters, stops while a pain is treated, resumes once it heals
+  const walkW = (p) => {
+    let w = 1;
+    for (let a = 1; a <= 4; a++) { const [s0, e0] = R[a]; if (p >= s0 && p < e0) { const c = (p - s0) / (e0 - s0); w = 1 - seg(c, 0, 0.1) + seg(c, 0.8, 0.95); } }
+    return clamp(w * (1 - seg(p, 0.82, 0.85)));
+  };
+  const walk = (n, ph, w) => {
+    const s1 = Math.sin(ph), c1 = Math.cos(ph), sw = (v) => v * w;
+    switch (n) {
+      case 'Hips': return q([Y, sw(6 * s1)], [Z, sw(2.5 * c1)]);
+      case 'Spine1': return q([Y, sw(-7 * s1)], [X, sw(3)]);
+      case 'Neck': return q([Y, sw(3 * s1)]);
+      case 'LeftUpLeg': return q([X, sw(-24 * s1 - 4)]);
+      case 'RightUpLeg': return q([X, sw(24 * s1 - 4)]);
+      case 'LeftLeg': return q([X, sw(6 + 46 * Math.pow(Math.max(0, c1), 1.6))]);
+      case 'RightLeg': return q([X, sw(6 + 46 * Math.pow(Math.max(0, -c1), 1.6))]);
+      case 'LeftFoot': return q([X, sw(-14 * Math.max(0, c1) + 8 * Math.max(0, -s1))]);
+      case 'RightFoot': return q([X, sw(-14 * Math.max(0, -c1) + 8 * Math.max(0, s1))]);
+      case 'LeftArm': return q([X, sw(20 * s1)]);
+      case 'RightArm': return q([X, sw(-20 * s1)]);
+      case 'LeftForeArm': return q([X, sw(-12 - 8 * Math.max(0, -s1))]);
+      case 'RightForeArm': return q([X, sw(-12 - 8 * Math.max(0, s1))]);
+      default: return null;
+    }
+  };
+  const YAW = [[0, -0.62], [0.1, -0.62], [0.14, -0.12], [0.26, -0.12], [0.3, -0.55], [0.42, -0.55], [0.47, Math.PI], [0.56, Math.PI], [0.61, TAU + 0.38], [0.72, TAU + 0.38], [0.75, TAU - 0.5], [0.82, TAU * 1.6], [0.86, 2 * TAU], [1, 2 * TAU]];
   const keyAt = (K, p) => { let k = 0; while (k < K.length - 2 && p > K[k + 1][0]) k++; const [t0, a] = K[k], [t1, b] = K[k + 1]; return [a, b, ease(clamp((p - t0) / Math.max(1e-4, t1 - t0)))]; };
   const RIGMAP = { spine: 'Hips', spine001: 'Spine', spine002: 'Spine1', spine003: 'Spine2', spine004: 'Neck', spine005: 'Head', shoulderL: 'LeftShoulder', upperarmL: 'LeftArm', forearmL: 'LeftForeArm', handL: 'LeftHand', shoulderR: 'RightShoulder', upperarmR: 'RightArm', forearmR: 'RightForeArm', handR: 'RightHand', thighL: 'LeftUpLeg', shinL: 'LeftLeg', footL: 'LeftFoot', toeL: 'LeftToe', thighR: 'RightUpLeg', shinR: 'RightLeg', footR: 'RightFoot', toeR: 'RightToe' };
   const BONE_NAMES = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'LeftShoulder', 'LeftArm', 'LeftForeArm', 'LeftHand', 'RightShoulder', 'RightArm', 'RightForeArm', 'RightHand', 'LeftUpLeg', 'LeftLeg', 'LeftFoot', 'RightUpLeg', 'RightLeg', 'RightFoot'];
@@ -100,19 +125,28 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       vec4 wp = modelMatrix * vec4(transformed, 1.0);
       vec3 body = wp.xyz;
       wp.xyz += 0.0016 * vec3(sin(uTime*0.9 + aRnd*40.0), cos(uTime*0.8 + aRnd*31.0), sin(uTime*0.7 + aRnd*17.0));
-      vec3 nV = normalize(mat3(viewMatrix) * normalize(mat3(modelMatrix) * objectNormal));
+      vec3 nW = normalize(mat3(modelMatrix) * objectNormal), nV = normalize(mat3(viewMatrix) * nW);
       vec4 mv0 = viewMatrix * vec4(body, 1.0);
-      float rim = 1.0 - abs(dot(nV, normalize(-mv0.xyz)));
-      // skin: a translucent shell whose silhouette reads darker; inside: spine (kind 1) and nerve paths (kind 2)
-      vec3 col = mix(vec3(0.44, 0.52, 0.47), vec3(0.08, 0.15, 0.12), pow(rim, 1.3));
-      float a = mix(0.32, 0.95, pow(rim, 1.6));
-      if (aKind > 1.5) { col = vec3(0.35, 0.52, 0.80); a = 0.55; }
+      float fr = 1.0 - abs(dot(nV, normalize(-mv0.xyz)));
+      // skin: soft studio light (key from upper left, fill, brand-blue rim); inside: spine (kind 1), nerves (kind 2)
+      float key = max(dot(nV, normalize(vec3(-0.45, 0.65, 0.6))), 0.0), fill = max(dot(nV, normalize(vec3(0.7, -0.1, 0.5))), 0.0);
+      float lit = clamp(key * 0.8 + fill * 0.25, 0.0, 1.0);
+      vec3 col = mix(vec3(0.16, 0.25, 0.20), vec3(0.55, 0.64, 0.55), lit);
+      col = mix(col, vec3(0.86, 0.80, 0.66), pow(key, 6.0) * 0.55);
+      col = mix(col, vec3(0.22, 0.42, 0.76), pow(fr, 3.0) * 0.75);
+      float a = 0.2 + 0.34 * (1.0 - lit) + 0.3 * pow(fr, 2.0);
+      if (aKind > 2.5) {
+        float life = fract(uTime * 0.07 + aRnd * 9.0);
+        wp.xyz += nW * life * 0.03 + vec3(0.0, life * 0.05, 0.0);
+        col = mix(vec3(0.30, 0.50, 0.82), vec3(0.42, 0.62, 0.30), fract(aRnd * 13.0)); a = sin(3.14159 * life) * 0.75;
+      }
+      else if (aKind > 1.5) { col = vec3(0.35, 0.52, 0.80); a = 0.32; }
       else if (aKind > 0.5) { col = mix(vec3(0.25, 0.42, 0.71), vec3(0.42, 0.62, 0.95), uSpine); a = 0.5 + 0.45 * uSpine; }
       float hot = 0.0, calm = 0.0;
       for (int k = 0; k < 4; k++) { vec3 dd = body - uArea[k].xyz; float h = exp(-dot(dd,dd) / (uArea[k].w*uArea[k].w)); hot = max(hot, h * uPain[k].x); calm = max(calm, h * uPain[k].y); }
       col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
       col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
-      float sb = uScan > -1.5 ? exp(-pow((body.y - uScan) / 0.014, 2.0)) : 0.0; col = mix(col, vec3(0.25, 0.42, 0.71), sb * 0.85); a = mix(a, 1.0, sb);
+      float sb = uScan > -1.5 ? exp(-pow((body.y - uScan) / 0.009, 2.0)) : 0.0; col = mix(col, vec3(0.25, 0.42, 0.71), sb * 0.6); a = mix(a, 0.8, sb * 0.7);
       if (uLogo > 0.0) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
       if (uIntro < 1.0) { float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159); a = mix(0.8, a, k); col = mix(mix(vec3(0.37, 0.42, 0.24), vec3(0.16, 0.22, 0.17), aRnd), col, k); }
       vec4 mv = viewMatrix * wp;
@@ -122,12 +156,12 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (ml < uMouse.z) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
       gl_Position = cp;
       float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
-      gl_PointSize = uSize * (0.7 + aRnd * 0.6) * (1.0 + hot * 0.5 + calm * 0.3) * (1.0 - back * 0.3) * (aKind > 0.5 ? 1.15 : 1.0);
+      gl_PointSize = uSize * (0.85 + aRnd * 0.3) * (aKind > 2.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3) * (1.0 - back * 0.3) * (aKind > 0.5 ? 1.15 : 1.0);
       vCol = col; vA = a * (1.0 - back * 0.5);
     }`;
   const FRAG = /* glsl */`
     varying vec3 vCol; varying float vA;
-    void main(){ vec2 c = gl_PointCoord - 0.5; float r = length(c); float a = smoothstep(0.5, 0.1, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }`;
+    void main(){ vec2 c = gl_PointCoord - 0.5; float r = length(c); float a = smoothstep(0.5, 0.05, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }`;
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
 
   /* ---------- the body ---------- */
@@ -185,13 +219,13 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       acc.clear(); for (let c = 0; c < 3; c++) for (let k = 0; k < 4; k++) { const wt = sw.getComponent(id[c], k) * bw[c]; if (wt > 0) { const j = si.getComponent(id[c], k); acc.set(j, (acc.get(j) || 0) + wt); } }
       const best = [...acc].sort((x, y) => y[1] - x[1]).slice(0, 4), sum = best.reduce((s, x) => s + x[1], 0) || 1;
       best.forEach(([j, wt], k) => { sI[n * 4 + k] = j; sW[n * 4 + k] = wt / sum; });
-      wv.copy(p).applyMatrix4(toWorld); hgt[n] = wv.y;
+      wv.copy(p).applyMatrix4(toWorld); hgt[n] = wv.y; if (Math.random() < 0.02) kind[n] = 3;
     }
     // --- inner anatomy: spine (vertebrae) and nerve paths, each point rigid to its bone
     const bindInv = (j) => new THREE.Matrix4().multiplyMatrices(sk.bones[j].matrixWorld, sk.boneInverses[j]).multiply(host.bindMatrix).invert();
     const CH = [[1, ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head'], 0.5],
-      [2, ['Spine2', 'LeftShoulder', 'LeftArm', 'LeftForeArm', 'LeftHand'], 0.11], [2, ['Spine2', 'RightShoulder', 'RightArm', 'RightForeArm', 'RightHand'], 0.11],
-      [2, ['Hips', 'LeftUpLeg', 'LeftLeg', 'LeftFoot'], 0.14], [2, ['Hips', 'RightUpLeg', 'RightLeg', 'RightFoot'], 0.14]];
+      [2, ['LeftArm', 'LeftForeArm', 'LeftHand'], 0.09], [2, ['RightArm', 'RightForeArm', 'RightHand'], 0.09],
+      [2, ['LeftUpLeg', 'LeftLeg', 'LeftFoot'], 0.12], [2, ['RightUpLeg', 'RightLeg', 'RightFoot'], 0.12]];
     const segs = []; let ltot = 0;
     CH.forEach(([kd, ch, share]) => { for (let i = 1; i < ch.length; i++) { const a = wpos(ch[i - 1]), b = wpos(ch[i]), l = a.distanceTo(b); segs.push({ kd, a, b, j: bi(ch[i - 1]), l, share: (share * l) / ch.slice(1).reduce((s, n, k) => s + wpos(ch[k]).distanceTo(wpos(n)), 0) }); } });
     let n = NS; const inv = new Map();
@@ -242,12 +276,14 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       default: return null;
     }
   };
+  let WK = 0, PH = 0, lastT = 0;
   const pose = (p, t) => {
     const [a, b, k] = keyAt(KEYS, p), A = POSE[a], Bp = POSE[b];
     BONE_NAMES.forEach((n) => {
       const r = REST[n]; if (!r) return;
       qx.slerpQuaternions(A[n] || QI, Bp[n] || QI, k);
       const id = idle(n, t); if (id) qx.premultiply(id);
+      if (WK > 0.01) { const wq = walk(n, PH, WK); if (wq) qx.premultiply(wq); }
       qt.copy(r.Pi).multiply(qx).multiply(r.P).multiply(r.L); B[n].quaternion.copy(qt);
     });
   };
@@ -276,6 +312,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     // body: yaw by scroll (turns to show the back, spins when it moves freely), pose by scroll
     const [y0, y1, yk] = keyAt(YAW, p);
     rig.rotation.y = mix(y0, y1, yk) + (1 - lg) * (0.06 * Math.sin(t * 0.3) + smx * 0.5);
+    WK = RM ? 0 : walkW(p) * formed; PH += Math.min(0.05, Math.max(0, t - lastT)) * 5.4; lastT = t;
+    rig.position.y = WK * 0.006 * (Math.cos(2 * PH) - 1);
     pose(p, t); rig.updateMatrixWorld(true);
     const states = AREAS.map((_, a) => areaState(a, p)); let act = -1, zf = 0; const foc = new THREE.Vector3(0, 0.5, 0);
     states.forEach((st, a) => { if (st.c >= 0 && st.c <= 1) { act = a; zf = seg(st.c, 0, 0.25) * (1 - seg(st.c, 0.82, 1)); const at = areaPos(a), wf = a === 3 ? (MOB ? 0.15 : 0.08) : a === 2 ? (MOB ? 0.3 : 0.4) : 1; foc.set(mix(0, at.x, zf), mix(0.5, at.y, zf * wf), 0); } });
@@ -290,6 +328,11 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     // ---- back layer: dust + floor platform ----
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
     for (const o of DUST) { const yy = ((o.y - t * 0.012 * o.z) % 1 + 1) % 1, xx = o.x + Math.sin(t * 0.3 + o.ph) * 0.01; ctx.fillStyle = `rgba(255,255,255,${(0.55 * o.z).toFixed(3)})`; ctx.beginPath(); ctx.arc(xx * W - smx * 30 * o.z, yy * H - smy * 20 * o.z, o.r * o.z * 1.4, 0, 6.283); ctx.fill(); }
+    { // soft light behind the body
+      const [ax, ay] = proj(V2.set(0, 0.55, 0)), al = clamp(intro * 1.2) * (1 - lg * 0.6), ag = ctx.createRadialGradient(ax, ay, 0, ax, ay, 0.62 * S);
+      ag.addColorStop(0, `rgba(255,255,250,${(0.85 * al).toFixed(3)})`); ag.addColorStop(0.55, `rgba(255,255,248,${(0.35 * al).toFixed(3)})`); ag.addColorStop(1, 'rgba(255,255,248,0)');
+      ctx.fillStyle = ag; ctx.fillRect(ax - 0.62 * S, ay - 0.62 * S, 1.24 * S, 1.24 * S);
+    }
     {
       const [gx, gy] = proj(V2.set(0, 0, 0)), pa = clamp(intro * 1.4) * (1 - lg);
       const sh = ctx.createRadialGradient(gx, gy, 0, gx, gy, 0.26 * S); sh.addColorStop(0, `rgba(20,32,26,${(0.2 * pa).toFixed(3)})`); sh.addColorStop(1, 'rgba(20,32,26,0)');
@@ -298,6 +341,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
         ctx.save(); ctx.translate(gx, gy); ctx.scale(1, 0.16); ctx.lineWidth = 0.9 / 0.16;
         [[0.3, 0.32, [4, 10], 1], [0.38, 0.22, [1, 7], -1], [0.46, 0.14, [24, 18], 1]].forEach(([r, al, dash, dir]) => { ctx.setLineDash(dash.map((v) => (v / 0.16) * 0.5)); ctx.lineDashOffset = dir * t * 30; ctx.strokeStyle = `rgba(93,106,41,${(al * pa).toFixed(3)})`; ctx.beginPath(); ctx.arc(0, 0, r * S, 0, 6.283); ctx.stroke(); });
         ctx.setLineDash([]);
+        if (WK > 0.02) for (let i = 0; i < 7; i++) { const f = (i / 7 + PH * 0.045) % 1, yy = mix(-0.3, 0.3, f) * S, hw = Math.sqrt(Math.max(0, 1 - (yy / (0.31 * S)) ** 2)) * 0.22 * S; ctx.strokeStyle = `rgba(93,106,41,${(0.3 * WK * pa * Math.sin(Math.PI * f)).toFixed(3)})`; ctx.beginPath(); ctx.moveTo(-hw, yy); ctx.lineTo(hw, yy); ctx.stroke(); }
         for (let i = 0; i < 4; i++) { const a = t * 0.4 + (i * Math.PI) / 2; ctx.fillStyle = `rgba(93,106,41,${(0.55 * pa).toFixed(3)})`; ctx.beginPath(); ctx.arc(Math.cos(a) * 0.38 * S, Math.sin(a) * 0.38 * S, 3 / 0.16 * 0.5, 0, 6.283); ctx.fill(); }
         ctx.restore();
       }
@@ -310,7 +354,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       U.uSpine.value = spineGlow;
       const sc = (t - scanT) / 1.8; U.uScan.value = sc >= 0 && sc <= 1 && formed > 0.9 && lg < 0.05 ? mix(1.03, -0.02, ease(sc)) : -2;
       U.uMouse.value.set(mx, my, 80); U.uCz.value = -D;
-      U.uSize.value = (MOB ? 1.9 : 2.1) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.6 * DPR;
+      U.uSize.value = (MOB ? 1.9 : 2.0) * Math.sqrt(zoom) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
       renderer.render(scene, camera);
     }
 
