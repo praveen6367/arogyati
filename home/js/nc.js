@@ -130,7 +130,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const VERT = /* glsl */`
     #include <common>
     #include <skinning_pars_vertex>
-    attribute vec3 aLogo; attribute float aRnd; attribute float aDelay; attribute float aKind;
+    attribute vec3 aLogo; attribute float aLv; attribute float aRnd; attribute float aDelay; attribute float aKind;
     uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4];
     varying vec3 vCol; varying float vA; varying float vGlow;
     float e3(float t){ return t < 0.5 ? 4.0*t*t*t : 1.0 - pow(-2.0*t + 2.0, 3.0) / 2.0; }
@@ -177,13 +177,13 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
       col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
       
-      if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, leafPos(aLogo, aRnd, uTime), k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, leafCol(aLogo, uTime), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
+      if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, leafPos(aLogo, aRnd, uTime), k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, leafCol(aLogo, uTime), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95 * aLv, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
       float kI = 1.0;
       if (uIntro < 1.0 && aKind < 5.5) {
         float k = e3(clamp((uIntro - aDelay) / 0.55, 0.0, 1.0)); kI = k;
         float sw = sin(k * 3.14159);
         wp.xyz = mix(leafPos(aLogo, aRnd, uTime), wp.xyz, k) + vec3((aRnd - 0.5) * 0.06, (fract(aRnd * 3.7) - 0.5) * 0.03, (fract(aRnd * 7.3) - 0.5) * 0.28) * sw;
-        col = mix(leafCol(aLogo, uTime), col, smoothstep(0.15, 0.85, k)); a = mix(0.95, a, k);
+        col = mix(leafCol(aLogo, uTime), col, smoothstep(0.15, 0.85, k)); a = mix(0.95 * aLv, a, k);
       }
       vec4 mv = viewMatrix * wp;
       vec4 cp = projectionMatrix * mv;
@@ -207,6 +207,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
 
   /* ---------- the logo, on screen at once: same particles the body will unfold from ---------- */
+  const LV = 0.26; // share of particles that draw the leaf mark
   const LP = (() => {
     const LW = 240, LH = 300, lc = d.createElement('canvas'); lc.width = LW; lc.height = LH; const lx = lc.getContext('2d', { willReadFrequently: true });
     lx.setTransform(LW / 33.3, 0, 0, LH / 41.7, -129.8 * (LW / 33.3), 0); $$('.ncx__logo path').forEach((q) => lx.fill(new Path2D(q.getAttribute('d'))));
@@ -229,6 +230,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
           gl_Position = cp; gl_PointSize = uSize * (0.95 + aRnd * 0.1);
         }`,
       fragmentShader: `varying vec3 vCol; varying float vA; void main(){ float r = length(gl_PointCoord - 0.5), a = smoothstep(0.5, 0.36, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }` });
+    gl2.setDrawRange(0, Math.round(NS * LV));
     const o = new THREE.Points(gl2, m); o.frustumCulled = false; scene.add(o); return o;
   })();
   g.to(LU.uFade, { value: 1, duration: 0.7, ease: 'power2.out' });
@@ -340,12 +342,13 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       rnd[i] = Math.random(); dly[i] = Math.random() * 0.32 + clamp(hgt[i]) * 0.14;
     }
     // logo targets: exactly the particles already on screen, paired by height so the body flows out of the mark
+    const lv = new Float32Array(NT);
     const lpIdx = Array.from({ length: NS }, (_, i) => i).sort((a, b) => LP[a * 3 + 1] - LP[b * 3 + 1]);
     const order = Array.from({ length: NT }, (_, i) => i).sort((a, b) => hgt[a] - hgt[b]);
-    order.forEach((i, k) => { const L = lpIdx[Math.min(NS - 1, Math.round((k * (NS - 1)) / Math.max(1, NT - 1)))] * 3; logo[i * 3] = LP[L]; logo[i * 3 + 1] = LP[L + 1]; logo[i * 3 + 2] = LP[L + 2]; });
+    order.forEach((i, k) => { const L = lpIdx[Math.min(NS - 1, Math.round((k * (NS - 1)) / Math.max(1, NT - 1)))] * 3; logo[i * 3] = LP[L]; logo[i * 3 + 1] = LP[L + 1]; logo[i * 3 + 2] = LP[L + 2]; lv[i] = L / 3 < NS * LV ? 1 : 0; });
     const geo = new THREE.BufferGeometry(), sl = (a, c) => new THREE.BufferAttribute(a.subarray(0, NT * c), c);
     geo.setAttribute('position', sl(pos, 3)); geo.setAttribute('normal', sl(nor, 3)); geo.setAttribute('skinIndex', sl(sI, 4)); geo.setAttribute('skinWeight', sl(sW, 4));
-    geo.setAttribute('aLogo', sl(logo, 3)); geo.setAttribute('aRnd', sl(rnd, 1)); geo.setAttribute('aDelay', sl(dly, 1)); geo.setAttribute('aKind', sl(kind, 1));
+    geo.setAttribute('aLogo', sl(logo, 3)); geo.setAttribute('aLv', new THREE.BufferAttribute(lv, 1)); geo.setAttribute('aRnd', sl(rnd, 1)); geo.setAttribute('aDelay', sl(dly, 1)); geo.setAttribute('aKind', sl(kind, 1));
     // a skinned mesh drawn as points: the GPU skins every particle with the real skeleton
     pts = new THREE.SkinnedMesh(geo, mat); pts.isMesh = false; pts.isPoints = true; pts.frustumCulled = false;
     host.parent.add(pts); pts.position.copy(host.position); pts.quaternion.copy(host.quaternion); pts.scale.copy(host.scale);
