@@ -3,7 +3,7 @@
    Universal Base Characters, quaternius.com) sampled on smooth curved patches into brand-coloured points,
    skinned on the GPU to its real skeleton — so every
    movement is a true joint rotation with smooth skin, never cut-out parts. Inside it, a particle spine and nerve
-   paths. It rises from a heap of particles, four pains (neck, shoulder, lower back, knee) are located, treated and
+   paths. It opens as the Arogyati logo figure, which unfolds into the body; four pains (neck, shoulder, lower back, knee) are located, treated and
    healed, the body turns and moves freely, then its particles reform into the Arogyati logo figure. */
 import * as THREE from '/home/vendor/three/three.module.min.js';
 import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
@@ -109,13 +109,30 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     uMouse: { value: new THREE.Vector3(-9999, -9999, 90) }, uArea: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) },
     uPain: { value: Array.from({ length: 4 }, () => new THREE.Vector2()) }, uSpine: { value: 0 }, uScan: { value: -2 }, uCz: { value: 0 },
   };
+
+  // the living logo: side petals sway like leaves around the junction, the figure breathes, light drifts up it
+  const LEAF = /* glsl */`
+    vec3 leafPos(vec3 P, float r, float t){
+      vec2 piv = vec2(0.0, 0.52);
+      float side = smoothstep(0.44, 0.54, P.y) * smoothstep(0.02, 0.07, abs(P.x)) * (1.0 - step(0.8, P.y) * step(abs(P.x), 0.085));
+      float an = sign(P.x) * 0.055 * sin(t * 1.15) * side, c = cos(an), s = sin(an);
+      vec2 d = P.xy - piv, qq = piv + vec2(d.x * c - d.y * s, d.x * s + d.y * c);
+      qq.y += step(0.8, P.y) * step(abs(P.x), 0.085) * 0.01 * sin(t * 1.15 + 1.1);
+      qq = vec2(0.0, 0.5) + (qq - vec2(0.0, 0.5)) * (1.0 + 0.012 * sin(t * 1.15));
+      return vec3(qq, P.z) + 0.0035 * vec3(sin(t * 1.3 + r * 40.0), cos(t * 1.1 + r * 31.0), sin(t * 0.9 + r * 17.0));
+    }
+    vec3 leafCol(vec3 P, float t){
+      float sweep = exp(-pow(P.y - (fract(t * 0.16) * 1.6 - 0.3), 2.0) / 0.014);
+      return mix(vec3(0.25, 0.42, 0.71), vec3(0.47, 0.64, 0.93), sweep * 0.45);
+    }`;
   const VERT = /* glsl */`
     #include <common>
     #include <skinning_pars_vertex>
-    attribute vec3 aHeap; attribute vec3 aLogo; attribute float aRnd; attribute float aDelay; attribute float aKind;
+    attribute vec3 aLogo; attribute float aRnd; attribute float aDelay; attribute float aKind;
     uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4];
     varying vec3 vCol; varying float vA; varying float vGlow;
     float e3(float t){ return t < 0.5 ? 4.0*t*t*t : 1.0 - pow(-2.0*t + 2.0, 3.0) / 2.0; }
+    ${LEAF}
     void main(){
       vec3 objectNormal = normal;
       #include <skinbase_vertex>
@@ -158,23 +175,20 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       col = mix(col, vec3(0.93, 0.36, 0.27), clamp(hot * 1.2, 0.0, 1.0)); a = mix(a, 1.0, clamp(hot, 0.0, 1.0));
       col = mix(col, vec3(0.36, 0.66, 0.27), clamp(calm, 0.0, 1.0)); a = mix(a, 1.0, clamp(calm, 0.0, 1.0));
       
-      if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, aLogo, k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, vec3(0.25, 0.42, 0.71), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
+      if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, leafPos(aLogo, aRnd, uTime), k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, leafCol(aLogo, uTime), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
       float kI = 1.0;
       if (uIntro < 1.0 && aKind < 5.5) {
         float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); kI = k;
-        wp.xyz = mix(aHeap, wp.xyz, k) + vec3((aRnd - 0.5) * 0.08, 0.0, (fract(aRnd*7.3) - 0.5) * 0.08) * sin(k*3.14159);
-        vec2 hd = aHeap.xz / vec2(1.0, 0.8); float hr = max(length(hd), 1e-4), sl = 0.12 * 1.15 / 0.2 * pow(max(0.0, 1.0 - hr / 0.2), 0.15);
-        vec3 hn = normalize(vec3(hd.x / hr * sl, 1.0, hd.y / hr * sl));
-        float sh = clamp(0.35 + 0.75 * max(dot(hn, normalize(vec3(-0.5, 0.75, 0.45))), 0.0), 0.0, 1.0) * (0.86 + 0.14 * fract(aRnd * 41.0));
-        vec3 sand = mix(vec3(0.42, 0.37, 0.27), vec3(0.86, 0.78, 0.62), sh);
-        col = mix(sand, col, smoothstep(0.0, 0.6, k)); a = mix(0.92, a, k);
+        float sw = sin(k * 3.14159);
+        wp.xyz = mix(leafPos(aLogo, aRnd, uTime), wp.xyz, k) + vec3((aRnd - 0.5) * 0.06, (fract(aRnd * 3.7) - 0.5) * 0.03, (fract(aRnd * 7.3) - 0.5) * 0.28) * sw;
+        col = mix(leafCol(aLogo, uTime), col, smoothstep(0.15, 0.85, k)); a = mix(0.95, a, k);
       }
       vec4 mv = viewMatrix * wp;
       vec4 cp = projectionMatrix * mv;
       // cursor parts the particles
       vec2 s = (cp.xy / cp.w * 0.5 + 0.5) * uRes; vec2 md = s - vec2(uMouse.x, uRes.y - uMouse.y); float ml = length(md);
       if (ml < uMouse.z && (aKind < 3.5 || aKind > 4.5)) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
-      if (kI < 0.35) cp.z = -cp.w * 0.98; // grains still in the pile are never hidden by the (invisible) body
+      if (kI < 0.6) cp.z = -cp.w * 0.98; // the logo (inside the body's volume) is never hidden by the invisible body
       gl_Position = cp;
       float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
       gl_PointSize = uSize * (0.95 + aRnd * 0.1) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3 + band * 0.7) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
@@ -189,6 +203,27 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (a < 0.01) discard; gl_FragColor = vec4(col * a, a); }`;
 
   const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthTest: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor });
+
+  /* ---------- the logo, on screen at once: same particles the body will unfold from ---------- */
+  const LP = (() => {
+    const LW = 240, LH = 300, lc = d.createElement('canvas'); lc.width = LW; lc.height = LH; const lx = lc.getContext('2d', { willReadFrequently: true });
+    lx.setTransform(LW / 33.3, 0, 0, LH / 41.7, -129.8 * (LW / 33.3), 0); $$('.ncx__logo path').forEach((q) => lx.fill(new Path2D(q.getAttribute('d'))));
+    const ld = lx.getImageData(0, 0, LW, LH).data, filled = []; for (let i = 0; i < LW * LH; i++) if (ld[i * 4 + 3] > 127) filled.push(i);
+    const out = new Float32Array(NS * 3), S = 1.0 / 41.7;
+    for (let i = 0; i < NS; i++) { const k = filled.length ? filled[(Math.random() * filled.length) | 0] : 0, x = 129.8 + ((k % LW) + Math.random()) * (33.3 / LW), y = (((k / LW) | 0) + Math.random()) * (41.7 / LH); out[i * 3] = (x - 146.42) * S; out[i * 3 + 1] = (41.7 - y) * S + 0.02; out[i * 3 + 2] = (Math.random() - 0.5) * 0.02; }
+    return out;
+  })();
+  const LU = { uTime: U.uTime, uSize: U.uSize, uFade: { value: 0 } };
+  const logoPts = (() => {
+    const gl2 = new THREE.BufferGeometry(), r = new Float32Array(NS); for (let i = 0; i < NS; i++) r[i] = Math.random();
+    gl2.setAttribute('position', new THREE.BufferAttribute(LP, 3)); gl2.setAttribute('aRnd', new THREE.BufferAttribute(r, 1));
+    const m = new THREE.ShaderMaterial({ uniforms: LU, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+      vertexShader: `attribute float aRnd; uniform float uTime, uSize, uFade; varying vec3 vCol; varying float vA; ${LEAF}
+        void main(){ vec3 p = leafPos(position, aRnd, uTime); vCol = leafCol(position, uTime); vA = 0.95 * uFade; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); gl_PointSize = uSize * (0.95 + aRnd * 0.1); }`,
+      fragmentShader: `varying vec3 vCol; varying float vA; void main(){ float r = length(gl_PointCoord - 0.5), a = smoothstep(0.5, 0.36, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }` });
+    const o = new THREE.Points(gl2, m); o.frustumCulled = false; scene.add(o); return o;
+  })();
+  g.to(LU.uFade, { value: 1, duration: 0.7, ease: 'power2.out' });
 
   /* ---------- the body ---------- */
   const B = {}, REST = {}; let pts = null, bodyH = 1, occ = [];
@@ -244,7 +279,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       return { p: PO, nn: NO };
     };
     const N = NS + NI + NH, WS = new Float32Array(NS * 3), pos = new Float32Array(N * 3), nor = new Float32Array(N * 3), sI = new Float32Array(N * 4), sW = new Float32Array(N * 4);
-    const heap = new Float32Array(N * 3), logo = new Float32Array(N * 3), rnd = new Float32Array(N), dly = new Float32Array(N), kind = new Float32Array(N), hgt = new Float32Array(N);
+    const logo = new Float32Array(N * 3), rnd = new Float32Array(N), dly = new Float32Array(N), kind = new Float32Array(N), hgt = new Float32Array(N);
     const acc = new Map(), toWorld = new THREE.Matrix4().multiplyMatrices(sk.bones[0].matrixWorld, sk.boneInverses[0]).multiply(host.bindMatrix);
     const wv = new THREE.Vector3(), JJ = new Int32Array(12), WW = new Float32Array(12);
     const r0 = 0.8 * Math.sqrt((tot * toWorld.getMaxScaleOnAxis() ** 2) / NS), bg = new Map(), bk = (x, y, z) => ((Math.floor(x / r0) + 512) * 1024 + (Math.floor(y / r0) + 512)) * 1024 + (Math.floor(z / r0) + 512);
@@ -294,24 +329,15 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     for (let c = 0; c < NH && n < N; c++, n++) { sI[n * 4] = 0; sW[n * 4] = 1; nor.set([0, 0, 1], n * 3); pos.set([Math.random(), Math.random(), Math.random()], n * 3); hgt[n] = Math.random(); kind[n] = 6; }
     const NT = n;
     for (let i = 0; i < NT; i++) {
-      const loose = Math.random() < 0.05, R = 0.2, ang = Math.random() * TAU, rr = loose ? R * (0.85 + Math.random() * 0.75) : R * Math.sqrt(Math.random());
-      const hgtC = loose ? 0.002 * Math.random() : 0.12 * Math.pow(Math.max(0, 1 - rr / R), 1.15) * (0.9 + 0.1 * Math.random()) * (1 + 0.06 * Math.sin(ang * 5.0 + rr * 40.0));
-      heap[i * 3] = Math.cos(ang) * rr; heap[i * 3 + 1] = hgtC + 0.001; heap[i * 3 + 2] = Math.sin(ang) * rr * 0.8;
-      rnd[i] = Math.random(); dly[i] = clamp(hgt[i]) * 0.5 + Math.random() * 0.08;
+      rnd[i] = Math.random(); dly[i] = Math.random() * 0.32 + clamp(hgt[i]) * 0.14;
     }
-    // logo targets, paired by height so the body flows into the mark
-    // rasterise the logo once, then pick random filled pixels (far cheaper than point-in-path tests)
-    const LW = 240, LH = 300, lc = d.createElement('canvas'); lc.width = LW; lc.height = LH; const lx = lc.getContext('2d', { willReadFrequently: true });
-    lx.setTransform(LW / 33.3, 0, 0, LH / 41.7, -129.8 * (LW / 33.3), 0); $$('.ncx__logo path').forEach((q) => lx.fill(new Path2D(q.getAttribute('d'))));
-    const ld = lx.getImageData(0, 0, LW, LH).data, filled = []; for (let i = 0; i < LW * LH; i++) if (ld[i * 4 + 3] > 127) filled.push(i);
-    const lp = []; for (let i = 0; i < NT && filled.length; i++) { const k = filled[(Math.random() * filled.length) | 0]; lp.push([129.8 + ((k % LW) + Math.random()) * (33.3 / LW), (((k / LW) | 0) + Math.random()) * (41.7 / LH)]); }
-    while (lp.length < NT) lp.push(lp[lp.length % Math.max(1, lp.length)] || [146, 20]);
-    const S = 1.0 / 41.7; lp.sort((a, b) => b[1] - a[1]);
+    // logo targets: exactly the particles already on screen, paired by height so the body flows out of the mark
+    const lpIdx = Array.from({ length: NS }, (_, i) => i).sort((a, b) => LP[a * 3 + 1] - LP[b * 3 + 1]);
     const order = Array.from({ length: NT }, (_, i) => i).sort((a, b) => hgt[a] - hgt[b]);
-    order.forEach((i, k) => { logo[i * 3] = (lp[k][0] - 146.42) * S; logo[i * 3 + 1] = (41.7 - lp[k][1]) * S + 0.02; logo[i * 3 + 2] = (Math.random() - 0.5) * 0.02; });
+    order.forEach((i, k) => { const L = lpIdx[Math.min(NS - 1, Math.round((k * (NS - 1)) / Math.max(1, NT - 1)))] * 3; logo[i * 3] = LP[L]; logo[i * 3 + 1] = LP[L + 1]; logo[i * 3 + 2] = LP[L + 2]; });
     const geo = new THREE.BufferGeometry(), sl = (a, c) => new THREE.BufferAttribute(a.subarray(0, NT * c), c);
     geo.setAttribute('position', sl(pos, 3)); geo.setAttribute('normal', sl(nor, 3)); geo.setAttribute('skinIndex', sl(sI, 4)); geo.setAttribute('skinWeight', sl(sW, 4));
-    geo.setAttribute('aHeap', sl(heap, 3)); geo.setAttribute('aLogo', sl(logo, 3)); geo.setAttribute('aRnd', sl(rnd, 1)); geo.setAttribute('aDelay', sl(dly, 1)); geo.setAttribute('aKind', sl(kind, 1));
+    geo.setAttribute('aLogo', sl(logo, 3)); geo.setAttribute('aRnd', sl(rnd, 1)); geo.setAttribute('aDelay', sl(dly, 1)); geo.setAttribute('aKind', sl(kind, 1));
     // a skinned mesh drawn as points: the GPU skins every particle with the real skeleton
     pts = new THREE.SkinnedMesh(geo, mat); pts.isMesh = false; pts.isPoints = true; pts.frustumCulled = false;
     host.parent.add(pts); pts.position.copy(host.position); pts.quaternion.copy(host.quaternion); pts.scale.copy(host.scale);
@@ -361,8 +387,17 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const along = (ch, u) => { const ps = ch.map((n) => wpos(n, new THREE.Vector3())); let tot = 0; const L = []; for (let i = 1; i < ps.length; i++) { L.push(ps[i].distanceTo(ps[i - 1])); tot += L[i - 1]; } let r = u * tot; for (let i = 0; i < L.length; i++) { if (r <= L[i]) return ps[i].lerp(ps[i + 1], r / L[i]); r -= L[i]; } return ps[ps.length - 1]; };
   const areaPos = (a, v = new THREE.Vector3()) => { const [b0, b1, f] = AREAS[a]; wpos(b0, v); return v.lerp(wpos(b1, V2), f); };
 
+  const renderLogo = (t) => {
+    if (!renderer) return;
+    if (mx > -9000) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; }
+    const S = MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6), CX = (MOB ? W * 0.5 : W * 0.66) + smx * 14, CY = (MOB ? H * 0.35 : H * 0.5) + smy * 8, D0 = H / (2 * S * FOVT);
+    camera.position.set(0, 0.5 + D0 * 0.05, D0); camera.lookAt(0, 0.5, 0); camera.setViewOffset(W, H, W / 2 - CX, H / 2 - CY, W, H); camera.updateMatrixWorld();
+    U.uTime.value = t; U.uSize.value = (MOB ? 1.5 : 1.55) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
+    renderer.render(scene, camera);
+  };
   const render = (time) => {
-    if (!ready) return;
+    if (!ready) { renderLogo(time); return; }
+    if (logoPts.parent) { scene.remove(logoPts); logoPts.geometry.dispose(); logoPts.material.dispose(); }
     const p = prog, t = time, intro = U.uIntro.value, lg = seg(p, 0.86, 0.95), formed = clamp((intro - 0.7) / 0.3);
     if (mx > -9000) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; } else { smx *= 0.95; smy *= 0.95; }
     // body: yaw by scroll (turns to show the back, spins when it moves freely), pose by scroll
@@ -456,7 +491,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     await build(gltf); ready = true; scanT = performance.now() / 1000 + 3.6;
     if (RM) return;
     const go = () => {
-      g.to(U.uIntro, { value: 1, duration: 3.4, delay: 0.3, ease: 'power1.inOut' });
+      g.to(U.uIntro, { value: 1, duration: 3.4, delay: 0.2, ease: 'power2.inOut' });
       g.fromTo('[data-ncx-in]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.08, delay: 1, ease: 'expo.out' });
     };
     const t0 = performance.now(), chk = () => (!$('.az-pre') || performance.now() - t0 > 7000 ? go() : setTimeout(chk, 120)); chk();
