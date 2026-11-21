@@ -13,7 +13,7 @@
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
   const bell = (p, a, b) => Math.sin(Math.PI * clamp((p - a) / (b - a)));
-  const MOB = innerWidth < 900, M = MOB ? 20000 : 46000;
+  const MOB = innerWidth < 900, M = MOB ? 22000 : 50000;
   const SRC = sec.dataset.body || '/home/assets/img/body-anatomy.png';
 
   /* ---------- skeleton (figure units: feet y=0, crown y≈-1), mapped onto the illustration ---------- */
@@ -40,17 +40,24 @@
     for (const key in A) o[key] = [mix(A[key][0], B[key][0], t), mix(A[key][1], B[key][1], t)];
     return o;
   };
-  const BR = BONES.map(([a, b]) => { const A = REST[a], B = REST[b], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy); return { a, b, ax: A[0], ay: A[1], ux: dx / L, uy: dy / L, L }; });
-  const frames = BR.map(() => ({ ax: 0, ay: 0, ux: 0, uy: 1, s: 1 }));
-  const setFrames = (Pz) => BR.forEach((b, k) => { const A = Pz[b.a], B = Pz[b.b], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, f = frames[k]; f.ax = A[0]; f.ay = A[1]; f.ux = dx / L; f.uy = dy / L; f.s = L / b.L; });
+  const BR = BONES.map(([a, b]) => { const A = REST[a], B = REST[b], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy); return { a, b, ax: A[0], ay: A[1], ux: dx / L, uy: dy / L, L, ra: Math.atan2(dy, dx) }; });
+  const frames = BR.map(() => ({ ax: 0, ay: 0, ux: 0, uy: 1, s: 1, th: 0 }));
+  const JK = Object.keys(REST); let curPose = REST;
+  const setFrames = (Pz) => { curPose = Pz; BR.forEach((b, k) => { const A = Pz[b.a], B = Pz[b.b], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, f = frames[k]; f.ax = A[0]; f.ay = A[1]; f.ux = dx / L; f.uy = dy / L; f.s = L / b.L; let th = Math.atan2(dy, dx) - b.ra; while (th > Math.PI) th -= 2 * Math.PI; while (th < -Math.PI) th += 2 * Math.PI; f.th = th; }); };
 
   /* ---------- particle buffers ---------- */
   const rx = new Float32Array(M), ry = new Float32Array(M), col = new Uint8Array(M * 3), b1 = new Int8Array(M), b2 = new Int8Array(M), w1 = new Float32Array(M);
   const al1 = new Float32Array(M), pe1 = new Float32Array(M), al2 = new Float32Array(M), pe2 = new Float32Array(M), torW = new Float32Array(M);
   const ph = new Float32Array(M), rnd = new Float32Array(M), aidx = new Int8Array(M).fill(-1), aheat = new Float32Array(M), spineK = new Uint8Array(M);
   const ox = new Float32Array(M), oy = new Float32Array(M), hx = new Float32Array(M), hy = new Float32Array(M), dly = new Float32Array(M), lgx = new Float32Array(M), lgy = new Float32Array(M);
+  const sj = new Int8Array(M).fill(-1), jdx = new Float32Array(M), jdy = new Float32Array(M);
   const skin = (i, o) => {
     const f = frames[b1[i]], q = frames[b2[i]], w = w1[i];
+    // two bones meeting at a joint: blend the rotation about that joint (keeps shoulders/hips full, no pinching)
+    if (sj[i] >= 0 && Math.abs(f.s - 1) < 0.03 && Math.abs(q.s - 1) < 0.03) {
+      const th = w * f.th + (1 - w) * q.th, c = Math.cos(th), sn = Math.sin(th), J = curPose[JK[sj[i]]];
+      o[0] = J[0] + jdx[i] * c - jdy[i] * sn; o[1] = J[1] + jdx[i] * sn + jdy[i] * c; return;
+    }
     const a1 = al1[i] > 0 ? al1[i] * f.s : al1[i], a2 = al2[i] > 0 ? al2[i] * q.s : al2[i];
     o[0] = w * (f.ax + f.ux * a1 - f.uy * pe1[i]) + (1 - w) * (q.ax + q.ux * a2 - q.uy * pe2[i]);
     o[1] = w * (f.ay + f.uy * a1 + f.ux * pe1[i]) + (1 - w) * (q.ay + q.uy * a2 + q.ux * pe2[i]);
@@ -62,16 +69,20 @@
     { at: (P) => P.kA.slice(), s: 0.042 },
   ];
 
-  let bodyImg = null;
   const build = (img) => {
     const iw = img.naturalWidth, ih = img.naturalHeight, oc = d.createElement('canvas'); oc.width = iw; oc.height = ih;
     const octx = oc.getContext('2d', { willReadFrequently: true }); octx.drawImage(img, 0, 0); const px = octx.getImageData(0, 0, iw, ih).data;
-    let n = 0, guard = 0;
-    while (n < M && guard++ < M * 20) {
-      const x = Math.random() * iw, y = Math.random() * ih, k = ((y | 0) * iw + (x | 0)) * 4;
-      if (px[k + 3] < 140) continue;
-      rx[n] = (x / iw - 0.5) * 0.5232; ry[n] = (y / ih) - 0.997; col[n * 3] = px[k]; col[n * 3 + 1] = px[k + 1]; col[n * 3 + 2] = px[k + 2]; n++;
+    // stratified (jittered-grid) sampling: evenly spread particles, no holes, still a particle texture
+    let area = 0; for (let k = 3; k < px.length; k += 4) if (px[k] >= 140) area++;
+    const step = Math.sqrt(area / M), cand = [];
+    for (let gy = 0; gy < ih; gy += step) for (let gx = 0; gx < iw; gx += step) {
+      const x = gx + Math.random() * step, y = gy + Math.random() * step; if (x >= iw || y >= ih) continue;
+      const k = ((y | 0) * iw + (x | 0)) * 4; if (px[k + 3] >= 140) cand.push(x, y, k);
     }
+    for (let i = cand.length / 3 - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; for (let c = 0; c < 3; c++) { const t = cand[i * 3 + c]; cand[i * 3 + c] = cand[j * 3 + c]; cand[j * 3 + c] = t; } }
+    let n = 0;
+    for (; n < M && n * 3 < cand.length; n++) { const x = cand[n * 3], y = cand[n * 3 + 1], k = cand[n * 3 + 2]; rx[n] = (x / iw - 0.5) * 0.5232; ry[n] = (y / ih) - 0.997; col[n * 3] = px[k]; col[n * 3 + 1] = px[k + 1]; col[n * 3 + 2] = px[k + 2]; }
+    for (let guard = 0; n < M && guard < M * 20; guard++) { const x = Math.random() * iw, y = Math.random() * ih, k = ((y | 0) * iw + (x | 0)) * 4; if (px[k + 3] < 140) continue; rx[n] = (x / iw - 0.5) * 0.5232; ry[n] = (y / ih) - 0.997; col[n * 3] = px[k]; col[n * 3 + 1] = px[k + 1]; col[n * 3 + 2] = px[k + 2]; n++; }
     for (; n < M; n++) { rx[n] = rx[n % 100]; ry[n] = ry[n % 100]; col.copyWithin(n * 3, (n % 100) * 3, (n % 100) * 3 + 3); }
     const anc = AREAS.map((a) => a.at(UP));
     for (let i = 0; i < M; i++) {
@@ -92,6 +103,7 @@
       al1[i] = (x - A.ax) * A.ux + (y - A.ay) * A.uy; pe1[i] = (x - A.ax) * -A.uy + (y - A.ay) * A.ux;
       al2[i] = (x - B.ax) * B.ux + (y - B.ay) * B.uy; pe2[i] = (x - B.ax) * -B.uy + (y - B.ay) * B.ux;
       torW[i] = !arm && !leg ? 1 : 0;
+      { const A1 = BR[i1], B1 = BR[i2]; const J = A1.b === B1.a ? A1.b : A1.a === B1.b ? A1.a : A1.a === B1.a ? A1.a : A1.b === B1.b ? A1.b : null; if (J && i1 !== i2) { sj[i] = JK.indexOf(J); jdx[i] = x - REST[J][0]; jdy[i] = y - REST[J][1]; } }
       ph[i] = Math.random() * 6.283; rnd[i] = Math.random();
       let best = -1, bh = 0;
       anc.forEach((q, a) => { const dd = Math.hypot(x - q[0], y - q[1]), h = Math.exp(-(dd * dd) / (AREAS[a].s * AREAS[a].s)); if (h > bh) { bh = h; best = a; } });
@@ -165,7 +177,7 @@
     { const gx = toX(0), gy = toY(0.012), gw = 0.28 * S * (1 - lg), sh = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(1, gw)); sh.addColorStop(0, `rgba(20,32,26,${(0.2 * (1 - lg)).toFixed(3)})`); sh.addColorStop(1, 'rgba(20,32,26,0)'); ctx.save(); ctx.translate(gx, gy); ctx.scale(1, 0.12); ctx.translate(-gx, -gy); ctx.fillStyle = sh; ctx.fillRect(gx - gw, gy - gw, gw * 2, gw * 2); ctx.restore(); }
     // particles → pixel buffer
     img32.fill(0);
-    const ps = Math.max(2, Math.round(1.9 * DPR * Math.max(0.9, S / 720))), mr = 90, mr2 = mr * mr, formed = clamp((intro - 0.55) / 0.45);
+    const ps = Math.max(2, Math.round(2.1 * DPR * Math.max(0.9, S / 720))), mr = 90, mr2 = mr * mr, formed = clamp((intro - 0.55) / 0.45);
     for (let i = 0; i < M; i++) {
       skin(i, o);
       let x = o[0], y = o[1];
@@ -194,12 +206,7 @@
       for (let yy = 0; yy < ps; yy++) { const row = (PY + yy) * BW + PX; for (let xx = 0; xx < ps; xx++) img32[row + xx] = c32; }
     }
     pctx.putImageData(imgData, 0, 0);
-    // when the body is still, the particles settle into the crisp illustration; any movement dissolves it back
-    let dev = 0; for (const k in REST) dev = Math.max(dev, Math.hypot(Pz[k][0] - REST[k][0], Pz[k][1] - REST[k][1] - (['H', 'N', 'C', 'sA', 'sB', 'eA', 'eB', 'wA', 'wB', 'tA', 'tB'].includes(k) ? br : 0)));
-    let burstMax = 0; states.forEach((st) => { if (st.c >= 0 && st.c <= 1) burstMax = Math.max(burstMax, bell(st.c, 0.42, 0.72)); });
-    const crisp = clamp((intro - 0.88) / 0.12) * (1 - clamp(dev / 0.012)) * (1 - burstMax * 0.85) * (1 - clamp(lg * 3));
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - crisp * 0.92; ctx.drawImage(pc, 0, 0); ctx.globalAlpha = 1; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    if (crisp > 0.01 && bodyImg) { ctx.globalAlpha = crisp; ctx.drawImage(bodyImg, toX(-0.2616), toY(-0.997), 0.5232 * S, 1.0 * S); ctx.globalAlpha = 1; }
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(pc, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     // soft glow on top of each pain (screen blend keeps the anatomy visible beneath)
     ctx.globalCompositeOperation = 'source-over';
     states.forEach((st, a) => {
@@ -252,7 +259,7 @@
   g.ticker.add((time) => { if (inView) render(time); });
   const img = new Image(); img.decoding = 'async'; img.src = SRC;
   img.decode().then(() => {
-    build(img); bodyImg = img; ready = true;
+    build(img); ready = true;
     if (RM) return;
     const go = () => {
       g.to({ v: 0 }, { v: 1, duration: 3.4, delay: 0.3, ease: 'power1.inOut', onUpdate() { intro = this.targets()[0].v; } });

@@ -47,8 +47,8 @@ a = h.index('<section class="hx"'); b = h.index('<section class="rx"')
 out = h[:a] + hero + '\n<!-- RAIL SECTION -->\n' + h[b:]
 m3 = re.search(r'<script>addEventListener\("load",function\(\)\{var go=function\(\)\{import\("/home/js/m3d\.js[^<]*</script>', out)
 assert m3, 'm3d loader'; out = out.replace(m3.group(0), '')
-out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=7">', out, count=1)
-out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/nc.js?v=7" defer></script>', out, count=1)
+out = re.sub(r'<link rel="stylesheet" href="/home/css/home\.css\?v=(\d+)">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/nc.css?v=8">', out, count=1)
+out = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/nc.js?v=8" defer></script>', out, count=1)
 assert 'nc.js' in out and 'nc.css' in out
 out = out.replace('<link rel="canonical" href="https://arogyati-chi.vercel.app/home">', '<link rel="canonical" href="https://arogyati-chi.vercel.app/home">\n<meta name="robots" content="noindex">', 1)
 out = re.sub(r'<link rel="preload"[^>]*(hero-|model-mid)[^>]*>\n?', '', out)
