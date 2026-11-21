@@ -17,7 +17,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
   const bell = (p, a, b) => Math.sin(Math.PI * clamp((p - a) / (b - a)));
-  const MOB = innerWidth < 900, NS = MOB ? 52000 : 110000, NI = 0, NH = 0;
+  const MOB = innerWidth < 900, NS = MOB ? 46000 : 92000, NI = 0, NH = 0;
   const MODEL = '/home/assets/3d/body.glb', DEG = Math.PI / 180, TAU = Math.PI * 2;
 
   /* ---------- poses: rotations about world axes, applied relative to each bone's rest frame ---------- */
@@ -112,17 +112,19 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
 
   // the living logo: side petals sway like leaves around the junction, the figure breathes, light drifts up it
   const LEAF = /* glsl */`
-    vec3 leafPos(vec3 P, float r, float t){
+    const float LS = 0.62, LO = 0.178;
+    vec3 leafPos(vec3 Pw, float r, float t){
+      vec3 P = vec3(Pw.x / LS, (Pw.y - LO) / LS, Pw.z);
       vec2 piv = vec2(0.0, 0.52);
       float side = smoothstep(0.44, 0.54, P.y) * smoothstep(0.02, 0.07, abs(P.x)) * (1.0 - step(0.8, P.y) * step(abs(P.x), 0.085));
       float an = sign(P.x) * 0.055 * sin(t * 1.15) * side, c = cos(an), s = sin(an);
       vec2 d = P.xy - piv, qq = piv + vec2(d.x * c - d.y * s, d.x * s + d.y * c);
       qq.y += step(0.8, P.y) * step(abs(P.x), 0.085) * 0.01 * sin(t * 1.15 + 1.1);
       qq = vec2(0.0, 0.5) + (qq - vec2(0.0, 0.5)) * (1.0 + 0.012 * sin(t * 1.15));
-      return vec3(qq, P.z) + 0.0035 * vec3(sin(t * 1.3 + r * 40.0), cos(t * 1.1 + r * 31.0), sin(t * 0.9 + r * 17.0));
+      return vec3(qq.x * LS, qq.y * LS + LO, P.z) + 0.0025 * vec3(sin(t * 1.3 + r * 40.0), cos(t * 1.1 + r * 31.0), sin(t * 0.9 + r * 17.0));
     }
-    vec3 leafCol(vec3 P, float t){
-      float sweep = exp(-pow(P.y - (fract(t * 0.16) * 1.6 - 0.3), 2.0) / 0.014);
+    vec3 leafCol(vec3 Pw, float t){
+      float sweep = exp(-pow((Pw.y - LO) / LS - (fract(t * 0.16) * 1.6 - 0.3), 2.0) / 0.014);
       return mix(vec3(0.25, 0.42, 0.71), vec3(0.47, 0.64, 0.93), sweep * 0.45);
     }`;
   const VERT = /* glsl */`
@@ -178,7 +180,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (uLogo > 0.0 && aKind < 5.5) { float k = e3(clamp(uLogo * 1.15 - aRnd * 0.15, 0.0, 1.0)); wp.xyz = mix(wp.xyz, leafPos(aLogo, aRnd, uTime), k) + vec3(sin(k*3.14159) * (aRnd - 0.5) * 0.1, 0.0, sin(k*3.14159) * (aRnd - 0.5) * 0.2); col = mix(col, leafCol(aLogo, uTime), clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); a = mix(a, 0.95, clamp(uLogo*1.6 - 0.3, 0.0, 1.0)); }
       float kI = 1.0;
       if (uIntro < 1.0 && aKind < 5.5) {
-        float k = e3(clamp((uIntro - aDelay) / 0.42, 0.0, 1.0)); kI = k;
+        float k = e3(clamp((uIntro - aDelay) / 0.55, 0.0, 1.0)); kI = k;
         float sw = sin(k * 3.14159);
         wp.xyz = mix(leafPos(aLogo, aRnd, uTime), wp.xyz, k) + vec3((aRnd - 0.5) * 0.06, (fract(aRnd * 3.7) - 0.5) * 0.03, (fract(aRnd * 7.3) - 0.5) * 0.28) * sw;
         col = mix(leafCol(aLogo, uTime), col, smoothstep(0.15, 0.85, k)); a = mix(0.95, a, k);
@@ -210,16 +212,22 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     lx.setTransform(LW / 33.3, 0, 0, LH / 41.7, -129.8 * (LW / 33.3), 0); $$('.ncx__logo path').forEach((q) => lx.fill(new Path2D(q.getAttribute('d'))));
     const ld = lx.getImageData(0, 0, LW, LH).data, filled = []; for (let i = 0; i < LW * LH; i++) if (ld[i * 4 + 3] > 127) filled.push(i);
     const out = new Float32Array(NS * 3), S = 1.0 / 41.7;
-    for (let i = 0; i < NS; i++) { const k = filled.length ? filled[(Math.random() * filled.length) | 0] : 0, x = 129.8 + ((k % LW) + Math.random()) * (33.3 / LW), y = (((k / LW) | 0) + Math.random()) * (41.7 / LH); out[i * 3] = (x - 146.42) * S; out[i * 3 + 1] = (41.7 - y) * S + 0.02; out[i * 3 + 2] = (Math.random() - 0.5) * 0.02; }
+    for (let i = 0; i < NS; i++) { const k = filled.length ? filled[(Math.random() * filled.length) | 0] : 0, x = 129.8 + ((k % LW) + Math.random()) * (33.3 / LW), y = (((k / LW) | 0) + Math.random()) * (41.7 / LH); out[i * 3] = (x - 146.42) * S * 0.62; out[i * 3 + 1] = ((41.7 - y) * S + 0.02) * 0.62 + 0.178; out[i * 3 + 2] = (Math.random() - 0.5) * 0.02; }
     return out;
   })();
-  const LU = { uTime: U.uTime, uSize: U.uSize, uFade: { value: 0 } };
+  const LU = { uTime: U.uTime, uSize: U.uSize, uFade: { value: 0 }, uMouse: U.uMouse, uRes: U.uRes };
   const logoPts = (() => {
     const gl2 = new THREE.BufferGeometry(), r = new Float32Array(NS); for (let i = 0; i < NS; i++) r[i] = Math.random();
     gl2.setAttribute('position', new THREE.BufferAttribute(LP, 3)); gl2.setAttribute('aRnd', new THREE.BufferAttribute(r, 1));
     const m = new THREE.ShaderMaterial({ uniforms: LU, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
-      vertexShader: `attribute float aRnd; uniform float uTime, uSize, uFade; varying vec3 vCol; varying float vA; ${LEAF}
-        void main(){ vec3 p = leafPos(position, aRnd, uTime); vCol = leafCol(position, uTime); vA = 0.95 * uFade; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); gl_PointSize = uSize * (0.95 + aRnd * 0.1); }`,
+      vertexShader: `attribute float aRnd; uniform float uTime, uSize, uFade; uniform vec3 uMouse; uniform vec2 uRes; varying vec3 vCol; varying float vA; ${LEAF}
+        void main(){
+          vec3 p = leafPos(position, aRnd, uTime); vCol = leafCol(position, uTime); vA = 0.95 * uFade;
+          vec4 cp = projectionMatrix * viewMatrix * vec4(p, 1.0);
+          vec2 s = (cp.xy / cp.w * 0.5 + 0.5) * uRes, md = s - vec2(uMouse.x, uRes.y - uMouse.y); float ml = length(md);
+          if (ml < uMouse.z) { s += md / max(ml, 0.001) * (1.0 - ml / uMouse.z) * 16.0; cp.xy = ((s / uRes) * 2.0 - 1.0) * cp.w; }
+          gl_Position = cp; gl_PointSize = uSize * (0.95 + aRnd * 0.1);
+        }`,
       fragmentShader: `varying vec3 vCol; varying float vA; void main(){ float r = length(gl_PointCoord - 0.5), a = smoothstep(0.5, 0.36, r) * vA; if (a < 0.01) discard; gl_FragColor = vec4(vCol * a, a); }` });
     const o = new THREE.Points(gl2, m); o.frustumCulled = false; scene.add(o); return o;
   })();
@@ -287,7 +295,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     let n = 0;
     let slice = performance.now();
     for (let tries = 0; n < NS && tries < NS * 6; tries++) {
-      if ((tries & 511) === 0 && performance.now() - slice > 9) { await new Promise((r) => setTimeout(r, 0)); slice = performance.now(); } // stay responsive while building
+      if ((tries & 511) === 0 && performance.now() - slice > 14) { await new Promise((r) => setTimeout(r, 0)); slice = performance.now(); } // stay responsive while building
       const r = Math.random() * tot; let lo = 0, hi = tris.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (tris[m][4] < r) lo = m + 1; else hi = m; }
       const [m, i0, i1, i2] = tris[lo], ps = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight;
       let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; } const w0 = 1 - u - v, bw = [w0, u, v], id = [i0, i1, i2];
@@ -392,7 +400,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     if (mx > -9000) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; }
     const S = MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6), CX = (MOB ? W * 0.5 : W * 0.66) + smx * 14, CY = (MOB ? H * 0.35 : H * 0.5) + smy * 8, D0 = H / (2 * S * FOVT);
     camera.position.set(0, 0.5 + D0 * 0.05, D0); camera.lookAt(0, 0.5, 0); camera.setViewOffset(W, H, W / 2 - CX, H / 2 - CY, W, H); camera.updateMatrixWorld();
-    U.uTime.value = t; U.uSize.value = (MOB ? 1.5 : 1.55) * Math.sqrt(S / 700) * DPR + 0.4 * DPR;
+    U.uTime.value = t; U.uSize.value = (MOB ? 1.5 : 1.55) * Math.sqrt(S / 700) * DPR + 0.4 * DPR; U.uMouse.value.set(mx, my, 80);
     renderer.render(scene, camera);
   };
   const render = (time) => {
@@ -491,7 +499,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     await build(gltf); ready = true; scanT = performance.now() / 1000 + 3.6;
     if (RM) return;
     const go = () => {
-      g.to(U.uIntro, { value: 1, duration: 3.4, delay: 0.2, ease: 'power2.inOut' });
+      g.to(U.uIntro, { value: 1, duration: 2.1, delay: 0, ease: 'power2.inOut' });
       g.fromTo('[data-ncx-in]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.08, delay: 1, ease: 'expo.out' });
     };
     const t0 = performance.now(), chk = () => (!$('.az-pre') || performance.now() - t0 > 7000 ? go() : setTimeout(chk, 120)); chk();
