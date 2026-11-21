@@ -104,6 +104,32 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     }
   };
 
+  /* ---------- the arch: a window behind the figure into the real session; it opens from a hairline for each treatment ---------- */
+  const arch = $('.ncx__arch', sec), vids = arch ? $$('video', arch) : [], acap = $('.ncx__archcap', sec);
+  let vOn = -1, aw = 0, ah = 0;
+  const setVid = (k) => {
+    if (k === vOn) return; vOn = k;
+    vids.forEach((v, i) => { if (i === k) { if (!v.getAttribute('src')) { v.poster = v.dataset.poster; v.src = v.dataset.src; } v.classList.add('is-on'); const pr = v.play(); if (pr) pr.catch(() => {}); } else { v.classList.remove('is-on'); v.pause(); } });
+  };
+  const drawArch = (p, states, act, lg, formed, t) => {
+    if (!arch) return 0;
+    let r = 0;
+    if (act >= 0) { const c = states[act].c; r = seg(c, 0.1, 0.32) * (1 - seg(c, 0.8, 0.97)); }
+    r *= formed * (1 - lg);
+    if (r < 0.002) { arch.style.visibility = 'hidden'; if (acap) acap.style.opacity = 0; setVid(-1); return 0; }
+    setVid(act);
+    const S0 = MOB ? Math.min(H * 0.5, W * 1.25) : Math.min(H * 0.8, W * 0.6), w = Math.round(S0 * (MOB ? 0.8 : 0.72)), h = Math.round(S0 * 1.04);
+    if (w !== aw || h !== ah) { aw = w; ah = h; arch.style.width = w + 'px'; arch.style.height = h + 'px'; }
+    const x = (MOB ? W * 0.5 : W * 0.66) - smx * 10 - w / 2, y = (MOB ? H * 0.35 : H * 0.5) - smy * 6 - S0 * 0.54;
+    const hi = (1 - r) * (w / 2 - 0.75), vi = (1 - ease(clamp(r * 1.6))) * h * 0.12, rt = Math.max(0.75, w / 2 - hi);
+    arch.style.visibility = 'visible';
+    arch.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+    arch.style.clipPath = `inset(${vi.toFixed(1)}px ${hi.toFixed(1)}px ${vi.toFixed(1)}px ${hi.toFixed(1)}px round ${rt.toFixed(1)}px ${rt.toFixed(1)}px ${Math.min(rt, 22).toFixed(1)}px ${Math.min(rt, 22).toFixed(1)}px)`;
+    const v = vids[act]; if (v) v.style.transform = `scale(${(1.22 - 0.22 * ease(r)).toFixed(4)}) translateY(${((1 - r) * 4).toFixed(2)}%)`;
+    if (acap) { const ca = clamp((r - 0.7) / 0.3); acap.style.opacity = ca.toFixed(3); acap.style.transform = `translate3d(${(x - 16).toFixed(1)}px,${(y + h * 0.62 + (1 - ca) * 10).toFixed(1)}px,0) rotate(-90deg)`; }
+    return r;
+  };
+
   /* ---------- layers: back 2D (dust, platform) · GPU particles · front 2D (treatment graphics) ---------- */
   const mkCanvas = () => { const c = d.createElement('canvas'); c.className = 'ncx__cv'; c.setAttribute('aria-hidden', 'true'); return c; };
   const glc = mkCanvas(), fxc = mkCanvas(); cv.after(glc); glc.after(fxc); const fctx = fxc.getContext('2d');
@@ -434,6 +460,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     camera.setViewOffset(W, H, W / 2 - CX, H / 2 - CY, W, H); camera.updateMatrixWorld();
     const align = seg(p, 0.5, 0.57), spineGlow = bell(p, 0.44, 0.58), lift = bell(p, 0.74, 0.88);
 
+    const archR = drawArch(p, states, act, lg, formed, t);
     // ---- back layer: dust + floor platform ----
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
     for (const o of DUST) { const yy = ((o.y - t * 0.012 * o.z) % 1 + 1) % 1, xx = o.x + Math.sin(t * 0.3 + o.ph) * 0.01; ctx.fillStyle = `rgba(255,255,255,${(0.55 * o.z).toFixed(3)})`; ctx.beginPath(); ctx.arc(xx * W - smx * 30 * o.z, yy * H - smy * 20 * o.z, o.r * o.z * 1.4, 0, 6.283); ctx.fill(); }
@@ -446,26 +473,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
         ctx.fillStyle = gw; ctx.fillRect(0, 0, W, H);
       }
     }
-    { // flow lines behind the figure: restless while a pain is active, smooth and green-tinged once it heals, settling flat for the logo
-      let pn = 0, cl = 0; states.forEach((st) => { pn = Math.max(pn, st.pain); cl = Math.max(cl, st.calm); }); pn *= formed; cl *= formed;
-      const [bx] = proj(V2.set(0, 0.5, 0)), NL = MOB ? 9 : 14, calmA = (1 - lg * 0.85) * clamp(intro * 1.5);
-      const rC = Math.round(mix(mix(20, 79, cl), 232, pn)), gC = Math.round(mix(mix(32, 138, cl), 112, pn)), bC = Math.round(mix(mix(26, 63, cl), 92, pn)), c0 = `rgba(${rC},${gC},${bC},`;
-      const fx = clamp(bx / W, 0.36, 0.78), st0 = MOB ? 10 : 14, amp = (MOB ? 5 : 8) * (1 - lg), shake = pn * (MOB ? 7 : 11);
-      ctx.lineWidth = 1;
-      for (let l = 0; l < NL; l++) {
-        const y0 = H * (0.1 + (0.8 * l) / (NL - 1)), ph = l * 0.9, al = ((0.12 + pn * 0.14 + cl * 0.05) * calmA).toFixed(3);
-        const gr = ctx.createLinearGradient(0, 0, W, 0);
-        gr.addColorStop(0, c0 + '0)'); gr.addColorStop(0.16, c0 + al + ')'); gr.addColorStop(fx - 0.15, c0 + al + ')'); gr.addColorStop(fx, c0 + (al * 0.12).toFixed(3) + ')'); gr.addColorStop(fx + 0.15, c0 + al + ')'); gr.addColorStop(1, c0 + '0)');
-        ctx.strokeStyle = gr; ctx.beginPath();
-        for (let x = -st0; x <= W + st0; x += st0) {
-          const u = x / W, y = y0 + Math.sin(u * 5.2 + t * 0.35 + ph) * amp + Math.sin(u * 11 - t * 0.6 + ph * 1.7) * amp * 0.35 + shake * Math.sin(u * 64 + t * 7 + ph) * Math.sin(u * 9 - t * 1.6 + l);
-          x < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-    }
     { // soft light behind the body
-      const [ax, ay] = proj(V2.set(0, 0.55, 0)), al = clamp(intro * 1.2) * (1 - lg * 0.6), ag = ctx.createRadialGradient(ax, ay, 0, ax, ay, 0.62 * S);
+      const [ax, ay] = proj(V2.set(0, 0.55, 0)), al = clamp(intro * 1.2) * (1 - lg * 0.6) * (1 - archR * 0.45), ag = ctx.createRadialGradient(ax, ay, 0, ax, ay, 0.62 * S);
       ag.addColorStop(0, `rgba(255,255,250,${(0.85 * al).toFixed(3)})`); ag.addColorStop(0.55, `rgba(255,255,248,${(0.35 * al).toFixed(3)})`); ag.addColorStop(1, 'rgba(255,255,248,0)');
       ctx.fillStyle = ag; ctx.fillRect(ax - 0.62 * S, ay - 0.62 * S, 1.24 * S, 1.24 * S);
     }
