@@ -217,8 +217,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       float lit = clamp(key * 0.95 + fill * 0.22, 0.0, 1.0);
       // brand palette: olive green at the feet rising into Arogyati blue; soft studio light; crisp even dots
       vec3 OL = vec3(0.37, 0.43, 0.16), BL = vec3(0.25, 0.42, 0.71);
-      vec3 base = mix(OL, BL, smoothstep(0.08, 0.62, body.y));
-      vec3 shadowC = base * 0.8 + vec3(0.04, 0.06, 0.1), hiC = mix(base, vec3(1.0), 0.55);
+      vec3 base = mix(vec3(0.17, 0.39, 0.55), BL, smoothstep(0.05, 0.6, body.y)); // one brand-blue body, cooling to a deep blue-teal at the legs
+      vec3 shadowC = base * 0.8 + vec3(0.04, 0.06, 0.1), hiC = mix(base, vec3(1.0), mix(0.28, 0.55, smoothstep(0.02, 0.22, body.y))); // feet never flare white
       float lt = smoothstep(0.0, 1.0, lit);
       vec3 col = lt < 0.5 ? mix(shadowC, base, lt * 2.0) : mix(base, hiC, lt * 2.0 - 1.0);
       float rim = smoothstep(0.58, 0.97, fr);
