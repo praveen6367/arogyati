@@ -192,7 +192,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     #include <skinning_pars_vertex>
     attribute vec3 aLogo; attribute float aLv; attribute float aRnd; attribute float aDelay; attribute float aKind;
     uniform vec2 uRes; uniform float uIntro, uLogo, uTime, uSize, uSpine, uScan, uCz; uniform vec3 uMouse; uniform vec4 uArea[4]; uniform vec2 uPain[4];
-    varying vec3 vCol; varying float vA; varying float vGlow;
+    varying vec3 vCol; varying float vA; varying float vGlow; varying float vShine;
     float e3(float t){ return t < 0.5 ? 4.0*t*t*t : 1.0 - pow(-2.0*t + 2.0, 3.0) / 2.0; }
     ${LEAF}
     void main(){
@@ -218,12 +218,16 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       // brand palette: olive green at the feet rising into Arogyati blue; soft studio light; crisp even dots
       vec3 OL = vec3(0.37, 0.43, 0.16), BL = vec3(0.25, 0.42, 0.71);
       vec3 base = mix(OL, BL, smoothstep(0.08, 0.62, body.y));
-      vec3 col = mix(base * 0.4, mix(base, vec3(1.0), 0.5), smoothstep(0.0, 1.0, lit));
-      col = mix(col, base * 0.32, pow(fr, 2.6) * 0.75);
-      float a = 0.9;
+      vec3 shadowC = base * 0.8 + vec3(0.04, 0.06, 0.1), hiC = mix(base, vec3(1.0), 0.55);
+      float lt = smoothstep(0.0, 1.0, lit);
+      vec3 col = lt < 0.5 ? mix(shadowC, base, lt * 2.0) : mix(base, hiC, lt * 2.0 - 1.0);
+      float rim = smoothstep(0.58, 0.97, fr);
+      col = mix(col, vec3(0.6, 0.76, 1.0), rim * 0.75);
+      float a = mix(0.64, 0.96, lt);
+      a = max(a, rim);
       float band = 0.0;
-      if (aKind < 0.5) a *= smoothstep(-0.04, 0.12, dot(nV, normalize(-mv0.xyz))); // back-facing skin never shows, even before the depth pass is on
-      float glow = 0.0;
+      if (aKind < 0.5) a *= smoothstep(-0.1, 0.04, dot(nV, normalize(-mv0.xyz))); // back-facing skin never shows, even before the depth pass is on
+      float glow = 0.0, shine = rim * 0.85 + smoothstep(0.82, 1.0, lit) * 0.45;
       if (aKind > 5.5) { col = mix(OL * 1.15, BL * 1.15, fract(aRnd + uTime * 0.03)); a = 0.8 * sin(3.14159 * fract(aRnd + uTime * 0.03)) * smoothstep(0.8, 1.0, uIntro) * (1.0 - clamp(uLogo * 3.0, 0.0, 1.0)) * (0.5 + 0.5 * sin(uTime * 3.0 + aRnd * 70.0)); }
       else if (aKind > 2.5) {
         float life = fract(uTime * 0.07 + aRnd * 9.0);
@@ -245,6 +249,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
         wp.xyz = mix(leafPos(aLogo, aRnd, uTime), wp.xyz, k) + vec3((aRnd - 0.5) * 0.06, (fract(aRnd * 3.7) - 0.5) * 0.03, (fract(aRnd * 7.3) - 0.5) * 0.28) * sw;
         col = mix(leafCol(aLogo, uTime), col, smoothstep(0.15, 0.85, k)); a = mix(0.95 * aLv, a, k);
       }
+      shine *= kI * (1.0 - clamp(uLogo * 3.0, 0.0, 1.0)) * (aKind < 0.5 ? 1.0 : 0.0);
       vec4 mv = viewMatrix * wp;
       vec4 cp = projectionMatrix * mv;
       // cursor parts the particles
@@ -253,13 +258,18 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       if (kI < 0.6) cp.z = -cp.w * 0.98; // the logo (inside the body's volume) is never hidden by the invisible body
       gl_Position = cp;
       float back = clamp((uCz - mv.z) / 0.22, 0.0, 1.0);
-      gl_PointSize = uSize * (0.95 + aRnd * 0.1) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3 + band * 0.7) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
-      vCol = col; vA = a; vGlow = glow;
+      gl_PointSize = uSize * (0.95 + aRnd * 0.1) * (aKind < 0.5 ? mix(1.0, 1.0 + 0.28 * lt + 0.28 * rim, kI * (1.0 - clamp(uLogo * 3.0, 0.0, 1.0))) : 1.0) * (aKind > 2.5 && aKind < 3.5 ? 1.5 : 1.0) * (1.0 + hot * 0.5 + calm * 0.3 + band * 0.7) * (1.0 - back * 0.3) * (1.0 + glow * (aKind > 3.5 && aKind < 4.5 ? 3.4 : 1.3));
+      vCol = col; vA = a; vGlow = glow; vShine = shine;
     }`;
   const FRAG = /* glsl */`
-    varying vec3 vCol; varying float vA; varying float vGlow;
+    varying vec3 vCol; varying float vA; varying float vGlow; varying float vShine;
     void main(){
       vec2 c = gl_PointCoord - 0.5; float r = length(c), a; vec3 col = vCol;
+      if (vShine > 0.01 && vGlow < 0.01) { // soft round dot; lit and rim dots carry a faint halo and a brighter centre
+        float core = smoothstep(0.5, 0.3, r), halo = exp(-r * r * 9.0) * smoothstep(0.5, 0.2, r) * 0.55 * vShine;
+        a = max(core, halo) * vA; col = mix(vCol, min(vCol * 1.12 + 0.12, vec3(1.0)), vShine * smoothstep(0.32, 0.0, r));
+        if (a < 0.01) discard; gl_FragColor = vec4(col * a, a); return;
+      }
       if (vGlow > 0.01) { float core = smoothstep(0.22, 0.08, r), halo = exp(-r * r * 14.0) * 0.5 * smoothstep(0.5, 0.3, r); a = (core + halo * vGlow) * vA; col = mix(vCol, min(vCol * 1.2 + 0.12, vec3(1.0)), core); }
       else a = smoothstep(0.5, 0.36, r) * vA;
       if (a < 0.01) discard; gl_FragColor = vec4(col * a, a); }`;
@@ -372,7 +382,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       let sum = 0;
       for (let k = 0; k < 4; k++) { let bi2 = -1; for (let e = 0; e < nj; e++) if (WW[e] > 0 && (bi2 < 0 || WW[e] > WW[bi2])) bi2 = e; if (bi2 < 0) { sI[n * 4 + k] = 0; sW[n * 4 + k] = 0; continue; } sI[n * 4 + k] = JJ[bi2]; sW[n * 4 + k] = WW[bi2]; sum += WW[bi2]; WW[bi2] = -1; }
       for (let k = 0; k < 4; k++) sW[n * 4 + k] /= sum || 1;
-      hgt[n] = wv.y; WS.set([wv.x, wv.y, wv.z], n * 3); if (Math.random() < 0.006) kind[n] = 3;
+      hgt[n] = wv.y; WS.set([wv.x, wv.y, wv.z], n * 3);
       n++;
     }
     const NSa = n;
