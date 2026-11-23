@@ -19,13 +19,16 @@ vis = (f'<div class="h3v" aria-hidden="true">{tiles}<figure class="h3-win">{win}
 # stage: drop the particle canvas and the arch window, put the photo stage in their place
 h = re.sub(r'\s*<figure class="ncx__arch".*?</figure>', '', h, count=1, flags=re.S)
 h = re.sub(r'\s*<div class="ncx__archcap".*?</div>', '', h, count=1, flags=re.S)
-h = h.replace('<canvas class="ncx__cv" aria-hidden="true"></canvas>', vis, 1)
+h = h.replace('<canvas class="ncx__cv" aria-hidden="true"></canvas>', vis + '<div class="h3-touch" aria-hidden="true"><i></i><span>Touch a pain to heal it</span></div>', 1)
+BGV = ''.join(f'<video muted playsinline loop preload="none" data-src="/home/assets/video/tech-{n}.mp4"></video>' for n in ('osteo', 'laser', 'sis', 'magneto'))
+h = h.replace('<div class="ncx__tint" aria-hidden="true"></div>', '<div class="ncx__tint" aria-hidden="true"></div>\n    <div class="h3-bgv" aria-hidden="true">' + BGV + '</div>', 1)
+assert 'h3-bgv' in h
 assert 'h3v' in h
 # scripts: no three.js, no model preload
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=2"></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=3">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=4"></script>', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=5">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
 h = h.replace('<title>New concept · ', '<title>Home 3 · ', 1)
 assert 'h3gl.js' in h and 'h3.css' in h and 'nc.js' not in h
