@@ -1,0 +1,23 @@
+/* AROGYATI — home 3: the photographic stage (pain photographs + treatment footage) that replaces the 3D figure */
+.h3v{position:absolute;inset:0;z-index:1;pointer-events:none}
+.ncx__copy{z-index:2}
+.ncx__tag{z-index:6}
+.h3-tile{position:absolute;left:0;top:0;border-radius:22px;overflow:hidden;opacity:0;transform-origin:50% 50%;will-change:transform,opacity;background:#e8ebe9;box-shadow:0 34px 60px -34px rgba(20,40,60,.5),0 2px 6px rgba(20,40,60,.06)}
+.h3-tile img{display:block;width:100%;height:100%;object-fit:cover}
+/* the pain pulses */
+.h3-ring{position:absolute;left:var(--px,50%);top:var(--py,50%);width:24%;aspect-ratio:1;margin:-12% 0 0 -12%;opacity:0;pointer-events:none}
+.h3-ring::before,.h3-ring::after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.95);animation:h3-ring 2.2s cubic-bezier(.2,.6,.3,1) infinite}
+.h3-ring::after{animation-delay:1.1s}
+@keyframes h3-ring{from{transform:scale(.3);opacity:1}to{transform:scale(2.3);opacity:0}}
+/* healed: a soft green warmth where the pain was */
+.h3-heal{position:absolute;inset:0;opacity:0;pointer-events:none;background:radial-gradient(38% 28% at var(--px,50%) var(--py,50%),rgba(104,186,92,.42),rgba(104,186,92,0) 72%)}
+/* the treatment window */
+.h3-win{position:absolute;left:0;top:0;z-index:4;margin:0;visibility:hidden;overflow:hidden;border-radius:22px;background:#dfe3e0;will-change:clip-path;box-shadow:0 34px 60px -34px rgba(20,40,60,.55)}
+.h3-win video,.h3-win img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;transform-origin:50% 45%}
+.h3-win .is-on{opacity:1}
+.h3-win [data-crop]{transform-origin:50% 0}
+.h3-cap{position:absolute;left:0;top:0;z-index:5;display:flex;align-items:center;gap:.55rem;opacity:0;white-space:nowrap;font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-soft)}
+.h3-cap i{width:6px;height:6px;border-radius:50%;background:#E8705C;box-shadow:0 0 0 4px rgba(232,112,92,.18);animation:ncx-rec 1.6s ease-in-out infinite}
+.h3-logo{fill:#406CB4;position:absolute;left:0;top:0;z-index:2;opacity:0;overflow:visible;transform-origin:50% 50%}
+@media (max-width:899px){.h3-tile,.h3-win{border-radius:18px}.h3-cap{font-size:.58rem;letter-spacing:.12em}}
+@media (prefers-reduced-motion:reduce){.h3-ring::before,.h3-ring::after,.h3-cap i{animation:none}}
