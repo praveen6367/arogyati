@@ -24,11 +24,11 @@ assert 'h3v' in h
 # scripts: no three.js, no model preload
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/h3.js?v=2" defer></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=2">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=2"></script>', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=3">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
 h = h.replace('<title>New concept · ', '<title>Home 3 · ', 1)
-assert 'h3.js' in h and 'h3.css' in h and 'nc.js' not in h
+assert 'h3gl.js' in h and 'h3.css' in h and 'nc.js' not in h
 os.makedirs(R + 'home-3', exist_ok=True)
 io.open(R + 'home-3/index.html', 'w', encoding='utf8').write(h)
 print('ok', len(h))
