@@ -190,7 +190,8 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const stack = [0, 1].map(() => { const m = new THREE.Mesh(plane, mkMat(PHOTO[0])); m.frustumCulled = false; m.renderOrder = 3 - 0; scene.add(m); return m; });
   const HERO = ['Neck pain · Osteopathy', 'Frozen shoulder · Super Inductive System', 'Lower back pain · Matrix Rhythm Therapy', 'Knee pain · Class IV Laser'];
   let hIdx = 0, hNext = 0, hTr = -1, hLast = 0, lensA = 0, pipOn = -2, tNow = 0;
-  const pip = $('.h3-pip', sec), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [], chips = $$('.h3-chip', sec);
+  const note = $('.h3-note', sec), pip = note && $('.h3-note__v', note), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [];
+  const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteK = -1;
   prgB.forEach((b, k) => b.addEventListener('click', () => { if (hTr < 0 && k !== hIdx && prog < 0.015) { hNext = k; hTr = tNow; } })); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
@@ -277,7 +278,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       const on = FINE && mx >= 0 && heroOn && hov > 0 ? 1 : 0;
       tlx += ((mx + 18) - tlx) * 0.2; tly += ((my + 18) - tly) * 0.2;
       touchEl.style.opacity = on; touchEl.style.transform = `translate3d(${tlx.toFixed(1)}px,${tly.toFixed(1)}px,0)`;
-      const txt = 'See how we treat it';
+      const txt = 'See the treatment';
       if (touchT.textContent !== txt) touchT.textContent = txt;
     }
     // the clinic's sessions play softly behind the helix
@@ -321,7 +322,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       ring.updateMatrixWorld(); const slot = pieces[NECKP], sq = PIECES[NECKP];
       slot.updateMatrixWorld(); slot.matrixWorld.decompose(V3, Q2, S3);
       E.set(-smy * 0.14, smx * 0.2 + flip, 0); Q.setFromEuler(E);
-      card.position.set(CX, CY + (heroOn ? Math.sin(t * 0.8) * 5 * (1 - lock) + (1 - cA) * -40 : 0), 0);
+      card.position.set(CX + (heroOn && !MOB ? -W * 0.045 * (1 - lock) : 0), CY + (heroOn ? (1 - cA) * -30 : 0), 0);
       card.quaternion.copy(Q).slerp(Q2, from);
       const w = mix(CW, sq.w * HB, from), h = mix(CH, sq.h * HB, from); card.scale.set(w, h, 1);
       const m = mk >= 0 ? media[mk] : null, tex2 = m ? m.ensure() : null;
@@ -336,47 +337,40 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       hoverOn(card, t);
       const t2 = hero2 >= 0 ? PHOTO[hero2] : tex2;
       setU(card, { uTex: PHOTO[photoI], uTex2: t2 || PHOTO[photoI], uHas2: t2 ? 1 : 0, uA2: hero2 >= 0 ? 273 / 373 : tex2 ? tex2.userData.aspect || 0.56 : 0.73, uKB: hero2 < 0 && m && !m.vid ? 1 : 0, uCrop: hero2 < 0 && m && m.crop ? 0.17 : 0,
-        uSize: [w, h], uRad: mix(MOB ? 18 : 22, Math.min(w, h) / 2, from), uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: cA, uMix: cMix, uHeal: cHeal, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
+        uSize: [w, h], uRad: MOB ? 10 : 8, uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: cA, uMix: cMix, uHeal: cHeal, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
       cu.uPain.value.copy(painUV); cu.uUVc.value.set(mix(0.5, sq.uvc.x, from), mix(0.5, sq.uvc.y, from));
     } else playOnly(-1);
 
-    stack.forEach((m, k) => {
-      const a = heroOn ? (1 - lock) * ease(clamp(intro * 1.3 - 0.15 * (k + 1))) : 0; m.visible = a > 0.003;
-      if (!m.visible) return;
-      const o = k + 1; m.position.set(CX + o * (MOB ? 14 : 26) + smx * 10 * o, CY + o * (MOB ? 10 : 16) + Math.sin(t * 0.8 + o) * 4, -o * 90);
-      m.rotation.set(-smy * 0.1, smx * 0.16, o * 0.045); m.scale.set(CW, CH, 1);
-      setU(m, { uTex: PHOTO[PAIN[(hIdx + o) % 4].i], uSize: [CW, CH], uRad: MOB ? 18 : 22, uAlpha: a * (k ? 0.35 : 0.6), uDim: 0.25 + 0.15 * k, uBlur: 1 + k, uSat: 0, uTime: t, uHas2: 0, uMix: 0, uLensA: 0, uHeal: 0 });
-      m.material.uniforms.uPain.value.set(-9, -9);
-    });
+    stack.forEach((m) => { m.visible = false; });
 
-    // hero layers around the card: the treatment window, the clinic's numbers, the story bars
+    // hero: the margin note, the leader line to the pain, the numbered story lines
     {
-      const sx = W / 2 + CX, sy = H / 2 - CY, hv = heroOn ? cA * (1 - lock) : 0, curH = hTr >= 0 ? hNext : hIdx;
-      if (pip) {
-        const want = hv > 0.01 ? curH : -1;
+      const hx = !MOB ? -W * 0.045 * (1 - lock) : 0, sx = W / 2 + CX + hx, sy = H / 2 - CY + (heroOn ? (1 - cA) * 30 : 0), hv = heroOn ? cA * (1 - lock) : 0, curH = hTr >= 0 ? hNext : hIdx;
+      const settle = hTr < 0 ? ease(clamp((t - hLast - 0.15) / 0.7)) : 0;
+      if (note) {
+        if (noteK !== curH) {
+          noteK = curH; noteN.textContent = '0' + (curH + 1); noteT.textContent = TAGS[curH + 1][0]; noteM.textContent = TAGS[curH + 1][1];
+          if (!RM) g.fromTo([noteT, noteM], { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.06, ease: 'expo.out', overwrite: true });
+        }
+        const nx = MOB ? sx - CW / 2 : sx + CW / 2 + Math.max(26, W * 0.022), nw = MOB ? CW : Math.min(176, W - nx - 96);
+        note.style.width = nw + 'px'; note.style.height = MOB ? 'auto' : CH + 'px'; note.style.opacity = hv.toFixed(3);
+        note.style.transform = `translate3d(${nx.toFixed(1)}px,${(MOB ? sy + CH / 2 + 16 : sy - CH / 2).toFixed(1)}px,0)`;
+        const want = hv > 0.01 && !MOB ? curH : -1;
         if (want !== pipOn) { pipOn = want; pipM.forEach((m2, i) => { const on = i === want; if (on && !m2.getAttribute('src')) m2.src = m2.dataset.src; m2.classList.toggle('is-on', on); if (m2.tagName === 'VIDEO') { if (on) { const pr = m2.play(); if (pr) pr.catch(() => {}); } else m2.pause(); } }); }
-        const pw = pip.offsetWidth, ph = pip.offsetHeight;
-        pip.style.opacity = hv.toFixed(3);
-        pip.style.transform = `translate3d(${(sx - CW / 2 - pw * (MOB ? 0.25 : 0.42) - smx * 22).toFixed(1)}px,${(sy + CH / 2 - ph * 1.12 - smy * 14 + Math.sin(t * 0.9) * 4).toFixed(1)}px,0) rotate(${(-3 + smx * 4).toFixed(2)}deg)`;
+        if (lead && !MOB) {
+          const pu = PAIN[hIdx].uv, px = sx - CW / 2 + pu.x * CW, py = sy + CH / 2 - pu.y * CH, ex = nx - 10, ey = sy - CH / 2 + noteT.offsetTop + noteT.offsetHeight / 2;
+          const x2 = mix(px, ex, settle), y2 = mix(py, ey, settle);
+          leadL.setAttribute('x1', (px + (ex > px ? 9 : -9)).toFixed(1)); leadL.setAttribute('y1', py.toFixed(1)); leadL.setAttribute('x2', x2.toFixed(1)); leadL.setAttribute('y2', y2.toFixed(1));
+          leadC.forEach((cc) => { cc.setAttribute('cx', px.toFixed(1)); cc.setAttribute('cy', py.toFixed(1)); });
+          lead.style.opacity = (hv * settle).toFixed(3);
+        }
       }
-      chips.forEach((ch, k) => {
-        const cw2 = ch.offsetWidth, x = k ? sx - CW / 2 - cw2 * 0.62 : sx + CW / 2 - cw2 * 0.35, y = k ? sy - CH * 0.12 : sy - CH / 2 + CH * 0.1;
-        ch.style.opacity = (hv * ease(clamp(intro * 1.4 - 0.3 - k * 0.15))).toFixed(3);
-        ch.style.transform = `translate3d(${(x + smx * (k ? -26 : 30)).toFixed(1)}px,${(y + smy * (k ? -16 : 18) + Math.sin(t * 0.7 + k * 2) * 5).toFixed(1)}px,0)`;
-      });
       if (prg) {
-        prg.style.opacity = hv.toFixed(3); prg.classList.toggle('is-live', hv > 0.5);
-        prg.style.transform = `translate3d(${(sx - prg.offsetWidth / 2).toFixed(1)}px,${(sy + CH / 2 + 24).toFixed(1)}px,0)`;
+        prg.style.width = CW + 'px'; prg.style.opacity = hv.toFixed(3); prg.classList.toggle('is-live', hv > 0.5);
+        prg.style.transform = `translate3d(${(sx - CW / 2).toFixed(1)}px,${(sy + CH / 2 + (MOB ? 46 : 26)).toFixed(1)}px,0)`;
         prgB.forEach((b, k) => { b.classList.toggle('is-on', k === curH); b.style.setProperty('--f', k === curH ? (hTr >= 0 ? 0 : clamp((t - hLast) / 4.2)).toFixed(3) : k < curH ? 1 : 0); });
       }
-      if (tag && heroOn) {
-        const tv = hv * (hTr < 0 ? clamp((t - hLast - 0.2) / 0.5) : 0);
-        if (tagB.textContent !== TAGS[hIdx + 1][0]) { tagB.textContent = TAGS[hIdx + 1][0]; tagE.textContent = TAGS[hIdx + 1][1]; }
-        const pu = PAIN[hIdx].uv, Xp = sx - CW / 2 + pu.x * CW, Yp = sy + CH / 2 - pu.y * CH, fl = Xp + 260 > W;
-        tag.classList.add('is-hero'); tag.classList.toggle('is-flip', fl); tag.classList.remove('is-calm');
-        const tx = fl ? Xp - 16 - tag.offsetWidth : Xp + 16;
-        tag.style.transform = `translate(${clamp(tx, 8, W - tag.offsetWidth - 8).toFixed(1)}px,${(Yp - tag.offsetHeight / 2).toFixed(1)}px)`; tag.style.opacity = tv.toFixed(3);
-      } else if (tag) tag.classList.remove('is-hero');
+      if (tag) { tag.classList.remove('is-hero'); if (heroOn) tag.style.opacity = 0; }
     }
 
     /* captions + the label at the pain */

@@ -30,25 +30,37 @@
 .h3-bgv video.is-on{opacity:.22}
 @media (max-width:899px){.h3-bgv{display:none}}
 /* the cursor label: touch a pain to heal it */
-.h3-touch{position:absolute;left:0;top:0;z-index:7;display:flex;align-items:center;gap:.5rem;padding:.45rem .85rem;border-radius:99px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 24px -14px rgba(20,40,60,.45);font-size:.7rem;font-weight:600;color:#1A231E;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .35s}
-.h3-touch i{width:8px;height:8px;border-radius:50%;background:#5DA34A;box-shadow:0 0 0 4px rgba(93,163,74,.2)}
-/* hero layers: the treatment window, the story bars, the clinic's numbers */
-.h3-pip{position:absolute;left:0;top:0;z-index:5;width:clamp(120px,11vw,170px);aspect-ratio:3/4;border-radius:18px;overflow:hidden;opacity:0;pointer-events:none;background:#dfe3e0;box-shadow:0 30px 50px -24px rgba(20,40,60,.55),0 0 0 4px rgba(255,255,255,.9)}
-.h3-pip video,.h3-pip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s}
-.h3-pip .is-on{opacity:1}
-.h3-pip b{position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:.35rem;padding:.28rem .55rem;border-radius:99px;background:rgba(255,255,255,.92);font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#1A231E}
-.h3-pip b::before{content:"";width:6px;height:6px;border-radius:50%;background:#E8705C;animation:ncx-rec 1.6s ease-in-out infinite}
-.h3-prog{position:absolute;left:0;top:0;z-index:6;display:flex;gap:12px;opacity:0;pointer-events:none}
+.h3-touch{position:absolute;left:0;top:0;z-index:7;display:flex;align-items:center;gap:.6rem;font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#1A231E;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .35s}
+.h3-touch i{width:22px;height:1px;background:#1A231E}
+/* hero: an editorial margin note beside the photograph (medical-atlas style) */
+.h3-note{position:absolute;left:0;top:0;z-index:5;display:flex;flex-direction:column;opacity:0;pointer-events:none;color:#1A231E}
+.h3-note__n{font-size:.7rem;font-weight:500;letter-spacing:.08em;color:var(--nc-grey);font-variant-numeric:tabular-nums}
+.h3-note__n b{font-weight:500;color:#1A231E}
+.h3-note__t{margin:1.1rem 0 0;font-size:1.05rem;font-weight:500;line-height:1.2;letter-spacing:-.01em}
+.h3-note__m{margin:.3rem 0 0;font-size:.8rem;line-height:1.35;color:var(--nc-soft)}
+.h3-note__v{position:relative;margin:1.4rem 0 0;aspect-ratio:4/5;overflow:hidden;border-radius:3px;background:#e2e6e3}
+.h3-note__v video,.h3-note__v img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s}
+.h3-note__v .is-on{opacity:1}
+.h3-note__c{margin-top:.55rem;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-grey)}
+.h3-note__s{margin:auto 0 0;padding:0}
+.h3-note__s div{padding:.7rem 0;border-top:1px solid rgba(20,32,26,.14)}
+.h3-note__s dt{font-size:1rem;font-weight:500;letter-spacing:-.02em}
+.h3-note__s dd{margin:.15rem 0 0;font-size:.68rem;line-height:1.35;color:var(--nc-soft)}
+.h3-lead{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible;opacity:0}
+.h3-lead line{stroke:#1A231E;stroke-width:1}
+.h3-lead circle{fill:none;stroke:#fff;stroke-width:1.2}
+.h3-lead circle.d{fill:#fff;stroke:none}
+.h3-prog{position:absolute;left:0;top:0;z-index:6;display:flex;gap:14px;opacity:0;pointer-events:none}
 .h3-prog.is-live{pointer-events:auto}
-.h3-prog button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:8px;width:clamp(72px,6.6vw,108px);font-size:.62rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--nc-grey);white-space:nowrap;transition:color .3s}
-.h3-prog button i{position:relative;display:block;height:2px;border-radius:2px;background:rgba(20,32,26,.14);overflow:hidden}
+.h3-prog button{all:unset;box-sizing:border-box;flex:1;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:.66rem;font-weight:500;letter-spacing:.02em;color:var(--nc-grey);white-space:nowrap;transition:color .3s}
+.h3-prog button span{font-size:.6rem;font-variant-numeric:tabular-nums}
+.h3-prog button i{position:relative;display:block;flex:0 0 100%;height:1px;margin-bottom:6px;background:rgba(20,32,26,.16);overflow:hidden}
 .h3-prog button i::after{content:"";position:absolute;inset:0;background:#1A231E;transform-origin:left;transform:scaleX(var(--f,0))}
 .h3-prog button.is-on,.h3-prog button:hover{color:#1A231E}
-.h3-prog button:focus-visible{outline:2px solid #406CB4;outline-offset:4px;border-radius:4px}
-.h3-chip{position:absolute;left:0;top:0;z-index:5;display:flex;align-items:center;gap:.75rem;padding:.75rem 1.05rem .75rem .8rem;border-radius:18px;background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 22px 44px -26px rgba(20,40,60,.45);opacity:0;pointer-events:none;white-space:nowrap}
-.h3-chip strong{font-size:1.3rem;font-weight:600;letter-spacing:-.03em;color:#1A231E}
-.h3-chip span{font-size:.68rem;line-height:1.35;color:var(--nc-soft)}
-.ncx__tag.is-hero i::before{animation:h3-dot 1.8s ease-out infinite}
-@keyframes h3-dot{0%{box-shadow:0 0 0 2.5px #E8705C,0 0 0 0 rgba(232,112,92,.45)}100%{box-shadow:0 0 0 2.5px #E8705C,0 0 0 14px rgba(232,112,92,0)}}
-@media (max-width:899px){.h3-chip{display:none}.h3-pip{width:92px;border-radius:14px}.h3-pip b{font-size:.5rem;left:6px;bottom:6px}.h3-prog{gap:8px}.h3-prog button{width:68px;font-size:.5rem;letter-spacing:.08em;gap:6px}}
-@media (prefers-reduced-motion:reduce){.h3-pip b::before,.ncx__tag.is-hero i::before{animation:none}}
+.h3-prog button:focus-visible{outline:1px solid #1A231E;outline-offset:5px}
+@media (max-width:899px){
+  .h3-note__v,.h3-note__c,.h3-note__s,.h3-lead{display:none}
+  .h3-note{flex-direction:row;align-items:baseline;gap:.6rem;white-space:nowrap}
+  .h3-note__t{margin:0;font-size:.82rem}.h3-note__m{margin:0;font-size:.72rem}
+  .h3-prog{gap:10px}.h3-prog button{font-size:.56rem;gap:4px;flex-wrap:nowrap;flex-direction:column;align-items:flex-start}.h3-prog button i{flex:0 0 auto;width:100%;margin-bottom:2px}.h3-prog button span{display:none}
+}
