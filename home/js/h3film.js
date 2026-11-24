@@ -16,10 +16,14 @@
     if (tm) tm.textContent = fmt(v.currentTime) + ' / ' + fmt(v.duration || 75);
     if (pr) pr.style.setProperty('--pr', v.duration ? (v.currentTime / v.duration).toFixed(4) : 0);
   });
-  if (snd) snd.addEventListener('click', () => {
-    v.muted = !v.muted; snd.setAttribute('aria-pressed', String(!v.muted)); sl.textContent = v.muted ? 'Sound off' : 'Sound on';
-    if (!v.muted) { load(); const p = v.play(); if (p) p.catch(() => {}); }
-  });
+  // mute / unmute: the button, or a click anywhere on the film
+  const toggle = () => {
+    v.muted = !v.muted; const on = !v.muted;
+    snd.setAttribute('aria-pressed', String(on)); snd.setAttribute('aria-label', on ? 'Mute video' : 'Unmute video'); sl.textContent = on ? 'Sound on' : 'Sound off';
+    if (on) { load(); const p = v.play(); if (p) p.catch(() => {}); }
+  };
+  if (snd) snd.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+  fr.addEventListener('click', (e) => { if (snd && !e.target.closest('.h3-film__bar')) toggle(); });
   const g = window.gsap, ST = window.ScrollTrigger;
   if (!MOB && g && ST && !RM) {
     ST.create({ trigger: s, start: 'top 92%', end: 'top top', scrub: true, onUpdate: (st) => {
