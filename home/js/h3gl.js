@@ -201,13 +201,14 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const note = $('.h3-note', sec), pip = note && $('.h3-note__v', note), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [];
   const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteKey = '';
   const stepsOl = note && $('.h3-note__steps', note), steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
-  const SLIDE = 9.5; let carT = 0;
-  const goSlide = (k) => { carT = (((k % 4) + 4) % 4) * SLIDE + SLIDE * 0.02; };
+  const SLIDE = 9.5, TRD = 1.05; let slide = 0, slideT = 0, tr = null;
+  const startTr = (to, dir) => { if (tr) return; to = ((to % 4) + 4) % 4; if (to === slide) return; tr = { to, dir, t0: tNow }; };
   const arwP = $('.h3-arw--prev', sec), arwN = $('.h3-arw--next', sec);
-  if (arwP) arwP.addEventListener('click', () => goSlide(Math.floor(carT / SLIDE) - 1));
-  if (arwN) arwN.addEventListener('click', () => goSlide(Math.floor(carT / SLIDE) + 1));
-  prgB.forEach((b, k) => b.addEventListener('click', () => { carT = k * SLIDE + SLIDE * 0.02; })); const lensUV = new THREE.Vector2(0.5, 0.5);
+  if (arwP) arwP.addEventListener('click', () => startTr(slide - 1, -1));
+  if (arwN) arwN.addEventListener('click', () => startTr(slide + 1, 1));
+  prgB.forEach((b, k) => b.addEventListener('click', () => startTr(k, k > slide ? 1 : -1))); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
+  const card2 = new THREE.Mesh(plane, mkMat(PHOTO[0])); card2.frustumCulled = false; card2.renderOrder = 6; card2.visible = false; scene.add(card2);
 
   /* ---------- the finale: the healed pains dissolve into particles that become the Arogyati figure ---------- */
   const NP = innerWidth < 900 ? 7000 : 16000;
@@ -279,10 +280,13 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   let ringRot = 0;
   const render = (t, dt) => {
     // auto carousel: time drives the four pains in a loop (hovering the card pauses it)
-    if (!(FINE && hoverUV.has(card))) carT += Math.min(dt, 0.05) * (RM ? 0.6 : 1);
-    { const k0 = Math.floor(carT / SLIDE) % 4, c0 = (carT % SLIDE) / SLIDE; prog = R[k0 + 1][0] + c0 * (R[k0 + 1][1] - R[k0 + 1][0] - 1e-4); }
+    let trK = 0;
+    if (!tr && !(FINE && hoverUV.has(card))) slideT += Math.min(dt, 0.05) * (RM ? 0.6 : 1);
+    if (!tr && slideT >= SLIDE * 0.92) startTr(slide + 1, 1);
+    if (tr) { trK = clamp((t - tr.t0) / TRD); if (trK >= 1) { slide = tr.to; slideT = 0; tr = null; trK = 0; } }
+    prog = R[slide + 1][0] + clamp(slideT / SLIDE, 0, 0.999) * (R[slide + 1][1] - R[slide + 1][0]);
     const p = prog; tNow = t;
-    { const k1 = Math.floor(carT / SLIDE) % 4 + 1; if (k1 !== cur) setChapter(k1); }
+    { const k1 = (tr && trK > 0.45 ? tr.to : slide) + 1; if (k1 !== cur) setChapter(k1); }
     vel += ((p - lastProg) * 60 - vel) * 0.1; lastProg = p;
     if (mx >= 0) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; } else { smx *= 0.95; smy *= 0.95; }
     const bend = 0;
@@ -334,7 +338,6 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       cSat = seg(c, 0.08, 0.2) * (1 - seg(c, 0.34, 0.42)); cPulse = seg(c, 0.1, 0.18) * (1 - seg(c, 0.28, 0.34));
       cMix = seg(c, 0.28, 0.4) * (1 - seg(c, 0.6, 0.7));
       cHeal = c >= 0.71 ? 1 : 0; cSplit = mix(-0.02, 1.02, seg(c, 0.72, 0.86)); cSplitA = seg(c, 0.7, 0.74) * (1 - seg(c, 0.86, 0.9));
-      if (c > 0.9) { hero2 = PAIN[(act + 1) % 4].i; cMix = ease(clamp((c - 0.9) / 0.1)); painUV = new THREE.Vector2(0.5, -0.2); }
     } else if (p >= R[5][0] && p < R[5][1]) {
       const cc = (p - R[5][0]) / (R[5][1] - R[5][0]); cOn = true; mk = 4; photoI = PAIN[3].i; painUV = new THREE.Vector2(0.5, 0.5);
       flip = (1 - ease(clamp(cc / 0.12))) * (Math.PI / 2) - ease(clamp((cc - 0.88) / 0.12)) * (Math.PI / 2); cMix = 1; cHeal = 1;
@@ -364,6 +367,16 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         uSize: [w, h], uRad: MOB ? 10 : 8, uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: cA, uMix: cMix, uHeal: cHeal, uSplit: cSplit, uSplitA: cSplitA, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
       cu.uPain.value.copy(painUV); cu.uUVc.value.set(mix(0.5, sq.uvc.x, from), mix(0.5, sq.uvc.y, from));
     } else playOnly(-1);
+    if (tr && cOn) {
+      // the current card swings away into depth; the next swings in from the other side (direction follows the move)
+      const e = ease(trK), dir = tr.dir, off = W * (MOB ? 0.55 : 0.36), bw = Math.sin(Math.PI * e) * 34;
+      card.position.set(CX - dir * e * off, CY, -e * 560); E.set(-smy * 0.14, smx * 0.2 + dir * e * 0.85, dir * e * 0.04); card.quaternion.setFromEuler(E);
+      cu.uAlpha.value = cA * (1 - e); cu.uBend.value = bw;
+      card2.visible = true; card2.scale.set(CW, CH, 1);
+      card2.position.set(CX + dir * (1 - e) * off, CY, -(1 - e) * 560); E.set(-smy * 0.14, smx * 0.2 - dir * (1 - e) * 0.85, -dir * (1 - e) * 0.04); card2.quaternion.setFromEuler(E);
+      setU(card2, { uTex: PHOTO[PAIN[tr.to].i], uHas2: 0, uMix: 0, uHeal: 0, uSplitA: 0, uSize: [CW, CH], uRad: MOB ? 10 : 8, uAlpha: cA * Math.min(1, e * 1.4), uTime: t, uBend: bw, uSat: 0, uPulse: 0, uLensA: 0, uDim: 0, uZoom: 1, uMir: 0 });
+      card2.material.uniforms.uPain.value.set(-9, -9); card2.material.uniforms.uUVc.value.set(0.5, 0.5);
+    } else card2.visible = false;
 
     stack.forEach((m) => { m.visible = false; });
 
@@ -408,8 +421,8 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         pin.style.opacity = pv.toFixed(3);
       }
       if (arwP && arwN) {
-        const ay = sy - 22, ao = ease(clamp(intro * 1.3)).toFixed(3);
-        arwP.style.transform = `translate3d(${(sx - CW / 2 - 22).toFixed(1)}px,${ay.toFixed(1)}px,0)`; arwN.style.transform = `translate3d(${(sx + CW / 2 - 22).toFixed(1)}px,${ay.toFixed(1)}px,0)`;
+        const aw = arwP.offsetWidth || 44, ay = sy - aw / 2, ao = ease(clamp(intro * 1.3)).toFixed(3), eg = MOB ? 8 : Math.max(12, W * 0.008);
+        arwP.style.transform = `translate3d(${eg.toFixed(1)}px,${ay.toFixed(1)}px,0)`; arwN.style.transform = `translate3d(${(W - eg - aw).toFixed(1)}px,${ay.toFixed(1)}px,0)`;
         arwP.style.opacity = ao; arwN.style.opacity = ao;
       }
       if (ba) { ba.style.opacity = cSplitA.toFixed(3); ba.style.width = (CW - 32) + 'px'; ba.style.transform = `translate3d(${(sx - CW / 2 + 16).toFixed(1)}px,${(sy - CH / 2 + 16).toFixed(1)}px,0)`; }
