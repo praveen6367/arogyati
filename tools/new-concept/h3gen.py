@@ -15,6 +15,7 @@ HEROX = ('<div class="h3-note" aria-hidden="true"><span class="h3-note__n"><b>01
   + '<figure class="h3-note__v">' + PIP + '</figure><span class="h3-note__c">Treatment at Arogyati</span>'
   + '<ol class="h3-note__steps"><li><i></i><span>01</span>Pain</li><li><i></i><span>02</span>Treatment<em></em></li><li><i></i><span>03</span>Recovery</li></ol>'
   + '<dl class="h3-note__s"><div><dt>28 yrs</dt><dd>First big private clinic in Kolhapur</dd></div><div><dt>12 + 8</dt><dd>Physios + assistant physios</dd></div></dl></div>'
+  + '<button type="button" class="h3-arw h3-arw--prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" class="h3-arw h3-arw--next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>'
   + '<div class="h3-pin" aria-hidden="true"><b>01</b></div><div class="h3-ba" aria-hidden="true"><span>After</span><span>Before</span></div>'
   + '<div class="h3-prog" role="group" aria-label="Pains we treat">' + ''.join(f'<button type="button"><i></i><span>0{k + 1}</span>{n}</button>' for k, n in enumerate(('Neck', 'Shoulder', 'Lower back', 'Knee'))) + '</div>')
 win = ''.join((f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}" data-poster="/home/assets/{p}" data-cap="{c}"{CROP if "DfOez" in s else ""}></video>' if k == 'video'
@@ -32,8 +33,8 @@ assert 'h3v' in h
 # scripts: no three.js, no model preload
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=17"></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=22">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=18"></script>', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=23">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
 # the "why choose us" rail gives way (for now) to the Matrix Rhythm Therapy film, full screen
 a = h.index('<!-- RAIL SECTION -->'); b = h.index('<!-- INTRO -->', a)

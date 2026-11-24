@@ -150,3 +150,26 @@
 .h3-on .ncx__rail{display:none}
 .h3-on .h3-cap{display:none}
 @media (max-width:899px){.h3-note.is-ch{display:none}}
+/* hero layout: the brand block on top of the left column, the slide's own copy at the foot of the card */
+.h3-on .ncx-ch[data-i="5"],.h3-on .ncx-ch[data-i="6"]{display:none}
+@media (min-width:900px){
+  .h3-on .ncx-ch[data-i="0"]{top:calc(50svh - min(35svh, 24.6vw));bottom:auto}
+  .h3-on .ncx-ch:not([data-i="0"]){bottom:calc(50svh - min(35svh, 24.6vw));max-width:min(36vw,520px)}
+  .h3-on .ncx-ch:not([data-i="0"]) .ncx-ch__h{font-size:clamp(1.5rem,2.3vw,2.5rem)}
+  .h3-on .ncx-ch:not([data-i="0"]) .ncx-ch__p{margin-top:.8rem}
+}
+@media (max-width:899px){
+  .h3-on .ncx-ch[data-i="0"]{top:84px;bottom:auto}
+  .h3-on .ncx-ch[data-i="0"] .ncx-ch__p{margin-top:.55rem}
+  .h3-on .ncx-ch[data-i="0"] .ncx-ch__ctas{margin-top:.9rem}
+  .h3-on .ncx-ch:not([data-i="0"]){top:calc(var(--cardB,560px) + 50px);bottom:auto}
+  .h3-on .ncx-ch:not([data-i="0"]) .ncx-ch__h{font-size:clamp(1.15rem,5.2vw,1.5rem)}
+  .h3-on .ncx-ch:not([data-i="0"]) .ncx-ch__p{margin-top:.35rem;font-size:.76rem}
+  .h3-on .ncx-cue{display:none}
+}
+/* previous / next */
+.az-home .h3-arw{position:absolute;left:0;top:0;z-index:7;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:#14201A;box-shadow:0 0 0 1px rgba(20,32,26,.1);opacity:0;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
+.az-home .h3-arw svg{width:18px;height:18px}
+.az-home .h3-arw:hover{background:#14201A;color:#fff}
+.az-home .h3-arw:focus-visible{outline:1px solid #14201A;outline-offset:4px}
+@media (max-width:899px){.az-home .h3-arw{width:36px;height:36px}.az-home .h3-arw svg{width:15px;height:15px}}

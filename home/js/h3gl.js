@@ -38,7 +38,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const wordIn = (k) => { const ls = setWord(WORDS[k]); g.fromTo(ls, { yPercent: 90, opacity: 0, rotate: 5 }, { yPercent: 0, opacity: 1, rotate: 0, duration: 1.2, stagger: 0.045, ease: 'expo.out' }); };
   const setChapter = (k) => {
     if (k === cur) return; cur = k;
-    chs.forEach((c, i) => c.classList.toggle('is-on', i === k));
+    chs.forEach((c, i) => c.classList.toggle('is-on', i === 0 || i === k));
     if (num) num.textContent = String(k + 1).padStart(2, '0');
     if (tint) tint.style.setProperty('--t', TINTS[k]);
     if (TAGS[k] && tagB) { tagB.textContent = TAGS[k][0]; tagE.textContent = TAGS[k][1]; }
@@ -202,6 +202,10 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteKey = '';
   const stepsOl = note && $('.h3-note__steps', note), steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
   const SLIDE = 9.5; let carT = 0;
+  const goSlide = (k) => { carT = (((k % 4) + 4) % 4) * SLIDE + SLIDE * 0.02; };
+  const arwP = $('.h3-arw--prev', sec), arwN = $('.h3-arw--next', sec);
+  if (arwP) arwP.addEventListener('click', () => goSlide(Math.floor(carT / SLIDE) - 1));
+  if (arwN) arwN.addEventListener('click', () => goSlide(Math.floor(carT / SLIDE) + 1));
   prgB.forEach((b, k) => b.addEventListener('click', () => { carT = k * SLIDE + SLIDE * 0.02; })); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
@@ -242,11 +246,16 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     camera.aspect = W / H; camera.position.set(0, 0, H / 2 / FOVT); camera.lookAt(0, 0, 0); camera.updateProjectionMatrix();
     CX = (MOB ? W * 0.5 : W * 0.615) - W / 2; CY = H / 2 - (MOB ? H * 0.37 : H * 0.5);
     CH = MOB ? Math.min(H * 0.48, (W - 56) * ASP) : Math.min(H * 0.7, W * 0.36 * ASP); CW = CH / ASP;
+    if (MOB && chs[0]) {
+      const top = chs[0].offsetTop + chs[0].offsetHeight + 18;
+      CH = Math.max(200, Math.min(H * 0.42, (W - 96) * ASP, H - top - 150)); CW = CH / ASP; CY = H / 2 - (top + CH / 2);
+      sec.style.setProperty('--cardB', Math.round(top + CH) + 'px');
+    }
     tw = MOB ? W * 0.19 : Math.min(W * 0.092, H * 0.18); gap = tw * 0.2; RR = (8 * (tw + gap)) / TAU; HH = MOB ? H * 0.44 : H * 0.7;
     gtw = MOB ? (W - 32 - 24) / 4 : Math.min(W * 0.085, H * 0.16); ggap = MOB ? 8 : gtw * 0.1; GX = MOB ? CX : W * 0.7 - W / 2;
     LH = MOB ? H * 0.3 : H * 0.46; HB = MOB ? Math.min(H * 0.54, W * 1.9) : Math.min(H * 0.8, W * 1.0);
   };
-  layout(); addEventListener('resize', layout);
+  layout(); addEventListener('resize', layout); setTimeout(layout, 700); if (d.fonts) d.fonts.ready.then(layout);
 
   /* ---------- input ---------- */
   let touchA = 0, prog = 0, lastProg = 0, vel = 0, smx = 0, smy = 0, mx = -1, my = -1, inView = true, drag = 0, spin = 0;
@@ -273,6 +282,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     if (!(FINE && hoverUV.has(card))) carT += Math.min(dt, 0.05) * (RM ? 0.6 : 1);
     { const k0 = Math.floor(carT / SLIDE) % 4, c0 = (carT % SLIDE) / SLIDE; prog = R[k0 + 1][0] + c0 * (R[k0 + 1][1] - R[k0 + 1][0] - 1e-4); }
     const p = prog; tNow = t;
+    { const k1 = Math.floor(carT / SLIDE) % 4 + 1; if (k1 !== cur) setChapter(k1); }
     vel += ((p - lastProg) * 60 - vel) * 0.1; lastProg = p;
     if (mx >= 0) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; } else { smx *= 0.95; smy *= 0.95; }
     const bend = 0;
@@ -320,11 +330,11 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       flip = (1 - ease(clamp((p - 0.86) / 0.035))) * (Math.PI / 2); cA = 1 - seg(toLogo, 0.05, 0.3);
     } else if (act >= 0) {
       cOn = true; photoI = PAIN[act].i; painUV = PAIN[act].uv; mk = act;
-      flip = (1 - ease(clamp(c / 0.1))) * (Math.PI / 2); cA = ease(clamp(intro * 1.3));
-      flip -= ease(clamp((c - 0.9) / 0.1)) * (Math.PI / 2);
+      flip = 0; cA = ease(clamp(intro * 1.3)); media[(act + 1) % 4].ensure();
       cSat = seg(c, 0.08, 0.2) * (1 - seg(c, 0.34, 0.42)); cPulse = seg(c, 0.1, 0.18) * (1 - seg(c, 0.28, 0.34));
       cMix = seg(c, 0.28, 0.4) * (1 - seg(c, 0.6, 0.7));
       cHeal = c >= 0.71 ? 1 : 0; cSplit = mix(-0.02, 1.02, seg(c, 0.72, 0.86)); cSplitA = seg(c, 0.7, 0.74) * (1 - seg(c, 0.86, 0.9));
+      if (c > 0.9) { hero2 = PAIN[(act + 1) % 4].i; cMix = ease(clamp((c - 0.9) / 0.1)); painUV = new THREE.Vector2(0.5, -0.2); }
     } else if (p >= R[5][0] && p < R[5][1]) {
       const cc = (p - R[5][0]) / (R[5][1] - R[5][0]); cOn = true; mk = 4; photoI = PAIN[3].i; painUV = new THREE.Vector2(0.5, 0.5);
       flip = (1 - ease(clamp(cc / 0.12))) * (Math.PI / 2) - ease(clamp((cc - 0.88) / 0.12)) * (Math.PI / 2); cMix = 1; cHeal = 1;
@@ -345,7 +355,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       if (lOn) lensUV.lerp(hoverUV.get(card), 0.22);
       lensA += ((lOn ? 1 : 0) - lensA) * 0.12;
       if (heroOn) { if (lensA > 0.01 && lm.vid) playOnly(hIdx); else playOnly(-1); }
-      else if (cMix > 0.001 && m && m.vid) playOnly(mk); else if (cMix <= 0.001) playOnly(-1);
+      else if (cMix > 0.001 && m && m.vid && hero2 < 0) playOnly(mk); else playOnly(-1);
       const l3 = heroOn && lensA > 0.001 ? lm.ensure() : null;
       cu.uTex3.value = l3 || PHOTO[photoI]; cu.uA3.value = l3 ? l3.userData.aspect || 0.56 : 0.73; cu.uLens.value.set(lensUV.x, lensUV.y, 0.21); cu.uLensA.value = heroOn ? lensA : 0;
       hoverOn(card, t);
@@ -361,7 +371,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     {
       const sx = W / 2 + CX, sy = H / 2 - CY + (heroOn ? (1 - cA) * 30 : 0), hv = heroOn ? cA * (1 - lock) : 0, curH = hTr >= 0 ? hNext : hIdx;
       const settle = hTr < 0 ? ease(clamp((t - hLast - 0.15) / 0.7)) : 0, ch = !heroOn && act >= 0;
-      const chA = ch && card.visible ? seg(c, 0.04, 0.12) * (1 - seg(c, 0.9, 0.97)) : 0, nA = heroOn ? hv : chA;
+      const chA = ch && card.visible ? ease(clamp(intro * 1.3)) : 0, nA = heroOn ? hv : chA;
       if (note) {
         note.classList.toggle('is-ch', ch);
         const key = heroOn ? 'h' + curH : ch ? 'c' + act : noteKey;
@@ -389,13 +399,18 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       if (pin) {
         let pv = 0, num = 0, calm = false;
         if (heroOn) { pv = hv * settle; num = hIdx; }
-        else if (ch && card.visible) { pv = seg(c, 0.12, 0.2) * (1 - seg(c, 0.26, 0.31)) + seg(c, 0.86, 0.9) * (1 - seg(c, 0.9, 0.94)); num = act; calm = c > 0.8; }
+        else if (ch && card.visible) { pv = seg(c, 0.12, 0.2) * (1 - seg(c, 0.26, 0.31)) + seg(c, 0.85, 0.87) * (1 - seg(c, 0.88, 0.9)); num = act; calm = c > 0.8; }
         if (pv > 0.001) {
           const uvp = heroOn ? PAIN[hIdx].uv : painUV; V3.set(uvp.x - 0.5, uvp.y - 0.5, 0); card.updateMatrixWorld(); V3.applyMatrix4(card.matrixWorld).project(camera);
           pin.style.transform = `translate3d(${((V3.x * 0.5 + 0.5) * W).toFixed(1)}px,${((-V3.y * 0.5 + 0.5) * H).toFixed(1)}px,0)`;
           const nt = '0' + (num + 1); if (pinB.textContent !== nt) pinB.textContent = nt; pin.classList.toggle('is-calm', calm);
         }
         pin.style.opacity = pv.toFixed(3);
+      }
+      if (arwP && arwN) {
+        const ay = sy - 22, ao = ease(clamp(intro * 1.3)).toFixed(3);
+        arwP.style.transform = `translate3d(${(sx - CW / 2 - 22).toFixed(1)}px,${ay.toFixed(1)}px,0)`; arwN.style.transform = `translate3d(${(sx + CW / 2 - 22).toFixed(1)}px,${ay.toFixed(1)}px,0)`;
+        arwP.style.opacity = ao; arwN.style.opacity = ao;
       }
       if (ba) { ba.style.opacity = cSplitA.toFixed(3); ba.style.width = (CW - 32) + 'px'; ba.style.transform = `translate3d(${(sx - CW / 2 + 16).toFixed(1)}px,${(sy - CH / 2 + 16).toFixed(1)}px,0)`; }
       if (tag) tag.style.opacity = 0;

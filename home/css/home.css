@@ -2270,3 +2270,6 @@ body.az-home{background:transparent!important}
 /* history card right after a dark section (About page): run full-bleed so no light corners or side strips show at the seam */
 .az-home .pr + .hx2{padding:0!important}
 .az-home .pr + .hx2 .hx2__stage{border-radius:0 0 34px 34px}
+
+/* no eyebrow subtitles above headings anywhere on the site */
+.rx__label,.tc__eyebrow,.hx2__lab{display:none!important}
