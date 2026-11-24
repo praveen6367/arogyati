@@ -200,7 +200,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   let hIdx = 0, hNext = 0, hTr = -1, hLast = 0, lensA = 0, pipOn = -2, tNow = 0;
   const note = $('.h3-note', sec), pip = note && $('.h3-note__v', note), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [];
   const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteKey = '';
-  const steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
+  const stepsOl = note && $('.h3-note__steps', note), steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
   prgB.forEach((b, k) => b.addEventListener('click', () => { if (hTr < 0 && k !== hIdx && prog < 0.015) { hNext = k; hTr = tNow; } })); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
@@ -374,6 +374,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         if (ch) {
           const fs = [seg(c, 0.05, 0.28), seg(c, 0.28, 0.7), seg(c, 0.7, 0.88)], cs = c < 0.28 ? 0 : c < 0.7 ? 1 : 2;
           steps.forEach((li, k) => { li.classList.toggle('is-on', k === cs); li.classList.toggle('is-done', k < cs); li.style.setProperty('--f', fs[k].toFixed(3)); });
+          if (stepsOl) stepsOl.style.setProperty('--p', (0.5 * seg(c, 0.26, 0.34) + 0.5 * seg(c, 0.68, 0.76)).toFixed(3));
         }
       }
       if (prg) {
