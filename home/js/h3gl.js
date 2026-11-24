@@ -80,7 +80,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     }`;
   const FRAG = /* glsl */`
     uniform sampler2D uTex, uTex2; uniform vec2 uSize, uPain; uniform vec3 uMouse;
-    uniform float uA1, uA2, uRad, uMix, uHeal, uPulse, uSat, uTime, uAlpha, uKB, uDim, uHas2, uCrop, uBlur, uTouchA; uniform vec3 uTouch;
+    uniform float uA1, uA2, uRad, uMix, uHeal, uPulse, uSat, uTime, uAlpha, uKB, uDim, uHas2, uCrop, uBlur, uTouchA, uZoom, uMir; uniform vec3 uTouch; uniform vec2 uUVc;
     varying vec2 vUv;
     vec2 cover(vec2 uv, float ta, float pa){ vec2 s = pa > ta ? vec2(1.0, ta / pa) : vec2(pa / ta, 1.0); return (uv - 0.5) * s + 0.5; }
     float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -103,7 +103,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       // cursor: a soft colour split and swell
       vec2 md = (uvr - uMouse.xy) * vec2(pa, 1.0); float hv = exp(-dot(md, md) / 0.018) * uMouse.z;
       uvr -= md / vec2(pa, 1.0) * hv * 0.06; vec2 off = vec2(0.008, 0.0) * hv;
-      vec2 c1 = cover(uvr, uA1, pa);
+      vec2 c1 = cover(uvr, uA1, pa); c1 = (c1 - 0.5) / uZoom + uUVc; if (uMir > 0.5) c1.x = 2.0 * uUVc.x - c1.x;
       vec3 photo = vec3(texture2D(uTex, c1 + off).r, texture2D(uTex, c1).g, texture2D(uTex, c1 - off).b);
       if (uBlur > 0.001) { vec2 bo = vec2(uBlur * 0.006, uBlur * 0.006 * pa); photo = (photo + texture2D(uTex, c1 + vec2(bo.x, 0.0)).rgb + texture2D(uTex, c1 - vec2(bo.x, 0.0)).rgb + texture2D(uTex, c1 + vec2(0.0, bo.y)).rgb + texture2D(uTex, c1 - vec2(0.0, bo.y)).rgb) / 5.0; }
       float lum = dot(photo, vec3(0.299, 0.587, 0.114)), red = clamp((photo.r - max(photo.g, photo.b)) * 2.4, 0.0, 1.0);
@@ -128,7 +128,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const mkMat = (tex) => new THREE.ShaderMaterial({
     uniforms: { uTex: { value: tex }, uTex2: { value: tex }, uSize: { value: new THREE.Vector2(100, 100) }, uPain: { value: new THREE.Vector2(0.5, 0.5) }, uMouse: { value: new THREE.Vector3(0.5, 0.5, 0) },
       uA1: { value: 273 / 373 }, uA2: { value: 0.56 }, uRad: { value: 20 }, uMix: { value: 0 }, uHeal: { value: 0 }, uPulse: { value: 0 }, uSat: { value: 0 }, uTime: { value: 0 }, uAlpha: { value: 0 },
-      uKB: { value: 0 }, uDim: { value: 0 }, uHas2: { value: 0 }, uCrop: { value: 0 }, uBend: { value: 0 }, uWave: { value: 0 }, uCurve: { value: 0 }, uBlur: { value: 0 }, uTouch: { value: new THREE.Vector3(-999, -999, 100) }, uTouchA: { value: 0 } },
+      uKB: { value: 0 }, uDim: { value: 0 }, uHas2: { value: 0 }, uCrop: { value: 0 }, uBend: { value: 0 }, uWave: { value: 0 }, uCurve: { value: 0 }, uBlur: { value: 0 }, uTouch: { value: new THREE.Vector3(-999, -999, 100) }, uTouchA: { value: 0 }, uZoom: { value: 1 }, uMir: { value: 0 }, uUVc: { value: new THREE.Vector2(0.5, 0.5) } },
     vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
     blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
   });
@@ -149,12 +149,37 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); gl_PointSize = uPx * (0.7 + aR.w * 0.9); }`,
     fragmentShader: `uniform float uA; varying float vA; varying vec3 vC; void main(){ float r = length(gl_PointCoord - 0.5), a = smoothstep(0.5, 0.15, r) * vA * uA; if (a < 0.01) discard; gl_FragColor = vec4(vC * a, a); }` }));
   motes.frustumCulled = false;
-  const tiles = PHOTO.map((tex, i) => { const m = new THREE.Mesh(plane, mkMat(tex)); m.userData.i = i; m.frustumCulled = false; ring.add(m); return m; });
-  const flat = PHOTO.map((tex) => { const m = new THREE.Mesh(plane, mkMat(tex)); m.frustumCulled = false; m.visible = false; scene.add(m); return m; });
+  // [label, photo, x, y, w, h (in body heights, y up, centre of the body = 0), rotation°, photo focus (x, y from top), zoom, mirror, depth px, round ('c' = capsule)]
+  const PIECES = [
+    ['Upper back', 'upperback', 0, 0.2, 0.3, 0.28, 0, 0.5, 0.45, 1.05, 0, -40, 0.05],
+    ['Head', 'neck', 0, 0.43, 0.11, 0.13, 0, 0.5, 0.27, 1.9, 0, 12, 'c'],
+    ['Neck', 'neck', 0, 0.347, 0.12, 0.062, 0, 0.5, 0.62, 2.1, 0, 22, 'c'],
+    ['Chest', 'chest', 0, 0.245, 0.23, 0.14, 0, 0.5, 0.42, 1.3, 0, 14, 0.03],
+    ['Shoulder', 'shoulder', -0.145, 0.287, 0.1, 0.092, 0, 0.66, 0.38, 1.6, 1, 26, 'c'],
+    ['Shoulder', 'shoulder', 0.145, 0.287, 0.1, 0.092, 0, 0.66, 0.38, 1.6, 0, 26, 'c'],
+    ['Upper arm', 'elbow', -0.178, 0.165, 0.064, 0.15, 6, 0.55, 0.35, 1.4, 1, 6, 'c'],
+    ['Upper arm', 'elbow', 0.178, 0.165, 0.064, 0.15, -6, 0.55, 0.35, 1.4, 0, 6, 'c'],
+    ['Forearm & wrist', 'wrist', -0.208, 0.025, 0.056, 0.14, 8, 0.55, 0.42, 1.3, 1, 2, 'c'],
+    ['Forearm & wrist', 'wrist', 0.208, 0.025, 0.056, 0.14, -8, 0.55, 0.42, 1.3, 0, 2, 'c'],
+    ['Ribs', 'ribs', 0, 0.115, 0.19, 0.12, 0, 0.55, 0.55, 1.3, 0, 12, 0.03],
+    ['Lower back', 'lowerback', 0, 0.005, 0.2, 0.085, 0, 0.5, 0.78, 1.6, 0, 18, 'c'],
+    ['Hip', 'hip', -0.07, -0.065, 0.095, 0.085, 0, 0.55, 0.36, 1.6, 1, 8, 0.04],
+    ['Hip', 'hip', 0.07, -0.065, 0.095, 0.085, 0, 0.55, 0.36, 1.6, 0, 8, 0.04],
+    ['Thigh', 'hip', -0.068, -0.165, 0.085, 0.15, 2, 0.42, 0.74, 1.3, 1, 4, 'c'],
+    ['Thigh', 'hip', 0.068, -0.165, 0.085, 0.15, -2, 0.42, 0.74, 1.3, 0, 4, 'c'],
+    ['Knee', 'knee', -0.066, -0.266, 0.08, 0.076, 0, 0.72, 0.55, 1.6, 1, 24, 'c'],
+    ['Knee', 'knee', 0.066, -0.266, 0.08, 0.076, 0, 0.72, 0.55, 1.6, 0, 24, 'c'],
+    ['Shin', 'ankle', -0.064, -0.36, 0.06, 0.14, 1, 0.45, 0.3, 1.2, 1, 6, 'c'],
+    ['Shin', 'ankle', 0.064, -0.36, 0.06, 0.14, -1, 0.45, 0.3, 1.2, 0, 6, 'c'],
+    ['Ankle & foot', 'ankle', -0.074, -0.465, 0.086, 0.046, 0, 0.5, 0.85, 1.5, 1, 10, 'c'],
+    ['Ankle & foot', 'ankle', 0.074, -0.465, 0.086, 0.046, 0, 0.5, 0.85, 1.5, 0, 10, 'c'],
+    ['Spine', 'spine', 0, 0.17, 0.042, 0.3, 0, 0.5, 0.45, 1.0, 0, 44, 'c'],
+  ].map(([label, k, x, y, w, h, rot, fx, fy, zoom, mir, z, rd], i) => ({ label, i: KEY.indexOf(k), x, y, w, h, rot: rot * Math.PI / 180, uvc: new THREE.Vector2(fx, 1 - fy), zoom, mir, z, rd }));
+  const NECKP = PIECES.findIndex((q) => q.label === 'Neck'), NPC = PIECES.length;
+  const pieces = PIECES.map((q) => { const m = new THREE.Mesh(plane, mkMat(PHOTO[q.i])); m.frustumCulled = false; ring.add(m); return m; });
   ring.add(motes);
-  const SCAT = KEY.map(() => ({ a: (Math.random() - 0.5) * 5, x: (Math.random() - 0.5) * 1800, y: (Math.random() - 0.5) * 1100, z: -500 - Math.random() * 1400, r: (Math.random() - 0.5) * 1.4 }));
-  const pull = KEY.map(() => 0);
-  const NAMES = { neck: 'Neck', shoulder: 'Shoulder', elbow: 'Elbow', wrist: 'Wrist', upperback: 'Upper back', spine: 'Spine', lowerback: 'Lower back', hip: 'Hip', knee: 'Knee', ankle: 'Ankle', ribs: 'Ribs', chest: 'Chest' };
+  const SCAT = PIECES.map(() => ({ x: (Math.random() - 0.5) * 1900, y: (Math.random() - 0.5) * 1200, z: -500 - Math.random() * 1500, r: (Math.random() - 0.5) * 2.4, d: Math.random() * 0.35 }));
+  const pull = PIECES.map(() => 0);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
   /* ---------- the finale: the healed pains dissolve into particles that become the Arogyati figure ---------- */
@@ -168,12 +193,12 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     return out;
   })();
   const pg = new THREE.BufferGeometry(), pa = new Float32Array(NP * 4);
-  for (let i = 0; i < NP; i++) { pa[i * 4] = (Math.random() * 12) | 0; pa[i * 4 + 1] = Math.random(); pa[i * 4 + 2] = Math.random(); pa[i * 4 + 3] = Math.random(); }
+  for (let i = 0; i < NP; i++) { pa[i * 4] = (Math.random() * 23) | 0; pa[i * 4 + 1] = Math.random(); pa[i * 4 + 2] = Math.random(); pa[i * 4 + 3] = Math.random(); }
   pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NP * 3), 3)); pg.setAttribute('aT', new THREE.BufferAttribute(pa, 4)); pg.setAttribute('aL', new THREE.BufferAttribute(LP, 2));
-  const PU = { uK: { value: 0 }, uA: { value: 0 }, uGrid: { value: Array.from({ length: 12 }, () => new THREE.Vector4()) }, uLogo: { value: new THREE.Vector3() }, uTime: { value: 0 }, uPx: { value: 2 } };
+  const PU = { uK: { value: 0 }, uA: { value: 0 }, uGrid: { value: Array.from({ length: 24 }, () => new THREE.Vector4()) }, uLogo: { value: new THREE.Vector3() }, uTime: { value: 0 }, uPx: { value: 2 } };
   const pts = new THREE.Points(pg, new THREE.ShaderMaterial({ uniforms: PU, transparent: true, depthWrite: false, depthTest: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
     vertexShader: /* glsl */`
-      attribute vec4 aT; attribute vec2 aL; uniform float uK, uTime, uPx; uniform vec4 uGrid[12]; uniform vec3 uLogo; varying vec3 vC; varying float vA;
+      attribute vec4 aT; attribute vec2 aL; uniform float uK, uTime, uPx; uniform vec4 uGrid[24]; uniform vec3 uLogo; varying vec3 vC; varying float vA;
       float e3(float t){ return t < 0.5 ? 4.0 * t * t * t : 1.0 - pow(-2.0 * t + 2.0, 3.0) / 2.0; }
       void main(){
         vec4 G = uGrid[int(aT.x)]; vec3 s = vec3(G.x + (aT.y - 0.5) * G.z, G.y + (aT.z - 0.5) * G.w, 0.0);
@@ -187,7 +212,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   pts.frustumCulled = false; pts.renderOrder = 6; scene.add(pts);
 
   /* ---------- layout (world units are screen pixels, origin at the centre of the screen) ---------- */
-  let W = 0, H = 0, DPR = 1, MOB = false, CX = 0, CY = 0, CW = 0, CH = 0, tw = 0, gap = 0, RR = 0, HH = 0, GX = 0, gtw = 0, ggap = 0, LH = 0;
+  let HB = 600, W = 0, H = 0, DPR = 1, MOB = false, CX = 0, CY = 0, CW = 0, CH = 0, tw = 0, gap = 0, RR = 0, HH = 0, GX = 0, gtw = 0, ggap = 0, LH = 0;
   const layout = () => {
     W = sec.clientWidth; H = innerHeight; MOB = W < 900; DPR = Math.min(devicePixelRatio || 1, 2);
     renderer.setPixelRatio(DPR); renderer.setSize(W, H, false);
@@ -196,7 +221,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     CH = MOB ? Math.min(H * 0.48, (W - 56) * ASP) : Math.min(H * 0.7, W * 0.36 * ASP); CW = CH / ASP;
     tw = MOB ? W * 0.19 : Math.min(W * 0.092, H * 0.18); gap = tw * 0.2; RR = (8 * (tw + gap)) / TAU; HH = MOB ? H * 0.44 : H * 0.7;
     gtw = MOB ? (W - 32 - 24) / 4 : Math.min(W * 0.085, H * 0.16); ggap = MOB ? 8 : gtw * 0.1; GX = MOB ? CX : W * 0.7 - W / 2;
-    LH = MOB ? H * 0.3 : H * 0.46;
+    LH = MOB ? H * 0.3 : H * 0.46; HB = MOB ? Math.min(H * 0.54, W * 1.9) : Math.min(H * 0.8, W * 1.0);
   };
   layout(); addEventListener('resize', layout);
 
@@ -211,7 +236,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const pick = () => {
     hoverUV.clear(); if (mx < 0) return;
     ndc.set((mx / W) * 2 - 1, -(my / H) * 2 + 1); ray.setFromCamera(ndc, camera);
-    const hits = ray.intersectObjects([card, ...tiles].filter((m) => m.visible && m.material.uniforms.uAlpha.value > 0.3), false);
+    const hits = ray.intersectObjects([card, ...pieces].filter((m) => m.visible && m.material.uniforms.uAlpha.value > 0.3), false);
     if (hits.length) hoverUV.set(hits[0].object, hits[0].uv);
   };
 
@@ -230,42 +255,48 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     for (let a = 0; a < 4; a++) { const [s0, e0] = R[a + 1]; if (p >= s0 && p < e0) { act = a; c = (p - s0) / (e0 - s0); } }
     const intro = ease(clamp(st.intro));
 
-    /* hero: the twelve pains wound on a tilted double helix */
-    spin += (RM ? 0 : 0.16 + Math.abs(vel) * 6) * Math.min(dt, 0.05);
+    /* hero: a human figure assembled from the pain photographs; it breathes, turns with you, heals under your touch.
+       On scroll it bursts apart (the neck becomes the first card); at the end it returns, healed, and becomes the logo. */
     const k1 = seg(p, 0.06, 0.105), k2 = seg(p, 0.1, 0.145);
-    const TURNS = 1.5, thN = (((PAIN[0].i + 6) % 12) / 11 - 0.5) * TURNS * TAU;
-    const rot0 = spin + smx * 0.7, nearest = rot0 - ((((rot0 + thN + Math.PI) % TAU) + TAU) % TAU - Math.PI);
-    ringRot = mix(rot0, nearest, k1);
-    ring.position.set(CX + (MOB ? 0 : 20), CY, -RR * 0.2 + k2 * 520);
-    ring.rotation.set(0.12 - smy * 0.18 + (1 - intro) * 0.4, 0, (MOB ? -0.12 : -0.2) * (1 - k1 * 0.7) + (1 - intro) * 0.3);
-    const ringA = (1 - k2) * (p < 0.2 ? 1 : 0);
+    const endIn = seg(p, 0.86, 0.9), toLogo = seg(p, 0.925, 0.975);
+    const heroOn = p < 0.2, endOn = p > 0.8, kb = heroOn ? k2 : 0;
+    const ringA = heroOn ? 1 - k2 : endOn ? endIn * (1 - seg(toLogo, 0.05, 0.3)) : 0;
+    const asm = heroOn ? intro : endIn;                         // how assembled the body is
+    ring.position.set(CX, CY - (MOB ? 0 : HB * 0.035), kb * 420);
+    ring.rotation.set(-smy * 0.16 + (1 - asm) * 0.3, smx * 0.5 + Math.sin(t * 0.32) * 0.12 * (1 - k1), 0);
     // the healing light: the cursor on desktop, a slow sweep on touch screens
     let tX = mx, tY = my, tA = 0;
-    if (FINE) tA = mx >= 0 ? 1 : 0; else { tX = W * 0.5 + Math.sin(t * 0.5) * W * 0.3; tY = (MOB ? H * 0.37 : H * 0.5) + Math.sin(t * 0.37 + 1) * H * 0.18; tA = 0.9; }
-    touchA += (tA * ringA * intro - touchA) * 0.08;
-    const tR = (MOB ? 70 : 115) * DPR;
+    if (FINE) tA = mx >= 0 ? 1 : 0; else { tX = W * 0.5 + Math.sin(t * 0.5) * W * 0.22; tY = H * 0.37 + Math.sin(t * 0.37 + 1) * HB * 0.4; tA = 0.9; }
+    touchA += (tA * (heroOn ? ringA * intro : 0) - touchA) * 0.08;
+    const tR = (MOB ? 60 : 95) * DPR, breath = Math.sin(t * 1.15), apart = 0.5 + 0.5 * Math.sin(t * 0.55);
     let hov = -1;
-    tiles.forEach((m, i) => {
-      const ord = (i + 6) % 12, fy = ord / 11 - 0.5, sc = SCAT[i], ke = ease(clamp(intro * 1.6 - ord * 0.045));
-      const th = fy * TURNS * TAU + ringRot + (1 - ke) * sc.a, front = Math.cos(th), back = clamp(-front);
-      pull[i] += ((hoverUV.has(m) && ringA > 0.5 ? 1 : 0) - pull[i]) * 0.1; if (hoverUV.has(m)) hov = i;
-      const rr = RR * (1 + k2 * 2.6), out = 80 * pull[i];
-      const x = Math.sin(th) * (rr + out) + (1 - ke) * sc.x, z = Math.cos(th) * (rr + out) - rr + (1 - ke) * sc.z;
-      const y = -fy * HH * (1 + k2 * 0.9) + Math.sin(t * 0.7 + i) * 5 + (1 - ke) * sc.y;
-      m.position.set(x, y, z); m.rotation.set((1 - ke) * sc.r, th, (1 - ke) * sc.r * 0.5);
-      const sz = 1 + 0.1 * pull[i]; m.scale.set(tw * sz, tw * ASP * sz, 1);
-      m.visible = ringA > 0.002 && !(i === PAIN[0].i && k2 > 0.001);
+    pieces.forEach((m, i) => {
+      const q = PIECES[i], sc = SCAT[i], ke = ease(clamp(asm * 1.5 - sc.d));
+      const isHov = hoverUV.has(m) && heroOn && ringA > 0.5; pull[i] += ((isHov ? 1 : 0) - pull[i]) * 0.12; if (isHov) hov = i;
+      const len = Math.hypot(q.x, q.y) || 1, ex = q.x / len, ey = q.y / len;
+      // an exploded-view breath: pieces drift a little apart and settle back
+      const spread = HB * (0.012 + 0.012 * apart) + kb * HB * 1.3;
+      let x = q.x * HB * (1 + 0.01 * breath) + ex * spread + Math.sin(t * 0.8 + i * 1.7) * 2.5;
+      let y = q.y * HB * (1 + 0.01 * breath) + ey * spread + Math.cos(t * 0.7 + i * 1.3) * 2.5;
+      let z = q.z + 70 * pull[i] + kb * (300 + (i % 5) * 120) + Math.sin(t * 0.6 + i) * 6;
+      x = mix(sc.x, x, ke); y = mix(sc.y, y, ke); z = mix(sc.z, z, ke);
+      m.position.set(x, y, z); m.rotation.set((1 - ke) * sc.r + kb * sc.r * 0.6, (1 - ke) * sc.r * 0.6, q.rot + (1 - ke) * sc.r + kb * sc.r);
+      const w = q.w * HB * (1 + 0.08 * pull[i]), h = q.h * HB * (1 + 0.08 * pull[i]); m.scale.set(w, h, 1);
+      m.visible = ringA > 0.002 && !(i === NECKP && heroOn && k2 > 0.001);
       hoverOn(m, t);
-      setU(m, { uSize: [tw * sz, tw * ASP * sz], uRad: MOB ? 10 : 14, uCurve: (rr + out) * (1 + k2 * 12), uAlpha: ringA * ke * (0.5 + 0.5 * clamp(front * 0.6 + 0.6)),
-        uDim: 0.45 * back, uBlur: 2.6 * back, uTime: t, uBend: bend * 0.5, uSat: 0.5, uPulse: 0, uTouchA: touchA, uTouch: [tX * DPR, (H - tY) * DPR, tR] });
+      m.material.uniforms.uUVc.value.copy(q.uvc);
+      if (endOn) m.material.uniforms.uPain.value.set(-9, -9);
+      setU(m, { uSize: [w, h], uRad: q.rd === 'c' ? Math.min(w, h) / 2 : q.rd * HB, uZoom: q.zoom, uMir: q.mir, uCurve: 0, uAlpha: ringA * ke * (q.z < -20 ? 0.55 : 1), uDim: q.z < -20 ? 0.35 : 0, uBlur: q.z < -20 ? 1.2 : 0,
+        uHeal: endOn ? 1 : 0, uTime: t, uBend: bend * 0.4, uSat: heroOn ? 0.55 : 0, uPulse: 0, uTouchA: touchA, uTouch: [tX * DPR, (H - tY) * DPR, tR] });
+      if (endOn) PU.uGrid.value[i].set(CX + x, CY + y, w, h);
     });
-    motes.visible = ringA > 0.002; MU.uT.value = t; MU.uA.value = ringA * intro; MU.uR.value = RR; MU.uH.value = HH; MU.uPx.value = (MOB ? 2 : 2.4) * DPR;
+    motes.visible = ringA > 0.002; MU.uT.value = t; MU.uA.value = ringA * asm; MU.uR.value = HB * 0.3; MU.uH.value = HB * 0.75; MU.uPx.value = (MOB ? 2 : 2.4) * DPR;
     // the cursor label invites the touch, and names the pain under it
     if (touchEl) {
-      const on = FINE && mx >= 0 && ringA > 0.5 ? 1 : 0;
+      const on = FINE && mx >= 0 && heroOn && ringA > 0.5 ? 1 : 0;
       tlx += ((mx + 18) - tlx) * 0.2; tly += ((my + 18) - tly) * 0.2;
       touchEl.style.opacity = on; touchEl.style.transform = `translate3d(${tlx.toFixed(1)}px,${tly.toFixed(1)}px,0)`;
-      const txt = hov >= 0 ? `${NAMES[KEY[hov]]} · healing` : 'Touch a pain to heal it';
+      const txt = hov >= 0 ? `${PIECES[hov].label} · healing` : 'Touch a pain to heal it';
       if (touchT.textContent !== txt) touchT.textContent = txt;
     }
     // the clinic's sessions play softly behind the helix
@@ -292,18 +323,18 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     if (cOn) {
       // from the ring's front slot to the feature position (first chapter), then rest with a soft cursor tilt
       const from = act === 0 ? 1 - k2 : 0;
-      ring.updateMatrixWorld(); const slot = tiles[PAIN[0].i];
+      ring.updateMatrixWorld(); const slot = pieces[NECKP], sq = PIECES[NECKP];
       slot.updateMatrixWorld(); slot.matrixWorld.decompose(V3, Q2, S3);
       E.set(-smy * 0.14, smx * 0.2 + flip, 0); Q.setFromEuler(E);
       card.position.set(mix(CX, V3.x, from), mix(CY, V3.y, from), mix(0, V3.z, from));
       card.quaternion.copy(Q).slerp(Q2, from);
-      const w = mix(CW, tw, from), h = mix(CH, tw * ASP, from); card.scale.set(w, h, 1);
+      const w = mix(CW, sq.w * HB, from), h = mix(CH, sq.h * HB, from); card.scale.set(w, h, 1);
       const m = mk >= 0 ? media[mk] : null, tex2 = m ? m.ensure() : null;
       if (cMix > 0.001 && m && m.vid) playOnly(mk); else if (cMix <= 0.001) playOnly(-1);
       hoverOn(card, t);
       setU(card, { uTex: PHOTO[photoI], uTex2: tex2 || PHOTO[photoI], uHas2: tex2 ? 1 : 0, uA2: tex2 ? tex2.userData.aspect || 0.56 : 0.73, uKB: m && !m.vid ? 1 : 0, uCrop: m && m.crop ? 0.17 : 0,
-        uSize: [w, h], uRad: MOB ? 18 : 22, uAlpha: 1, uMix: cMix, uHeal: cHeal, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
-      cu.uPain.value.copy(painUV);
+        uSize: [w, h], uRad: mix(MOB ? 18 : 22, Math.min(w, h) / 2, from), uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: 1, uMix: cMix, uHeal: cHeal, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
+      cu.uPain.value.copy(painUV); cu.uUVc.value.set(mix(0.5, sq.uvc.x, from), mix(0.5, sq.uvc.y, from));
     } else playOnly(-1);
 
     /* captions + the label at the pain */
@@ -325,17 +356,6 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       } else tag.style.opacity = 0;
     }
 
-    /* the end: every pain returns healed, then dissolves into the figure */
-    const endIn = seg(p, 0.865, 0.905), toLogo = seg(p, 0.925, 0.975);
-    flat.forEach((m, i) => {
-      const col = i % 4, row = (i / 4) | 0, x = GX + (col - 1.5) * (gtw + ggap), y = CY - (row - 1) * (gtw * ASP + ggap);
-      const e = ease(clamp(endIn * 1.6 - i * 0.05));
-      m.visible = e > 0.002 && toLogo < 0.35;
-      m.position.set(x + smx * 14, y - smy * 10, (1 - e) * -900); m.rotation.set((1 - e) * 0.6, (1 - e) * (col - 1.5) * 0.4, 0); m.scale.set(gtw, gtw * ASP, 1);
-      m.material.uniforms.uPain.value.set(-9, -9);
-      setU(m, { uSize: [gtw, gtw * ASP], uRad: MOB ? 8 : 12, uAlpha: e * (1 - seg(toLogo, 0.05, 0.3)), uHeal: 1, uTime: t, uBend: bend * 0.4, uDim: 0, uSat: 0 });
-      PU.uGrid.value[i].set(x, y, gtw, gtw * ASP);
-    });
     PU.uK.value = toLogo; PU.uA.value = clamp(toLogo * 12); PU.uTime.value = t; PU.uPx.value = (MOB ? 1.6 : 1.8) * DPR;
     PU.uLogo.value.set(CX, CY, LH); pts.visible = toLogo > 0.001;
 
