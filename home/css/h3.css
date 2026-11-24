@@ -36,12 +36,12 @@
 .h3-note{position:absolute;left:0;top:0;z-index:5;display:flex;flex-direction:column;opacity:0;pointer-events:none;color:#1A231E}
 .h3-note__n{font-size:.7rem;font-weight:500;letter-spacing:.08em;color:var(--nc-grey);font-variant-numeric:tabular-nums}
 .h3-note__n b{font-weight:500;color:#1A231E}
-.h3-note__t{margin:1.1rem 0 0;font-size:1.05rem;font-weight:500;line-height:1.2;letter-spacing:-.01em}
-.h3-note__m{margin:.3rem 0 0;font-size:.8rem;line-height:1.35;color:var(--nc-soft)}
-.h3-note__v{position:relative;margin:1.4rem 0 0;aspect-ratio:4/5;overflow:hidden;border-radius:3px;background:#e2e6e3}
+.h3-note__t{margin:.9rem 0 0;font-size:1.2rem;font-weight:500;line-height:1.15;letter-spacing:-.025em}
+.h3-note__m{margin:.35rem 0 0;font-size:.8rem;line-height:1.4;color:var(--nc-grey)}
+.h3-note__v{position:relative;margin:1.6rem 0 0;aspect-ratio:4/5;overflow:hidden;border-radius:6px;background:#e2e6e3}
 .h3-note__v video,.h3-note__v img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s}
 .h3-note__v .is-on{opacity:1}
-.h3-note__c{margin-top:.55rem;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-grey)}
+.h3-note__c{margin-top:.7rem;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-grey)}
 .h3-note__s{margin:auto 0 0;padding:0}
 .h3-note__s div{padding:.7rem 0;border-top:1px solid rgba(20,32,26,.14)}
 .h3-note__s dt{font-size:1rem;font-weight:500;letter-spacing:-.02em}
@@ -64,3 +64,25 @@
   .h3-note__t{margin:0;font-size:.82rem}.h3-note__m{margin:0;font-size:.72rem}
   .h3-prog{gap:10px}.h3-prog button{font-size:.56rem;gap:4px;flex-wrap:nowrap;flex-direction:column;align-items:flex-start}.h3-prog button i{flex:0 0 auto;width:100%;margin-bottom:2px}.h3-prog button span{display:none}
 }
+/* the numbered marker on the pain; the steps of a chapter; before / after */
+.h3-lead{display:none}
+.h3-pin{position:absolute;left:0;top:0;z-index:6;display:grid;place-items:center;width:28px;height:28px;margin:-14px 0 0 -14px;border:1px solid rgba(255,255,255,.95);border-radius:50%;background:rgba(20,32,26,.16);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:border-color .5s}
+.h3-pin b{font-size:.56rem;font-weight:600;letter-spacing:.04em;color:#fff;font-variant-numeric:tabular-nums}
+.h3-pin.is-calm{border-color:#D3EBC9;background:rgba(79,138,63,.28)}
+.h3-note__steps{display:none;list-style:none;margin:1.9rem 0 0;padding:0}
+.h3-note.is-ch .h3-note__steps{display:block}
+.h3-note.is-ch .h3-note__v,.h3-note.is-ch .h3-note__c,.h3-note.is-ch .h3-note__s{display:none}
+.h3-note__steps li{position:relative;padding:.85rem 0 .95rem;font-size:.88rem;font-weight:500;letter-spacing:-.01em;color:var(--nc-grey);transition:color .45s}
+.h3-note__steps li i{position:absolute;left:0;right:0;top:0;height:1px;background:rgba(20,32,26,.14)}
+.h3-note__steps li i::after{content:"";position:absolute;inset:0;background:#1A231E;transform-origin:left;transform:scaleX(var(--f,0))}
+.h3-note__steps li span{display:inline-block;width:2.1rem;font-size:.62rem;font-weight:500;font-variant-numeric:tabular-nums}
+.h3-note__steps li em{display:block;margin:.3rem 0 0 2.1rem;font-style:normal;font-size:.72rem;font-weight:400;line-height:1.35;color:var(--nc-grey)}
+.h3-note__steps li.is-on,.h3-note__steps li.is-done{color:#1A231E}
+.h3-ba{position:absolute;left:0;top:0;z-index:6;display:flex;justify-content:space-between;opacity:0;pointer-events:none;font-size:.6rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#1A231E}
+@media (max-width:899px){
+  .h3-note.is-ch{flex-direction:column}
+  .h3-note.is-ch .h3-note__n,.h3-note.is-ch .h3-note__t,.h3-note.is-ch .h3-note__m{display:none}
+  .h3-note.is-ch .h3-note__steps{display:flex;gap:10px;margin:0;width:100%}
+  .h3-note__steps li{flex:1;padding:.6rem 0 0;font-size:.62rem}.h3-note__steps li span{width:auto;margin-right:.35rem}.h3-note__steps li em{display:none}
+}
+@media (max-width:899px){.h3-on .h3-cap{display:none}}

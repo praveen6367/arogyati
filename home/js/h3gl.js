@@ -79,7 +79,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
     }`;
   const FRAG = /* glsl */`
-    uniform sampler2D uTex, uTex2, uTex3; uniform vec3 uLens; uniform float uLensA, uA3; uniform vec2 uSize, uPain; uniform vec3 uMouse;
+    uniform sampler2D uTex, uTex2, uTex3; uniform vec3 uLens; uniform float uLensA, uA3, uSplit, uSplitA; uniform vec2 uSize, uPain; uniform vec3 uMouse;
     uniform float uA1, uA2, uRad, uMix, uHeal, uPulse, uSat, uTime, uAlpha, uKB, uDim, uHas2, uCrop, uBlur, uTouchA, uZoom, uMir; uniform vec3 uTouch; uniform vec2 uUVc;
     varying vec2 vUv;
     vec2 cover(vec2 uv, float ta, float pa){ vec2 s = pa > ta ? vec2(1.0, ta / pa) : vec2(pa / ta, 1.0); return (uv - 0.5) * s + 0.5; }
@@ -110,9 +110,10 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       photo += vec3(0.1, -0.03, -0.03) * red * uSat * (0.7 + 0.3 * sin(uTime * 4.0));
       // healing: the treated photograph, or wherever the healing light (cursor) touches
       float tl = length(gl_FragCoord.xy - uTouch.xy), tch = uTouchA * exp(-pow(tl / uTouch.z, 2.0) * 1.6);
+      float sm = uSplitA > 0.001 ? smoothstep(uSplit + 0.003, uSplit - 0.003, vUv.x) : 1.0, hl = uHeal * sm;
       vec3 healed = vec3(lum) * 1.05 + 0.01;
-      healed = mix(healed, healed * vec3(0.9, 1.05, 0.88) + vec3(0.0, 0.035, 0.0), clamp(exp(-dist * dist / 0.03) * uHeal + tch * 0.8, 0.0, 1.0));
-      photo = mix(photo, healed, max(uHeal, tch));
+      healed = mix(healed, healed * vec3(0.9, 1.05, 0.88) + vec3(0.0, 0.035, 0.0), clamp(exp(-dist * dist / 0.03) * hl + tch * 0.8, 0.0, 1.0));
+      photo = mix(photo, healed, max(hl, tch));
       photo += vec3(0.5, 0.78, 0.45) * exp(-pow((tl - uTouch.z) / (uTouch.z * 0.07), 2.0)) * 0.14 * uTouchA;
       vec3 col = photo;
       if (uHas2 > 0.5) {
@@ -121,6 +122,13 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         vec3 tr = texture2D(uTex2, c2).rgb;
         col = mix(tr, photo, m) + band * 0.22;
       }
+      if (uSplitA > 0.001) { // the before / after line and its handle
+        float lx = (vUv.x - uSplit) * uSize.x; col = mix(col, vec3(1.0), exp(-lx * lx / 0.9) * uSplitA);
+        vec2 hp = (vUv - vec2(uSplit, 0.5)) * uSize; float hr = length(hp);
+        col = mix(col, vec3(1.0), (1.0 - smoothstep(14.0, 15.5, hr)) * uSplitA);
+        col = mix(col, vec3(0.1, 0.14, 0.12), (1.0 - smoothstep(1.2, 2.2, length(hp - vec2(-4.5, 0.0)))) * uSplitA);
+        col = mix(col, vec3(0.1, 0.14, 0.12), (1.0 - smoothstep(1.2, 2.2, length(hp - vec2(4.5, 0.0)))) * uSplitA);
+      }
       if (uLensA > 0.001) { // the lens: the real treatment, seen through the photograph
         vec2 ld = (vUv - uLens.xy) * vec2(pa, 1.0); float lr = length(ld), lm = (1.0 - smoothstep(uLens.z - 0.01, uLens.z + 0.01, lr)) * uLensA;
         vec2 lu = uLens.xy + (vUv - uLens.xy) * (0.82 + 0.18 * smoothstep(0.0, uLens.z, lr));
@@ -128,14 +136,14 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         col = mix(col * (1.0 - 0.12 * uLensA * smoothstep(uLens.z, uLens.z + 0.15, lr)), tv, lm);
         col += vec3(1.0) * exp(-pow((lr - uLens.z) / 0.005, 2.0)) * 0.55 * uLensA;
       }
-      col += rip * 0.35;
+      col += rip * 0.2;
       col = mix(col, col * 0.6 + 0.16, uDim);
       float a = edge * uAlpha; gl_FragColor = vec4(col * a, a);
     }`;
   const mkMat = (tex) => new THREE.ShaderMaterial({
     uniforms: { uTex: { value: tex }, uTex2: { value: tex }, uSize: { value: new THREE.Vector2(100, 100) }, uPain: { value: new THREE.Vector2(0.5, 0.5) }, uMouse: { value: new THREE.Vector3(0.5, 0.5, 0) },
       uA1: { value: 273 / 373 }, uA2: { value: 0.56 }, uRad: { value: 20 }, uMix: { value: 0 }, uHeal: { value: 0 }, uPulse: { value: 0 }, uSat: { value: 0 }, uTime: { value: 0 }, uAlpha: { value: 0 },
-      uKB: { value: 0 }, uDim: { value: 0 }, uHas2: { value: 0 }, uCrop: { value: 0 }, uBend: { value: 0 }, uWave: { value: 0 }, uCurve: { value: 0 }, uBlur: { value: 0 }, uTouch: { value: new THREE.Vector3(-999, -999, 100) }, uTouchA: { value: 0 }, uZoom: { value: 1 }, uMir: { value: 0 }, uUVc: { value: new THREE.Vector2(0.5, 0.5) }, uTex3: { value: tex }, uA3: { value: 0.56 }, uLens: { value: new THREE.Vector3(0.5, 0.5, 0.2) }, uLensA: { value: 0 } },
+      uKB: { value: 0 }, uDim: { value: 0 }, uHas2: { value: 0 }, uCrop: { value: 0 }, uBend: { value: 0 }, uWave: { value: 0 }, uCurve: { value: 0 }, uBlur: { value: 0 }, uTouch: { value: new THREE.Vector3(-999, -999, 100) }, uTouchA: { value: 0 }, uZoom: { value: 1 }, uMir: { value: 0 }, uUVc: { value: new THREE.Vector2(0.5, 0.5) }, uTex3: { value: tex }, uA3: { value: 0.56 }, uLens: { value: new THREE.Vector3(0.5, 0.5, 0.2) }, uLensA: { value: 0 }, uSplit: { value: 0 }, uSplitA: { value: 0 } },
     vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
     blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
   });
@@ -191,7 +199,8 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const HERO = ['Neck pain · Osteopathy', 'Frozen shoulder · Super Inductive System', 'Lower back pain · Matrix Rhythm Therapy', 'Knee pain · Class IV Laser'];
   let hIdx = 0, hNext = 0, hTr = -1, hLast = 0, lensA = 0, pipOn = -2, tNow = 0;
   const note = $('.h3-note', sec), pip = note && $('.h3-note__v', note), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [];
-  const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteK = -1;
+  const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteKey = '';
+  const steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
   prgB.forEach((b, k) => b.addEventListener('click', () => { if (hTr < 0 && k !== hIdx && prog < 0.015) { hNext = k; hTr = tNow; } })); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
@@ -230,7 +239,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     W = sec.clientWidth; H = innerHeight; MOB = W < 900; DPR = Math.min(devicePixelRatio || 1, 2);
     renderer.setPixelRatio(DPR); renderer.setSize(W, H, false);
     camera.aspect = W / H; camera.position.set(0, 0, H / 2 / FOVT); camera.lookAt(0, 0, 0); camera.updateProjectionMatrix();
-    CX = (MOB ? W * 0.5 : W * 0.66) - W / 2; CY = H / 2 - (MOB ? H * 0.37 : H * 0.5);
+    CX = (MOB ? W * 0.5 : W * 0.615) - W / 2; CY = H / 2 - (MOB ? H * 0.37 : H * 0.5);
     CH = MOB ? Math.min(H * 0.48, (W - 56) * ASP) : Math.min(H * 0.7, W * 0.36 * ASP); CW = CH / ASP;
     tw = MOB ? W * 0.19 : Math.min(W * 0.092, H * 0.18); gap = tw * 0.2; RR = (8 * (tw + gap)) / TAU; HH = MOB ? H * 0.44 : H * 0.7;
     gtw = MOB ? (W - 32 - 24) / 4 : Math.min(W * 0.085, H * 0.16); ggap = MOB ? 8 : gtw * 0.1; GX = MOB ? CX : W * 0.7 - W / 2;
@@ -290,7 +299,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
 
     /* the feature card */
     const cu = card.material.uniforms;
-    let cOn = false, flip = 0, cMix = 0, cHeal = 0, cPulse = 0, cSat = 0, mk = -1, photoI = 0, painUV = PAIN[0].uv, cA = 1, hero2 = -1;
+    let cSplit = 0, cSplitA = 0, cOn = false, flip = 0, cMix = 0, cHeal = 0, cPulse = 0, cSat = 0, mk = -1, photoI = 0, painUV = PAIN[0].uv, cA = 1, hero2 = -1;
     if (heroOn) {
       // cycle the four pains with a liquid dissolve; once the story starts, settle on the neck
       cOn = true;
@@ -308,9 +317,10 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
     } else if (act >= 0) {
       cOn = true; photoI = PAIN[act].i; painUV = PAIN[act].uv; mk = act;
       flip = act === 0 ? 0 : (1 - ease(clamp(c / 0.12))) * (Math.PI / 2);
-      flip -= ease(clamp((c - 0.88) / 0.12)) * (Math.PI / 2);
-      cSat = seg(c, 0.08, 0.2) * (1 - seg(c, 0.4, 0.5)); cPulse = seg(c, 0.1, 0.18) * (1 - seg(c, 0.32, 0.4));
-      cMix = seg(c, 0.3, 0.44) * (1 - seg(c, 0.72, 0.84)); cHeal = seg(c, 0.5, 0.6);
+      flip -= ease(clamp((c - 0.9) / 0.1)) * (Math.PI / 2);
+      cSat = seg(c, 0.08, 0.2) * (1 - seg(c, 0.34, 0.42)); cPulse = seg(c, 0.1, 0.18) * (1 - seg(c, 0.28, 0.34));
+      cMix = seg(c, 0.28, 0.4) * (1 - seg(c, 0.6, 0.7));
+      cHeal = c >= 0.71 ? 1 : 0; cSplit = mix(-0.02, 1.02, seg(c, 0.72, 0.86)); cSplitA = seg(c, 0.7, 0.74) * (1 - seg(c, 0.86, 0.9));
     } else if (p >= R[5][0] && p < R[5][1]) {
       const cc = (p - R[5][0]) / (R[5][1] - R[5][0]); cOn = true; mk = 4; photoI = PAIN[3].i; painUV = new THREE.Vector2(0.5, 0.5);
       flip = (1 - ease(clamp(cc / 0.12))) * (Math.PI / 2) - ease(clamp((cc - 0.88) / 0.12)) * (Math.PI / 2); cMix = 1; cHeal = 1;
@@ -322,7 +332,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       ring.updateMatrixWorld(); const slot = pieces[NECKP], sq = PIECES[NECKP];
       slot.updateMatrixWorld(); slot.matrixWorld.decompose(V3, Q2, S3);
       E.set(-smy * 0.14, smx * 0.2 + flip, 0); Q.setFromEuler(E);
-      card.position.set(CX + (heroOn && !MOB ? -W * 0.045 * (1 - lock) : 0), CY + (heroOn ? (1 - cA) * -30 : 0), 0);
+      card.position.set(CX, CY + (heroOn ? (1 - cA) * -30 : 0), 0);
       card.quaternion.copy(Q).slerp(Q2, from);
       const w = mix(CW, sq.w * HB, from), h = mix(CH, sq.h * HB, from); card.scale.set(w, h, 1);
       const m = mk >= 0 ? media[mk] : null, tex2 = m ? m.ensure() : null;
@@ -337,32 +347,33 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       hoverOn(card, t);
       const t2 = hero2 >= 0 ? PHOTO[hero2] : tex2;
       setU(card, { uTex: PHOTO[photoI], uTex2: t2 || PHOTO[photoI], uHas2: t2 ? 1 : 0, uA2: hero2 >= 0 ? 273 / 373 : tex2 ? tex2.userData.aspect || 0.56 : 0.73, uKB: hero2 < 0 && m && !m.vid ? 1 : 0, uCrop: hero2 < 0 && m && m.crop ? 0.17 : 0,
-        uSize: [w, h], uRad: MOB ? 10 : 8, uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: cA, uMix: cMix, uHeal: cHeal, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
+        uSize: [w, h], uRad: MOB ? 10 : 8, uZoom: mix(1, sq.zoom, from), uMir: 0, uAlpha: cA, uMix: cMix, uHeal: cHeal, uSplit: cSplit, uSplitA: cSplitA, uPulse: cPulse, uSat: cSat, uTime: t, uBend: bend, uWave: 0, uDim: 0 });
       cu.uPain.value.copy(painUV); cu.uUVc.value.set(mix(0.5, sq.uvc.x, from), mix(0.5, sq.uvc.y, from));
     } else playOnly(-1);
 
     stack.forEach((m) => { m.visible = false; });
 
-    // hero: the margin note, the leader line to the pain, the numbered story lines
+    // the margin note (hero: the pain and its treatment; chapters: pain, treatment, recovery), the numbered marker, before / after
     {
-      const hx = !MOB ? -W * 0.045 * (1 - lock) : 0, sx = W / 2 + CX + hx, sy = H / 2 - CY + (heroOn ? (1 - cA) * 30 : 0), hv = heroOn ? cA * (1 - lock) : 0, curH = hTr >= 0 ? hNext : hIdx;
-      const settle = hTr < 0 ? ease(clamp((t - hLast - 0.15) / 0.7)) : 0;
+      const sx = W / 2 + CX, sy = H / 2 - CY + (heroOn ? (1 - cA) * 30 : 0), hv = heroOn ? cA * (1 - lock) : 0, curH = hTr >= 0 ? hNext : hIdx;
+      const settle = hTr < 0 ? ease(clamp((t - hLast - 0.15) / 0.7)) : 0, ch = !heroOn && act >= 0;
+      const chA = ch && card.visible ? seg(c, 0.04, 0.12) * (1 - seg(c, 0.9, 0.97)) : 0, nA = heroOn ? hv : chA;
       if (note) {
-        if (noteK !== curH) {
-          noteK = curH; noteN.textContent = '0' + (curH + 1); noteT.textContent = TAGS[curH + 1][0]; noteM.textContent = TAGS[curH + 1][1];
+        note.classList.toggle('is-ch', ch);
+        const key = heroOn ? 'h' + curH : ch ? 'c' + act : noteKey;
+        if (key !== noteKey) {
+          noteKey = key; const k = heroOn ? curH : act;
+          noteN.textContent = '0' + (k + 1); noteT.textContent = TAGS[k + 1][0]; noteM.textContent = TAGS[k + 1][1]; if (stepM) stepM.textContent = TAGS[k + 1][1];
           if (!RM) g.fromTo([noteT, noteM], { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.06, ease: 'expo.out', overwrite: true });
         }
-        const nx = MOB ? sx - CW / 2 : sx + CW / 2 + Math.max(26, W * 0.022), nw = MOB ? CW : Math.min(176, W - nx - 96);
-        note.style.width = nw + 'px'; note.style.height = MOB ? 'auto' : CH + 'px'; note.style.opacity = hv.toFixed(3);
+        const nx = MOB ? sx - CW / 2 : sx + CW / 2 + Math.max(30, W * 0.024), nw = MOB ? CW : Math.min(190, W - nx - 92);
+        note.style.width = nw + 'px'; note.style.height = MOB ? 'auto' : CH + 'px'; note.style.opacity = nA.toFixed(3);
         note.style.transform = `translate3d(${nx.toFixed(1)}px,${(MOB ? sy + CH / 2 + 16 : sy - CH / 2).toFixed(1)}px,0)`;
         const want = hv > 0.01 && !MOB ? curH : -1;
         if (want !== pipOn) { pipOn = want; pipM.forEach((m2, i) => { const on = i === want; if (on && !m2.getAttribute('src')) m2.src = m2.dataset.src; m2.classList.toggle('is-on', on); if (m2.tagName === 'VIDEO') { if (on) { const pr = m2.play(); if (pr) pr.catch(() => {}); } else m2.pause(); } }); }
-        if (lead && !MOB) {
-          const pu = PAIN[hIdx].uv, px = sx - CW / 2 + pu.x * CW, py = sy + CH / 2 - pu.y * CH, ex = nx - 10, ey = sy - CH / 2 + noteT.offsetTop + noteT.offsetHeight / 2;
-          const x2 = mix(px, ex, settle), y2 = mix(py, ey, settle);
-          leadL.setAttribute('x1', (px + (ex > px ? 9 : -9)).toFixed(1)); leadL.setAttribute('y1', py.toFixed(1)); leadL.setAttribute('x2', x2.toFixed(1)); leadL.setAttribute('y2', y2.toFixed(1));
-          leadC.forEach((cc) => { cc.setAttribute('cx', px.toFixed(1)); cc.setAttribute('cy', py.toFixed(1)); });
-          lead.style.opacity = (hv * settle).toFixed(3);
+        if (ch) {
+          const fs = [seg(c, 0.05, 0.28), seg(c, 0.28, 0.7), seg(c, 0.7, 0.88)], cs = c < 0.28 ? 0 : c < 0.7 ? 1 : 2;
+          steps.forEach((li, k) => { li.classList.toggle('is-on', k === cs); li.classList.toggle('is-done', k < cs); li.style.setProperty('--f', fs[k].toFixed(3)); });
         }
       }
       if (prg) {
@@ -370,7 +381,19 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         prg.style.transform = `translate3d(${(sx - CW / 2).toFixed(1)}px,${(sy + CH / 2 + (MOB ? 46 : 26)).toFixed(1)}px,0)`;
         prgB.forEach((b, k) => { b.classList.toggle('is-on', k === curH); b.style.setProperty('--f', k === curH ? (hTr >= 0 ? 0 : clamp((t - hLast) / 4.2)).toFixed(3) : k < curH ? 1 : 0); });
       }
-      if (tag) { tag.classList.remove('is-hero'); if (heroOn) tag.style.opacity = 0; }
+      if (pin) {
+        let pv = 0, num = 0, calm = false;
+        if (heroOn) { pv = hv * settle; num = hIdx; }
+        else if (ch && card.visible) { pv = seg(c, 0.12, 0.2) * (1 - seg(c, 0.26, 0.31)) + seg(c, 0.86, 0.9) * (1 - seg(c, 0.9, 0.94)); num = act; calm = c > 0.8; }
+        if (pv > 0.001) {
+          const uvp = heroOn ? PAIN[hIdx].uv : painUV; V3.set(uvp.x - 0.5, uvp.y - 0.5, 0); card.updateMatrixWorld(); V3.applyMatrix4(card.matrixWorld).project(camera);
+          pin.style.transform = `translate3d(${((V3.x * 0.5 + 0.5) * W).toFixed(1)}px,${((-V3.y * 0.5 + 0.5) * H).toFixed(1)}px,0)`;
+          const nt = '0' + (num + 1); if (pinB.textContent !== nt) pinB.textContent = nt; pin.classList.toggle('is-calm', calm);
+        }
+        pin.style.opacity = pv.toFixed(3);
+      }
+      if (ba) { ba.style.opacity = cSplitA.toFixed(3); ba.style.width = (CW - 32) + 'px'; ba.style.transform = `translate3d(${(sx - CW / 2 + 16).toFixed(1)}px,${(sy - CH / 2 + 16).toFixed(1)}px,0)`; }
+      if (tag) tag.style.opacity = 0;
     }
 
     /* captions + the label at the pain */
@@ -382,17 +405,6 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       capEl.style.opacity = ca.toFixed(3);
       capEl.style.transform = `translate3d(${(CX + W / 2).toFixed(1)}px,${(H / 2 - CY + CH / 2 + 18 + (1 - ca) * 8).toFixed(1)}px,0) translateX(-50%)`;
     }
-    if (tag) {
-      if (act >= 0 && card.visible) {
-        const vis = seg(c, 0.14, 0.24) * (1 - seg(c, 0.84, 0.9)) * (1 - seg(c, 0.32, 0.42) * 0.0);
-        V3.set(painUV.x - 0.5, painUV.y - 0.5, 0); card.updateMatrixWorld(); V3.applyMatrix4(card.matrixWorld).project(camera);
-        const Xp = (V3.x * 0.5 + 0.5) * W, Yp = (-V3.y * 0.5 + 0.5) * H, flipL = Xp + 260 > W;
-        tag.classList.toggle('is-flip', flipL); tag.classList.toggle('is-calm', c > 0.7);
-        const tx = flipL ? Xp - 16 - tag.offsetWidth : Xp + 16;
-        tag.style.transform = `translate(${clamp(tx, 8, W - tag.offsetWidth - 8).toFixed(1)}px,${(Yp - tag.offsetHeight / 2).toFixed(1)}px)`; tag.style.opacity = vis.toFixed(3);
-      } else if (!heroOn) tag.style.opacity = 0;
-    }
-
     for (let k = 0; k < 24; k++) PU.uGrid.value[k].set(CX, CY, CW, CH);
     PU.uK.value = toLogo; PU.uA.value = clamp(toLogo * 12); PU.uTime.value = t; PU.uPx.value = (MOB ? 1.6 : 1.8) * DPR;
     PU.uLogo.value.set(CX, CY, LH); pts.visible = toLogo > 0.001;

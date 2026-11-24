@@ -13,8 +13,9 @@ CROP = ' data-crop="1"'
 PIP = ''.join(f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}"></video>' if s.endswith('.mp4') else f'<img alt="" decoding="async" data-src="/home/assets/{s}">' for s in ('video/tech-osteo.mp4', 'img/shoulder-800.webp', 'img/back-800.webp', 'video/tech-mrt.mp4'))
 HEROX = ('<div class="h3-note" aria-hidden="true"><span class="h3-note__n"><b>01</b> / 04</span><p class="h3-note__t">Neck pain</p><p class="h3-note__m">Osteopathy</p>'
   + '<figure class="h3-note__v">' + PIP + '</figure><span class="h3-note__c">Treatment at Arogyati</span>'
+  + '<ol class="h3-note__steps"><li><i></i><span>01</span>Pain</li><li><i></i><span>02</span>Treatment<em></em></li><li><i></i><span>03</span>Recovery</li></ol>'
   + '<dl class="h3-note__s"><div><dt>28 yrs</dt><dd>First big private clinic in Kolhapur</dd></div><div><dt>12 + 8</dt><dd>Physios + assistant physios</dd></div></dl></div>'
-  + '<svg class="h3-lead" aria-hidden="true"><line/><circle r="9"/><circle class="d" r="1.8"/></svg>'
+  + '<div class="h3-pin" aria-hidden="true"><b>01</b></div><div class="h3-ba" aria-hidden="true"><span>After</span><span>Before</span></div>'
   + '<div class="h3-prog" role="group" aria-label="Pains we treat">' + ''.join(f'<button type="button"><i></i><span>0{k + 1}</span>{n}</button>' for k, n in enumerate(('Neck', 'Shoulder', 'Lower back', 'Knee'))) + '</div>')
 win = ''.join((f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}" data-poster="/home/assets/{p}" data-cap="{c}"{CROP if "DfOez" in s else ""}></video>' if k == 'video'
   else f'<img alt="" decoding="async" data-src="/home/assets/{s}" data-cap="{c}">') for k, s, p, c in MEDIA)
@@ -31,8 +32,8 @@ assert 'h3v' in h
 # scripts: no three.js, no model preload
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=11"></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=9">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=13"></script>', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=11">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
 h = h.replace('<title>New concept · ', '<title>Home 3 · ', 1)
 assert 'h3gl.js' in h and 'h3.css' in h and 'nc.js' not in h
