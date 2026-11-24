@@ -103,3 +103,34 @@
 .h3-note__v [data-crop]{object-position:50% 0;transform:scale(1.22);transform-origin:50% 0}
 @media (min-width:900px){.h3-on .ncx-ch{max-width:min(44vw,640px)}.h3-on .ncx-ch__p{max-width:min(36vw,520px)}}
 .h3-on .ncx__word span{color:rgba(20,32,26,.032)}
+/* the film: Matrix Rhythm Therapy, opening from a framed card to full screen */
+.h3-film{position:relative;height:170vh}
+.h3-film__stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.h3-film__frame{position:absolute;inset:0;overflow:hidden;background:#0D1310;clip-path:inset(var(--i,9%) var(--ix,12%) round var(--r,22px));will-change:clip-path}
+.h3-film__v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(var(--s,1.12));will-change:transform}
+.h3-film__ui{position:absolute;inset:0;pointer-events:none;opacity:var(--u,0)}
+.h3-film__ui::before,.h3-film__ui::after{content:"";position:absolute;left:0;right:0;height:26%}
+.h3-film__ui::before{top:0;background:linear-gradient(rgba(6,10,8,.48),rgba(6,10,8,0))}
+.h3-film__ui::after{bottom:0;background:none}
+.h3-film__k{position:absolute;left:var(--az-gutter,48px);top:clamp(88px,12vh,120px);margin:0;display:flex;flex-direction:column;gap:.45rem;color:#fff}
+.h3-film__k span{font-size:.62rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+.h3-film__k b{font-weight:500;font-size:clamp(1.4rem,2.3vw,2.2rem);line-height:1;letter-spacing:-.035em}
+.h3-film__bar{position:absolute;left:var(--az-gutter,48px);top:calc(clamp(88px,12vh,120px) + clamp(64px,7vw,84px));display:flex;align-items:center;gap:1.4rem;color:#fff;pointer-events:auto}
+.az-home .h3-film__snd{all:unset;cursor:pointer;display:flex;align-items:flex-end;gap:2px;font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.h3-film__snd i{display:block;width:2px;height:11px;background:#fff;transform-origin:bottom;transform:scaleY(.45)}
+.h3-film__snd[aria-pressed="true"] i{animation:h3-eq .8s ease-in-out infinite alternate}
+.h3-film__snd i:nth-child(2){animation-delay:.25s}.h3-film__snd i:nth-child(3){animation-delay:.5s}
+.h3-film__snd span{margin-left:.6rem;line-height:1}
+.h3-film__snd:focus-visible{outline:1px solid #fff;outline-offset:6px}
+@keyframes h3-eq{to{transform:scaleY(1)}}
+.h3-film__t{font-size:.66rem;letter-spacing:.06em;font-variant-numeric:tabular-nums;opacity:.8}
+.h3-film__p{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.2)}
+.h3-film__p i{position:absolute;inset:0;background:#fff;transform-origin:left;transform:scaleX(var(--pr,0))}
+@media (max-width:899px){
+  .h3-film{height:auto;padding:9vh 16px}
+  .h3-film__stage{position:relative;height:auto;overflow:visible}
+  .h3-film__frame{position:relative;inset:auto;width:100%;aspect-ratio:16/9;clip-path:inset(0 round 12px)}
+  .h3-film__k{left:12px;top:10px;gap:3px}.h3-film__k span{font-size:8px;letter-spacing:.14em}.h3-film__k b{font-size:15px}
+  .h3-film__bar{left:12px;top:52px;gap:8px}.h3-film__t{display:none}.az-home .h3-film__snd{font-size:8px;letter-spacing:.12em}.h3-film__snd i{height:8px}.h3-film__snd span{margin-left:6px}
+}
+@media (prefers-reduced-motion:reduce){.h3-film__snd[aria-pressed="true"] i{animation:none;transform:none}}

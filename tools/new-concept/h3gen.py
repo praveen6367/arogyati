@@ -33,8 +33,28 @@ assert 'h3v' in h
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
 h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=15"></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=16">', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=19">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
+# the "why choose us" rail gives way (for now) to the Matrix Rhythm Therapy film, full screen
+a = h.index('<!-- RAIL SECTION -->'); b = h.index('<!-- INTRO -->', a)
+FILM = """<!-- FILM -->
+<section class="h3-film" id="film" aria-label="Matrix Rhythm Therapy film">
+  <div class="h3-film__stage">
+    <div class="h3-film__frame">
+      <video class="h3-film__v" muted playsinline loop preload="none" poster="/home/assets/video/mrt-film.jpg" data-src-hd="/home/assets/video/mrt-film-1080.mp4" data-src-sd="/home/assets/video/mrt-film-720.mp4" aria-label="Matrix Rhythm Therapy at Arogyati"></video>
+      <div class="h3-film__ui">
+        <p class="h3-film__k"><span>Inside Arogyati</span><b>Matrix Rhythm Therapy</b></p>
+        <div class="h3-film__bar"><button type="button" class="h3-film__snd" aria-pressed="false"><i></i><i></i><i></i><span>Sound off</span></button><span class="h3-film__t">00:00 / 01:15</span></div>
+        <div class="h3-film__p" aria-hidden="true"><i></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+"""
+h = h[:a] + FILM + h[b:]
+assert 'class="rx"' not in h and 'h3-film' in h
+h = re.sub(r'(<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>)', r'\1\n<script src="/home/js/h3film.js?v=2" defer></script>', h, count=1)
 h = h.replace('<title>New concept · ', '<title>Home 3 · ', 1)
 assert 'h3gl.js' in h and 'h3.css' in h and 'nc.js' not in h
 os.makedirs(R + 'home-3', exist_ok=True)
