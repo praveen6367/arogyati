@@ -10,6 +10,11 @@ MEDIA = [('video', 'video/tech-osteo.mp4', 'video/tech-osteo.jpg', 'Neck · Hand
   ('img', 'img/back-800.webp', '', 'Lower back · Manual therapy'), ('video', 'video/tech-mrt.mp4', 'video/tech-mrt.jpg', 'Knee · Hands-on therapy'),
   ('video', 'reels/DfOezDQINUI.mp4', 'reels/DfOezDQINUI.webp', 'Rehab · Moving again')]
 CROP = ' data-crop="1"'
+PIP = ''.join(f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}"></video>' if s.endswith('.mp4') else f'<img alt="" decoding="async" data-src="/home/assets/{s}">' for s in ('video/tech-osteo.mp4', 'img/shoulder-800.webp', 'img/back-800.webp', 'video/tech-mrt.mp4'))
+HEROX = ('<div class="h3-pip" aria-hidden="true">' + PIP + '<b>Treatment</b></div>'
+  + '<div class="h3-prog" role="group" aria-label="Pains we treat">' + ''.join(f'<button type="button"><i></i>{n}</button>' for n in ('Neck', 'Shoulder', 'Lower back', 'Knee')) + '</div>'
+  + '<div class="h3-chip" aria-hidden="true"><strong>28 yrs</strong><span>First big private<br>clinic in Kolhapur</span></div>'
+  + '<div class="h3-chip" aria-hidden="true"><strong>12 + 8</strong><span>Physios +<br>assistant physios</span></div>')
 win = ''.join((f'<video muted playsinline loop preload="none" data-src="/home/assets/{s}" data-poster="/home/assets/{p}" data-cap="{c}"{CROP if "DfOez" in s else ""}></video>' if k == 'video'
   else f'<img alt="" decoding="async" data-src="/home/assets/{s}" data-cap="{c}">') for k, s, p, c in MEDIA)
 FIG = re.search(r'<svg class="ncx__logo" viewBox="129 0 35 42" aria-hidden="true">(.*?)</svg>', h, re.S).group(1)
@@ -19,14 +24,14 @@ vis = (f'<div class="h3v" aria-hidden="true">{tiles}<figure class="h3-win">{win}
 # stage: drop the particle canvas and the arch window, put the photo stage in their place
 h = re.sub(r'\s*<figure class="ncx__arch".*?</figure>', '', h, count=1, flags=re.S)
 h = re.sub(r'\s*<div class="ncx__archcap".*?</div>', '', h, count=1, flags=re.S)
-h = h.replace('<canvas class="ncx__cv" aria-hidden="true"></canvas>', vis + '<div class="h3-touch" aria-hidden="true"><i></i><span>See how we treat it</span></div>', 1)
+h = h.replace('<canvas class="ncx__cv" aria-hidden="true"></canvas>', vis + '<div class="h3-touch" aria-hidden="true"><i></i><span>See how we treat it</span></div>' + HEROX, 1)
 
 assert 'h3v' in h
 # scripts: no three.js, no model preload
 h = re.sub(r'<script type="module" src="/home/js/nc\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<link rel="preload" href="/home/assets/3d/body\.glb"[^>]*>\n?', '', h)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=8"></script>', h, count=1)
-h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=5">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script type="module" src="/home/js/h3gl.js?v=10"></script>', h, count=1)
+h = re.sub(r'(<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">)', r'\1\n<link rel="stylesheet" href="/home/css/h3.css?v=7">', h, count=1)
 h = re.sub(r'<link rel="preload" as="image" href="/home/assets/img/pain/neck\.webp">\n?', '', h)
 h = h.replace('<title>New concept · ', '<title>Home 3 · ', 1)
 assert 'h3gl.js' in h and 'h3.css' in h and 'nc.js' not in h
