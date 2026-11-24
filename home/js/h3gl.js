@@ -201,7 +201,8 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const note = $('.h3-note', sec), pip = note && $('.h3-note__v', note), pipM = pip ? $$('video,img', pip) : [], prg = $('.h3-prog', sec), prgB = prg ? $$('button', prg) : [];
   const lead = $('.h3-lead', sec), leadL = lead && $('line', lead), leadC = lead ? $$('circle', lead) : [], noteN = note && $('.h3-note__n b', note), noteT = note && $('.h3-note__t', note), noteM = note && $('.h3-note__m', note); let noteKey = '';
   const stepsOl = note && $('.h3-note__steps', note), steps = note ? $$('.h3-note__steps li', note) : [], stepM = note && $('.h3-note__steps em', note), pin = $('.h3-pin', sec), pinB = pin && $('b', pin), ba = $('.h3-ba', sec);
-  prgB.forEach((b, k) => b.addEventListener('click', () => { if (hTr < 0 && k !== hIdx && prog < 0.015) { hNext = k; hTr = tNow; } })); const lensUV = new THREE.Vector2(0.5, 0.5);
+  const SLIDE = 9.5; let carT = 0;
+  prgB.forEach((b, k) => b.addEventListener('click', () => { carT = k * SLIDE + SLIDE * 0.02; })); const lensUV = new THREE.Vector2(0.5, 0.5);
   const card = new THREE.Mesh(plane, mkMat(PHOTO[0])); card.frustumCulled = false; card.renderOrder = 5; scene.add(card);
 
   /* ---------- the finale: the healed pains dissolve into particles that become the Arogyati figure ---------- */
@@ -268,10 +269,13 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   const hoverOn = (m, t) => { const u = m.material.uniforms.uMouse.value, h = hoverUV.get(m); if (h) { u.x += (h.x - u.x) * 0.25; u.y += (h.y - u.y) * 0.25; u.z += (1 - u.z) * 0.12; } else u.z *= 0.9; };
   let ringRot = 0;
   const render = (t, dt) => {
+    // auto carousel: time drives the four pains in a loop (hovering the card pauses it)
+    if (!(FINE && hoverUV.has(card))) carT += Math.min(dt, 0.05) * (RM ? 0.6 : 1);
+    { const k0 = Math.floor(carT / SLIDE) % 4, c0 = (carT % SLIDE) / SLIDE; prog = R[k0 + 1][0] + c0 * (R[k0 + 1][1] - R[k0 + 1][0] - 1e-4); }
     const p = prog; tNow = t;
     vel += ((p - lastProg) * 60 - vel) * 0.1; lastProg = p;
     if (mx >= 0) { smx += ((mx - W / 2) / W - smx) * 0.06; smy += ((my - H / 2) / H - smy) * 0.06; } else { smx *= 0.95; smy *= 0.95; }
-    const bend = clamp(vel * 600, -36, 36);
+    const bend = 0;
     pick();
     let act = -1, c = 0;
     for (let a = 0; a < 4; a++) { const [s0, e0] = R[a + 1]; if (p >= s0 && p < e0) { act = a; c = (p - s0) / (e0 - s0); } }
@@ -316,7 +320,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
       flip = (1 - ease(clamp((p - 0.86) / 0.035))) * (Math.PI / 2); cA = 1 - seg(toLogo, 0.05, 0.3);
     } else if (act >= 0) {
       cOn = true; photoI = PAIN[act].i; painUV = PAIN[act].uv; mk = act;
-      flip = act === 0 ? 0 : (1 - ease(clamp(c / 0.12))) * (Math.PI / 2);
+      flip = (1 - ease(clamp(c / 0.1))) * (Math.PI / 2); cA = ease(clamp(intro * 1.3));
       flip -= ease(clamp((c - 0.9) / 0.1)) * (Math.PI / 2);
       cSat = seg(c, 0.08, 0.2) * (1 - seg(c, 0.34, 0.42)); cPulse = seg(c, 0.1, 0.18) * (1 - seg(c, 0.28, 0.34));
       cMix = seg(c, 0.28, 0.4) * (1 - seg(c, 0.6, 0.7));
@@ -378,9 +382,9 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
         }
       }
       if (prg) {
-        prg.style.width = CW + 'px'; prg.style.opacity = hv.toFixed(3); prg.classList.toggle('is-live', hv > 0.5);
-        prg.style.transform = `translate3d(${(sx - CW / 2).toFixed(1)}px,${(sy + CH / 2 + (MOB ? 46 : 26)).toFixed(1)}px,0)`;
-        prgB.forEach((b, k) => { b.classList.toggle('is-on', k === curH); b.style.setProperty('--f', k === curH ? (hTr >= 0 ? 0 : clamp((t - hLast) / 4.2)).toFixed(3) : k < curH ? 1 : 0); });
+        const bv = ease(clamp(intro * 1.3)); prg.style.width = CW + 'px'; prg.style.opacity = bv.toFixed(3); prg.classList.toggle('is-live', bv > 0.5);
+        prg.style.transform = `translate3d(${(sx - CW / 2).toFixed(1)}px,${(sy + CH / 2 + (MOB ? 20 : 26)).toFixed(1)}px,0)`;
+        prgB.forEach((b, k) => { b.classList.toggle('is-on', k === act); b.style.setProperty('--f', k === act ? c.toFixed(3) : k < act ? 1 : 0); });
       }
       if (pin) {
         let pv = 0, num = 0, calm = false;
@@ -414,11 +418,7 @@ import * as THREE from '/home/vendor/three/three.module.min.js';
   };
 
   /* ---------- drive ---------- */
-  ST.create({ trigger: sec, start: 'top top', end: 'bottom bottom', onUpdate: (s) => {
-    prog = s.progress; const k = R.findIndex(([a, b]) => prog >= a && prog < b); setChapter(k < 0 ? R.length - 1 : k);
-    if (bar) bar.style.transform = `scaleY(${prog.toFixed(4)})`;
-    if (wordBox && !RM) { const [a0, b0] = R[k < 0 ? R.length - 1 : k], cc = clamp((prog - a0) / (b0 - a0)); wordBox.style.transform = `translate3d(${((0.5 - cc) * (MOB ? 10 : 7)).toFixed(2)}vw,0,0)`; }
-  } });
+  // the hero is one screen: copy stays on the first chapter, the card plays the story on its own
   new IntersectionObserver((es) => es.forEach((e) => (inView = e.isIntersecting))).observe(sec);
   setChapter(0);
   const hd = $('.az-head'); if (hd) hd.classList.add('on-light');

@@ -145,3 +145,8 @@
 .az-home .h3-film__snd:hover .h3-film__ic{transform:scale(1.06)}
 .h3-film__snd span{margin-left:0}
 @media (max-width:899px){.h3-film__ic{width:32px;height:32px}.h3-film__ic svg{width:15px;height:15px}.az-home .h3-film__snd{gap:.5rem;font-size:9px;letter-spacing:.12em}.h3-film__bar{top:50px}}
+/* hero as an auto carousel: one screen tall, no scroll-driven chapters */
+.h3-on .ncx{height:100vh;height:100svh}
+.h3-on .ncx__rail{display:none}
+.h3-on .h3-cap{display:none}
+@media (max-width:899px){.h3-note.is-ch{display:none}}
