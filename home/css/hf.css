@@ -85,3 +85,5 @@
 }
 @media (prefers-reduced-motion:reduce){.hfs-g{opacity:1;transform:none;transition:none}}
 @media (max-width:899px){.hfs.is-live .hfs-g{transition:background .4s}
+.hfs__bg img{will-change:transform;transform-origin:50% 50%}
+.hfs__panel{will-change:clip-path}
