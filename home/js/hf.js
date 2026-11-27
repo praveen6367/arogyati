@@ -121,4 +121,25 @@
       requestAnimationFrame(tick);
     })();
   }
+  /* header logo: dark over light sections, white over the film and photos. Reads what is actually under the logo. */
+  const head = document.querySelector('.az-head'), logo = head && head.querySelector('.az-head__logo');
+  if (head && logo) {
+    const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] < 0.5)) return -1; return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
+    const light = () => {
+      const r = logo.getBoundingClientRect(), x = r.left + r.width / 2, y = Math.max(8, logo.offsetTop + r.height / 2 + 14);
+      for (const el of document.elementsFromPoint(x, y)) {
+        if (head.contains(el)) continue;
+        for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+          if (/^(VIDEO|IMG|CANVAS|PICTURE)$/.test(e.tagName) && getComputedStyle(e).opacity > 0.5) return e.tagName === 'CANVAS';
+          const L = lum(getComputedStyle(e).backgroundColor); if (L >= 0) return L > 0.6;
+        }
+        break;
+      }
+      return lum(getComputedStyle(document.body).backgroundColor) > 0.6;
+    };
+    let tick = false;
+    const upd = () => { tick = false; head.classList.toggle('on-light', light()); };
+    const req = () => { if (!tick) { tick = true; requestAnimationFrame(upd); } };
+    addEventListener('scroll', req, { passive: true }); addEventListener('resize', req); setTimeout(upd, 300);
+  }
 })();

@@ -66,19 +66,20 @@ SNDOFF = SPK_OFF; SNDON = SPK_ON
 import json, html as _h
 vids = ''.join(f'<video muted loop playsinline preload="none" data-k="{k}" data-poster="{po}" data-src="{src}"></video>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
 bgs = ''.join(f'<img alt="" data-src="{po}" decoding="async">' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
+idxl = ''.join(f'<li><button type="button"><span>{k + 1:02d}</span>{n}</button></li>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
 dots = ''.join(f'<button type="button" aria-label="{n}"><span>{k + 1:02d}</span></button>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
 data = json.dumps([{'a': a, 'n': _h.unescape(n), 'c': _h.unescape(c), 'cb': _h.unescape(cb), 'cs': _h.unescape(cs)} for (a, n, c, po, src, cb, cs) in AREAS], ensure_ascii=False).replace('</', '<\\/')
 A0 = AREAS[0]
 ARW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 HP = (f'<section class="hp3" id="conditions" aria-label="Where does it hurt?" style="--n:{len(AREAS)}"><div class="hp3__pin"><div class="az-wrap hp3__grid">'
   '<h2 class="hp3__h2">Where does it <em>hurt?</em></h2>'
-  '<div class="hp3__fig"><canvas class="hp3__gl" aria-hidden="true"></canvas></div>'
+  f'<div class="hp3__fig"><canvas class="hp3__gl" aria-hidden="true"></canvas><ol class="hp3__idx" aria-label="Body areas">{idxl}</ol></div>'
   f'<div class="hp3__lab"><button type="button" class="hp3__arw hp3__arw--prev" aria-label="Previous area">{ARW}</button>'
   f'<p class="hp3__pill" aria-live="polite"><span class="hp3__lidx"><b>01</b>/{len(AREAS):02d}</span><b class="hp3__lname">{A0[1]}</b></p>'
   f'<button type="button" class="hp3__arw hp3__arw--next" aria-label="Next area">{ARW}</button></div>'
   f'<figure class="hp3__reel"><div class="hp3__bgs">{bgs}</div><div class="hp3__vids">{vids}</div>'
-  f'<button type="button" class="hp3__snd" aria-pressed="false" aria-label="Unmute reel"><b class="hf-snd__ic">{SNDOFF}{SNDON}</b></button><div class="hp3__mprog" aria-hidden="true"><i></i></div></figure>'
-  f'<div class="hp3__info"><h3 class="hp3__t">{A0[1]}</h3><p class="hp3__c">{A0[2]}</p><p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
+  f'<button type="button" class="hp3__snd" aria-pressed="false" aria-label="Unmute reel"><b class="hf-snd__ic">{SNDOFF}{SNDON}</b></button><span class="hp3__tc" aria-hidden="true">00:00</span><div class="hp3__mprog" aria-hidden="true"><i></i></div></figure>'
+  f'<div class="hp3__info"><div class="hp3__tx"><h3 class="hp3__t">{A0[1]}</h3><p class="hp3__c">{A0[2]}</p></div><p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
   f'<nav class="hp3__dots" aria-label="Body areas">{dots}</nav></div>'
   f'</div></div><script type="application/json" id="hp3-data">{data}</script></section>')
 SVC = SVC + '\n' + HP
@@ -91,8 +92,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=19">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=11" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=4"></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=21">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=12" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)

@@ -210,14 +210,14 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
 
   /* ---------- the copy, the reel, the label: everything that follows the active area ---------- */
   const lname = $('.hp3__lname', sec), lidx = $('.hp3__lidx b', sec), tt = $('.hp3__t', sec), tc = $('.hp3__c', sec), trl = $('.hp3__r b', sec), trs = $('.hp3__r small', sec);
-  const vids = $$('.hp3__vids video', sec), bgs = $$('.hp3__bgs img', sec), dots = $$('.hp3__dots button', sec), snd = $('.hp3__snd', sec), mprog = $('.hp3__mprog i', sec);
+  const vids = $$('.hp3__vids video', sec), bgs = $$('.hp3__bgs img', sec), dots = $$('.hp3__dots button', sec), idxb = $$('.hp3__idx button', sec), tcode = $('.hp3__tc', sec), snd = $('.hp3__snd', sec), mprog = $('.hp3__mprog i', sec);
   const g = window.gsap;
   let cur = -1, muted = true, vis = false;
   const setArea = (k) => {
     if (k === cur) return; const first = cur < 0; cur = k; const x = DATA[k];
     const put = () => { lname.textContent = x.n; lidx.textContent = String(k + 1).padStart(2, '0'); tt.textContent = x.n; tc.textContent = x.c; trl.textContent = x.cb; trs.textContent = x.cs; };
     if (g && !first && !RM) { const els = [lname, tt, tc, trl, trs]; g.to(els, { opacity: 0, y: -8, duration: 0.2, ease: 'power2.in', overwrite: true, onComplete: () => { put(); g.fromTo(els, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: 'expo.out' }); } }); } else put();
-    dots.forEach((b, i) => b.classList.toggle('is-on', i === k));
+    dots.forEach((b, i) => b.classList.toggle('is-on', i === k)); idxb.forEach((b, i) => { b.classList.toggle('is-on', i === k); if (i === k) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
     bgs.forEach((im, i) => { if (i === k && !im.getAttribute('src')) im.src = im.dataset.src; im.classList.toggle('is-on', i === k); });
     vids.forEach((v, i) => {
       if (i === k) { if (!v.getAttribute('src')) { v.poster = v.dataset.poster; v.src = v.dataset.src; } v.muted = muted; v.classList.add('is-on'); if (vis) { const p = v.play(); if (p) p.catch(() => {}); } }
@@ -225,7 +225,8 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     });
     hot = 0;
   };
-  vids.forEach((v) => v.addEventListener('timeupdate', () => { if (v.classList.contains('is-on') && v.duration && mprog) mprog.style.setProperty('--p', (v.currentTime / v.duration).toFixed(4)); }));
+  vids.forEach((v) => v.addEventListener('timeupdate', () => { if (v.classList.contains('is-on') && v.duration && mprog) mprog.style.setProperty('--p', (v.currentTime / v.duration).toFixed(4)); if (v.classList.contains('is-on') && tcode) tcode.textContent = fmt(v.currentTime) + " / " + fmt(v.duration || 0); }));
+  function fmt(x) { return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(Math.floor(x % 60)).padStart(2, '0'); }
   if (snd) snd.addEventListener('click', () => { muted = !muted; snd.setAttribute('aria-pressed', String(!muted)); snd.setAttribute('aria-label', muted ? 'Unmute reel' : 'Mute reel'); vids.forEach((v) => { v.muted = muted; }); const v = vids[cur]; if (v && !muted) { const p = v.play(); if (p) p.catch(() => {}); } });
 
   /* ---------- scroll: the section pins and its length is split into nine steps ---------- */
@@ -238,7 +239,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   };
   $('.hp3__arw--prev', sec).addEventListener('click', () => goTo(cur - 1));
   $('.hp3__arw--next', sec).addEventListener('click', () => goTo(cur + 1));
-  dots.forEach((b, i) => b.addEventListener('click', () => goTo(i)));
+  dots.forEach((b, i) => b.addEventListener('click', () => goTo(i))); idxb.forEach((b, i) => b.addEventListener('click', () => goTo(i)));
 
   /* ---------- sizing, input, loop ---------- */
   let W = 0, H = 0, DPR = 1, mx = -9999, my = -9999, yaw = LIST[0][4], hot = 0, last = 0;
