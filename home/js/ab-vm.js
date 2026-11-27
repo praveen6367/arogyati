@@ -1,12 +1,14 @@
 /* AROGYATI — About: vision and mission. The section pins; a field of particles gathers into a heart for the
    vision ("to serve society"), then flows and regathers into the Arogyati name for the mission. The cursor pushes
    the particles aside; they drift back. 2D canvas, no WebGL needed. */
+/* team cards: on phones the long bios open with a button */
+document.querySelectorAll('.tmf__more').forEach((b) => b.addEventListener('click', () => { const c = b.closest('.tmf'), o = !c.classList.contains('is-open'); c.classList.toggle('is-open', o); b.setAttribute('aria-expanded', String(o)); b.textContent = o ? 'Show less' : 'Read full bio'; if (window.ScrollTrigger) setTimeout(() => window.ScrollTrigger.refresh(), 50); }));
 (() => {
   const d = document, sec = d.querySelector('.avm'); if (!sec) return;
   const cv = sec.querySelector('.avm__cv'), ctx = cv.getContext('2d'), items = [...sec.querySelectorAll('.avm__item')], ticks = [...sec.querySelectorAll('.avm__ticks i')];
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, FINE = matchMedia('(hover: hover) and (pointer: fine)').matches, g = window.gsap;
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
-  const N = innerWidth < 900 ? 1700 : 3200;
+  const N = innerWidth < 600 ? 1700 : innerWidth < 900 ? 2800 : 3200;
   let W = 0, H = 0, DPR = 1, shapes = [[], []], P = [], cur = 0, vis = false, mx = -1e4, my = -1e4;
 
   // sample a drawing into N target points (with the drawing's own colour at each point)

@@ -66,7 +66,7 @@ def card(r):
     bio = re.search(r'<div class="tx-row__bio"><div>(.*?)</div></div>', r, re.S).group(1)
     return (f'<article class="tmf"><figure class="tmf__ph"><img src="{img}" alt="{name}" width="600" height="750" loading="lazy" decoding="async"></figure>'
             f'<div class="tmf__body"><p class="tmf__stat"><b>{stat}</b><span>{unit}</span></p><h3 class="tmf__n">{name}</h3><p class="tmf__r">{role}</p>'
-            f'<div class="tmf__bio">{bio}</div></div></article>')
+            f'<div class="tmf__bio">{bio}</div><button type="button" class="tmf__more" aria-expanded="false">Read full bio</button></div></article>')
 TEAM = ('<section class="tx abt" id="team"><div class="az-wrap">' + head +
         '<div class="tmf__grid">' + card(rows[0]) + card(rows[1]) + '</div>'
         '<ol class="tx__list">' + ''.join(rows[2:]) + '</ol></div></section>')
@@ -78,10 +78,10 @@ MAIN = '\n'.join([STORY, WY, VM, TEAM, MDX, HX2, ST, CX, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--about">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/about.css?v=3">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/about.css?v=6">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=84', h)
 h = re.sub(r'/home/css/home\.css\?v=\d+', '/home/css/home.css?v=134', h)
-h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=1" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=3"></script>', h, count=1)
+h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=3" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=5"></script>', h, count=1)
 assert 'ab-story.js' in h and 'about.css' in h and 'class="abs"' in h and 'class="mdx"' in h and 'az-foot' in h
 io.open(R + 'about/index.html', 'w', encoding='utf8').write(h)
 print('ok', len(h), 'team rows', len(rows))

@@ -43,7 +43,7 @@
   .az-home .abs__stats{margin-top:1.2rem}
   .az-home .abs__cta{margin-top:1.2rem}
   .az-home .abs__hint{display:none}
-  .az-home .abs__prog{gap:6px}.abs__prog li{font-size:.62rem}
+  .az-home .abs__prog{gap:6px}.abs__prog li{font-size:.7rem}
 }
 
 /* ---------- vision & mission ---------- */
@@ -73,7 +73,7 @@
   .az-home .avm__p{font-size:.92rem;margin-top:.7rem}
   .az-home .avm__list{display:none}
   .avm__ticks{margin-top:14px}
-  .avm__stage{height:auto;min-height:260px}
+  .avm__stage{height:auto;min-height:260px;align-self:stretch}
 }
 
 /* ---------- team: the two doctors, then everyone ---------- */
@@ -99,3 +99,36 @@
   .tmf__ph{aspect-ratio:4/3;border-radius:16px}
   .tmf__ph img{object-position:50% 22%}
 }
+
+/* team bios: clipped on phones with a button to open them */
+.az-home .tmf__more{display:none}
+@media (max-width:899px){
+  .tmf__bio{position:relative;max-height:9.6em;overflow:hidden}
+  .tmf__bio::after{content:"";position:absolute;inset:auto 0 0;height:3.2em;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none}
+  .tmf.is-open .tmf__bio{max-height:none}.tmf.is-open .tmf__bio::after{display:none}
+  .az-home .tmf__more{all:unset;display:inline-flex;align-items:center;align-self:flex-start;margin-top:.6rem;padding:.6rem 0;font-size:.86rem;font-weight:500;color:#4F8A3F;cursor:pointer;border-bottom:1px solid currentColor}
+}
+
+/* phones held sideways: story copy on the left over a side veil; vision & mission side by side */
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .abs__veil{background:linear-gradient(90deg,rgba(242,246,249,.95) 0%,rgba(242,246,249,.8) 34%,rgba(242,246,249,0) 58%),linear-gradient(0deg,#F7F9FB 0%,rgba(247,249,251,0) 18%)}
+  .abs__ui{justify-content:center;padding-top:72px;padding-bottom:56px}
+  .abs__crumb{top:70px}
+  .abs__beats{max-width:46%}
+  .az-home .abs__h{font-size:1.7rem}
+  .az-home .abs__p{font-size:.84rem;margin-top:.6rem}
+  .az-home .abs__stats{margin-top:.8rem;padding-top:.7rem}.abs__stats b{font-size:1rem}.abs__stats span{font-size:.66rem;white-space:nowrap}.abs__stats li{padding:0 .8rem}
+  .az-home .abs__tags{margin-top:.6rem}.abs__tags li{font-size:.76rem}
+  .az-home .abs__cta{margin-top:.8rem}
+  .az-home .abs__prog{bottom:14px;max-width:46%}.abs__prog li{font-size:.6rem;padding-top:10px}
+  .az-home .abs__hint{display:none}
+  .avm__pin{padding:64px 0 16px;align-items:center}
+  .avm__grid{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);grid-template-rows:none;gap:20px;align-items:center}
+  .az-home .avm__h{font-size:1.7rem}
+  .az-home .avm__big{font-size:1rem;margin-top:.6rem}
+  .az-home .avm__p{font-size:.8rem;margin-top:.5rem}
+  .az-home .avm__list{display:none}
+  .avm__ticks{margin-top:12px}
+  .avm__stage{height:calc(100svh - 100px);min-height:0}
+}
+.abs__crumb a{display:inline-block;padding:.55rem 0}

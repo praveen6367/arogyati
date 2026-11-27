@@ -11,6 +11,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const cv = sec.querySelector('.abs__gl'), beats = [...sec.querySelectorAll('.abs__beat')], ticks = [...sec.querySelectorAll('.abs__prog li')];
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, FINE = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const MOB = innerWidth < 900, g = window.gsap;
+  const LAND = () => innerWidth > innerHeight && innerHeight < 560;
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), mix = (a, b, t) => a + (b - a) * t, sst = (t) => t * t * (3 - 2 * t);
   const DEN = MOB ? 0.55 : 1; // particle density
   const DBG = /abdbg/.test(location.search);
@@ -42,11 +43,11 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(34, 1, 0.1, 260);
   const U = {
     uTime: { value: 0 }, uSize: { value: 1 }, uScale: { value: 500 }, uFogN: { value: 18 }, uFogF: { value: 70 }, uBlink: { value: 0 }, uArrive: { value: 0 }, uFade: { value: 0 }, uMaxPx: { value: 8 },
-    uVan: { value: new THREE.Vector3() }, uVanDir: { value: new THREE.Vector2(0, 1) }, uLamps: { value: 1 }, uCenter: { value: new THREE.Vector3() },
+    uVan: { value: new THREE.Vector3() }, uVanDir: { value: new THREE.Vector2(0, 1) }, uLamps: { value: 1 }, uCenter: { value: new THREE.Vector3() }, uNear: { value: 0 },
   };
   const VERT = /* glsl */`
     attribute vec3 color; attribute float aRnd; attribute float aKind; attribute float aSize;
-    uniform float uTime, uSize, uScale, uFogN, uFogF, uBlink, uArrive, uFade, uMaxPx, uLamps;
+    uniform float uTime, uSize, uScale, uFogN, uFogF, uBlink, uArrive, uFade, uMaxPx, uLamps, uNear;
     uniform vec3 uVan, uCenter; uniform vec2 uVanDir;
     varying vec3 vCol; varying float vA; varying float vGlow;
     void main(){
@@ -85,6 +86,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
       else if (k > 9.5) { a = 0.26; glow = 0.4; }
       float fog = smoothstep(uFogF, uFogN, -mv.z) * smoothstep(2.0, 7.0, -mv.z);
       if (k > 9.5) fog = 0.9;
+      if (k < 0.5 || (k > 4.5 && k < 5.5) || (k > 8.5 && k < 9.5)) fog *= mix(1.0, smoothstep(uNear * 0.5, uNear, -mv.z), uFade);
       mv.xyz += 0.01 * vec3(sin(uTime * 0.8 + aRnd * 40.0), cos(uTime * 0.7 + aRnd * 31.0), 0.0) * (1.0 - fog * 0.6);
       gl_Position = projectionMatrix * mv;
       gl_PointSize = clamp(uSize * sz * (0.9 + aRnd * 0.2) * uScale / -mv.z, 1.0, k > 9.5 ? uMaxPx * 2.2 : uMaxPx);
@@ -353,7 +355,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
 
   /* ---------- loop ---------- */
   let W = 0, H = 0, DPR = 1, vis = false, last = 0, sNow = S_CLINIC, sPrev = S_CLINIC, heading = 0, mx = 0, my = 0, mxs = 0, mys = 0, pSm = 0, arrive = 0, vel = 0, pitch = 0;
-  const resize = () => { DPR = Math.min(devicePixelRatio || 1, MOB ? 1.75 : 2); W = cv.clientWidth; H = cv.clientHeight; renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); camera.aspect = W / Math.max(1, H); if (MOB) camera.setViewOffset(W, H, 0, -H * 0.2, W, H); else camera.setViewOffset(W, H, -W * 0.2, 0, W, H); camera.updateProjectionMatrix(); /* the van sits in the open half, clear of the copy */ U.uScale.value = (H * DPR) / (2 * Math.tan((camera.fov * Math.PI) / 360)); };
+  const resize = () => { DPR = Math.min(devicePixelRatio || 1, MOB ? 1.75 : 2); W = cv.clientWidth; H = cv.clientHeight; renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); camera.aspect = W / Math.max(1, H); if (MOB && !LAND()) camera.setViewOffset(W, H, 0, -H * 0.2, W, H); else camera.setViewOffset(W, H, -W * 0.22, 0, W, H); camera.updateProjectionMatrix(); /* the van sits in the open half, clear of the copy */ U.uScale.value = (H * DPR) / (2 * Math.tan((camera.fov * Math.PI) / 360)); };
   resize(); addEventListener('resize', resize);
   if (FINE) addEventListener('pointermove', (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; }, { passive: true });
   const look = new THREE.Vector3(), camP = new THREE.Vector3(), lookS = new THREE.Vector3();
@@ -378,7 +380,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     arrive += ((pSm > 0.84 ? 1 : 0) - arrive) * Math.min(1, dt * 1.2); U.uArrive.value = arrive;
     U.uVan.value.set(pos.x, 0, pos.z); U.uVanDir.value.set(Math.sin(heading), Math.cos(heading));
     mxs += (mx - mxs) * Math.min(1, dt * 2); mys += (my - mys) * Math.min(1, dt * 2);
-    const [az, el, dist] = camAt(pSm), breathe = RM ? 0 : 1, a = heading + az + mxs * 0.14 + Math.sin(t * 0.21) * 0.035 * breathe, dd = dist * (MOB ? 1.7 : 1) * (1 + Math.sin(t * 0.17) * 0.012 * breathe);
+    const [az, el, dist] = camAt(pSm), breathe = RM ? 0 : 1, a = heading + az + mxs * 0.14 + Math.sin(t * 0.21) * 0.035 * breathe, dd = dist * (MOB && !LAND() ? 1.7 : (LAND() ? 1.15 : 1)) * (1 + Math.sin(t * 0.17) * 0.012 * breathe);
     look.set(pos.x, 0.9 + clamp(1 - Math.abs(sNow - S_CLINIC) / 8) * 1.6 + clamp(1 - Math.abs(sNow - S_HOSP) / 10) * 3.6 + clamp(1 - Math.abs(sNow - S_HOME) / 8) * 1.0, pos.z);
     const e2 = el + Math.sin(t * 0.27) * 0.012 * breathe - mys * 0.05;
     camP.set(pos.x + Math.sin(a) * Math.cos(e2) * dd, Math.sin(e2) * dd + 0.6, pos.z + Math.cos(a) * Math.cos(e2) * dd);
@@ -387,7 +389,7 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
     if (DBG && window.__absCam) { camera.position.set(...window.__absCam.p); camera.lookAt(...window.__absCam.l); }
     U.uCenter.value.set(lookS.x, 0, lookS.z);
     U.uTime.value = t; U.uSize.value = (MOB ? 0.06 : 0.055) * (DPR > 1.5 ? 1 : 1.15);
-    U.uMaxPx.value = (MOB ? 6 : 7.5) * DPR; U.uFogN.value = dd * 1.25; U.uFogF.value = dd * 3.8 + 20;
+    U.uMaxPx.value = (MOB ? 6 : 7.5) * DPR; U.uNear.value = dd * (MOB && !LAND() ? 0.8 : 0.62); U.uFogN.value = dd * 1.25; U.uFogF.value = dd * 3.8 + 20;
     renderer.render(scene, camera);
   };
   requestAnimationFrame(loop);
