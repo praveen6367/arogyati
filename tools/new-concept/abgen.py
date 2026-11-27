@@ -81,7 +81,7 @@ h = h[:a] + '\n' + MAIN + '\n' + h[b:]
 h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=31">\n<link rel="stylesheet" href="/home/css/about.css?v=1">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=83', h)
 h = re.sub(r'/home/css/home\.css\?v=\d+', '/home/css/home.css?v=133', h)
-h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=1" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=1"></script>', h, count=1)
+h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=1" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=3"></script>', h, count=1)
 assert 'ab-story.js' in h and 'about.css' in h and 'class="abs"' in h and 'class="mdx"' in h and 'az-foot' in h
 io.open(R + 'about/index.html', 'w', encoding='utf8').write(h)
 print('ok', len(h), 'team rows', len(rows))
