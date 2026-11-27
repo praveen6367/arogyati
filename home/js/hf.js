@@ -16,4 +16,7 @@
   };
   if (snd) snd.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
   v.addEventListener('click', toggle);
+  // services: the cards rise in as the panel comes into view
+  const sv = document.querySelector('.hfs');
+  if (sv) new IntersectionObserver((es, o) => es.forEach((e) => { if (e.isIntersecting) { sv.classList.add('is-in'); o.disconnect(); } }), { threshold: 0.12 }).observe(sv);
 })();
