@@ -1,7 +1,7 @@
 /* AROGYATI — home final: the film hero */
 .hf-hero{position:relative;height:100vh;height:100svh;overflow:hidden;background:#0D1310}
 .hf-hero__bg{position:absolute;inset:-40px;background:url(/home/assets/video/mrt-film.jpg) center/cover no-repeat;filter:blur(28px) brightness(.7);display:none}
-.hf-hero__v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer}
+.hf-hero__v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;cursor:pointer}
 .hf-hero::after{content:"";position:absolute;inset:0 0 auto;height:28%;background:linear-gradient(rgba(6,10,8,.5),rgba(6,10,8,0));pointer-events:none}
 /* mute / unmute */
 .az-home .hf-snd{all:unset;position:absolute;z-index:3;right:var(--az-gutter,48px);top:clamp(104px,14vh,128px);display:flex;align-items:center;gap:.75rem;cursor:pointer;font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff}
@@ -23,3 +23,19 @@
   .az-home .hf-snd{left:50%;right:auto;top:auto;bottom:calc(50% - 28.125vw - 64px);transform:translateX(-50%);font-size:9px;letter-spacing:.12em;gap:.55rem}
   .hf-snd__ic{width:38px;height:38px}.hf-snd__ic svg{width:17px;height:17px}
 }
+/* the modalities band: large type drifting past, solid and outlined in turn */
+.hf-mq{position:relative;overflow:hidden;padding:clamp(30px,4.6vw,64px) 0;background:#14201A;color:#fff}
+.hf-mq::before,.hf-mq::after{content:"";position:absolute;top:0;bottom:0;z-index:1;width:9%;pointer-events:none}
+.hf-mq::before{left:0;background:linear-gradient(90deg,#14201A,rgba(20,32,26,0))}
+.hf-mq::after{right:0;background:linear-gradient(270deg,#14201A,rgba(20,32,26,0))}
+.hf-mq__track{display:flex;width:max-content;animation:hf-mq 46s linear infinite}
+.hf-mq:hover .hf-mq__track{animation-play-state:paused}
+.az-home .hf-mq ul{display:flex;align-items:center;margin:0;padding:0;list-style:none}
+.hf-mq li{display:flex;align-items:center;gap:clamp(14px,1.6vw,26px);padding-right:clamp(28px,3.4vw,60px);white-space:nowrap}
+.hf-mq__ic{display:grid;place-items:center;flex:none;width:clamp(38px,3.6vw,58px);height:clamp(38px,3.6vw,58px);border-radius:50%;background:#4F8A3F;color:#fff}
+.hf-mq__ic svg{width:48%;height:48%}
+.hf-mq__t{font-size:clamp(2rem,5vw,4.6rem);font-weight:500;line-height:1;letter-spacing:-.045em}
+.hf-mq li:nth-child(even) .hf-mq__t{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.6)}
+.hf-mq li:nth-child(even) .hf-mq__ic{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+@keyframes hf-mq{to{transform:translateX(-25%)}}
+@media (prefers-reduced-motion:reduce){.hf-mq__track{animation:none}}
