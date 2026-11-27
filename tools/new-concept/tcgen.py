@@ -19,7 +19,7 @@ MACH = [
 cards = ''.join(
   f'<article class="mch" data-mch><figure class="mch__ph"><img src="/home/assets/video/{img}.jpg" alt="{n} at Arogyati" width="600" height="1066" loading="lazy" decoding="async"><figcaption>Since {y}</figcaption></figure>'
   f'<div class="mch__body"><p class="mch__n">{k + 1:02d}</p><h3 class="mch__t">{n}</h3><p class="mch__stat"><b>{v}</b><span>{u}</span></p>'
-  f'<p class="mch__d">{d}</p><p class="mch__d2">{d2}</p><a class="mch__go" href="#contact">Book a session{ARROW}</a></div></article>'
+  f'<p class="mch__d">{d}</p><p class="mch__d2">{d2}</p><a class="mch__go" href="#contact" data-service="{n}">Book a session{ARROW}</a></div></article>'
   for k, (n, v, u, d, d2, y, img) in enumerate(MACH))
 MCH = ('<section class="mchs" id="machines" aria-label="Our machines"><div class="az-wrap">'
   '<div class="mchs__head"><h2 class="mchs__h2">German technologies, <em>first in Kolhapur.</em></h2>'
@@ -39,9 +39,9 @@ MAIN = '\n'.join([PH, MCH, TC, ST, BK, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--technology">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/technology.css?v=3">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=35">\n<link rel="stylesheet" href="/home/css/technology.css?v=3">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=84', h)
-h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/bk.js?v=1" defer></script>\n<script src="/home/js/tcp.js?v=1" defer></script>', h, count=1)
+h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/bk.js?v=2" defer></script>\n<script src="/home/js/tcp.js?v=1" defer></script>', h, count=1)
 assert 'class="mchs"' in h and 'class="tc"' in h and 'class="st"' in h and 'class="bk"' in h and 'az-foot' in h
 io.open(R + 'technology/index.html', 'w', encoding='utf8').write(h)
 print('ok', len(h))

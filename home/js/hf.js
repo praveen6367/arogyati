@@ -131,12 +131,13 @@
         if (head.contains(el)) continue;
         for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
           if (e.dataset && e.dataset.head) return e.dataset.head === 'light';
+          if (e.getBoundingClientRect().width < innerWidth * 0.4) continue; // buttons, chips and small cards passing under the logo don't count
           if (/^(VIDEO|IMG|CANVAS|PICTURE)$/.test(e.tagName) && getComputedStyle(e).opacity > 0.5) return e.tagName === 'CANVAS';
           const L = lum(getComputedStyle(e).backgroundColor); if (L >= 0) return L > 0.6;
         }
         break;
       }
-      return lum(getComputedStyle(document.body).backgroundColor) > 0.6;
+      const Lb = lum(getComputedStyle(document.body).backgroundColor); return Lb < 0 ? true : Lb > 0.6; // nothing opaque behind the logo: the page itself is light
     };
     let tick = false;
     const upd = () => { tick = false; head.classList.toggle('on-light', light()); };

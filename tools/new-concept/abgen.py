@@ -78,7 +78,7 @@ MAIN = '\n'.join([STORY, WY, VM, TEAM, MDX, HX2, ST, CX, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--about">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/about.css?v=6">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=35">\n<link rel="stylesheet" href="/home/css/about.css?v=6">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=84', h)
 h = re.sub(r'/home/css/home\.css\?v=\d+', '/home/css/home.css?v=135', h)
 h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=3" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=5"></script>', h, count=1)

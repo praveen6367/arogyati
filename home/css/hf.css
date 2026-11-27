@@ -374,3 +374,8 @@
   .hx2m__y{font-size:2.8rem}
   .hx2m__card{margin:0;aspect-ratio:16/9;max-width:520px}
 }
+/* booking: the service picked from a "Book this service" link */
+.az-home .bk-svc{display:flex;align-items:baseline;flex-wrap:wrap;gap:.35rem .6rem;margin:-6px 0 18px;padding:.7rem 1rem;border-radius:14px;background:#F2F6F1;font-size:.86rem;color:#5E6963}
+.bk-svc[hidden]{display:none!important}
+.bk-svc b{font-weight:500;color:#14201A}
+.az-home .bk-svc button{all:unset;margin-left:auto;font-size:.8rem;color:#4F8A3F;cursor:pointer;border-bottom:1px solid currentColor}

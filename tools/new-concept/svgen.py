@@ -21,7 +21,7 @@ SERV = [
   ('Cupping And Dry Needling Taping', 'Manage Pain', 'cupping', "A therapist treating a patient's arm"),
 ]
 cards = ''.join(
-  f'<a class="svx-card" href="#contact" data-svx-card><figure class="svx-card__ph"><img src="/home/assets/img/svc/{img}.webp" alt="{alt}" width="960" height="744" loading="lazy" decoding="async"></figure>'
+  f'<a class="svx-card" href="#contact" data-svx-card data-service="{_h.unescape(t)}"><figure class="svx-card__ph"><img src="/home/assets/img/svc/{img}.webp" alt="{alt}" width="960" height="744" loading="lazy" decoding="async"></figure>'
   f'<div class="svx-card__body"><span class="svx-card__n">{k + 1:02d}</span><h3 class="svx-card__t">{t}</h3><p class="svx-card__l">{l}</p><span class="svx-card__go">Book this service{ARROW}</span></div></a>'
   for k, (t, l, img, alt) in enumerate(SERV))
 cards += (f'<a class="svx-card svx-card--cta" href="#contact" data-svx-card><div class="svx-card__body"><h3 class="svx-card__t">Not sure where to start?</h3>'
@@ -61,9 +61,9 @@ MAIN = '\n'.join([PH, SVX, HV, AP, TEAM, RLX, BK, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--services">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/about.css?v=3">\n<link rel="stylesheet" href="/home/css/services.css?v=6">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=35">\n<link rel="stylesheet" href="/home/css/about.css?v=3">\n<link rel="stylesheet" href="/home/css/services.css?v=6">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=84', h)
-h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/bk.js?v=1" defer></script>\n<script src="/home/js/svx.js?v=2" defer></script>', h, count=1)
+h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/bk.js?v=2" defer></script>\n<script src="/home/js/svx.js?v=2" defer></script>', h, count=1)
 assert 'class="svx"' in h and 'class="rlx"' in h and 'class="bk"' in h and 'tx abt' in h and 'az-foot' in h
 io.open(R + 'services/index.html', 'w', encoding='utf8').write(h)
 print('ok', len(h), 'reels', len(REELS))

@@ -89,12 +89,20 @@
     err.textContent = '';
     const w = `${fmtDay(date)} at ${fmtT(time)}`;
     doneW.textContent = `${name}, ${w}`;
-    const msg = `Hello Arogyati, I would like to book an appointment on ${w}.\nName: ${name}\nPhone: ${phone}${note ? `\nConcern: ${note}` : ''}`;
+    const msg = `Hello Arogyati, I would like to book an appointment on ${w}.\nName: ${name}\nPhone: ${phone}${service && service !== note ? `\nService: ${service}` : ''}${note ? `\n${note === service ? 'Service' : 'Concern'}: ${note}` : ''}`;
     wa.href = `https://wa.me/919420294219?text=${encodeURIComponent(msg)}`;
     setStep(4);
   });
   $('.bk-again').addEventListener('click', () => { time = null; renderTimes(); setStep(2); });
 
+  // a "Book this service" link anywhere on the page: show the service on the card and carry it into the request
+  let service = '';
+  const svcEl = d.createElement('p'); svcEl.className = 'bk-svc'; svcEl.hidden = true;
+  svcEl.innerHTML = '<span>Booking for</span><b></b><button type="button" aria-label="Clear the selected service">Change</button>';
+  card.insertBefore(svcEl, card.querySelector('.bk-pane--pick'));
+  const setService = (n) => { service = n || ''; svcEl.hidden = !service; svcEl.querySelector('b').textContent = service; if (service && !form.note.value.trim()) form.note.value = service; };
+  svcEl.querySelector('button').addEventListener('click', () => { if (form.note.value.trim() === service) form.note.value = ''; setService(''); });
+  d.addEventListener('click', (e) => { const a = e.target.closest('[data-service]'); if (a) setService(a.dataset.service); });
   renderCal(); setStep(1);
   // reveal
   if (g && window.ScrollTrigger && !RM) {
