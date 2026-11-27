@@ -39,7 +39,7 @@ MAIN = '\n'.join([PH, MCH, TC, ST, BK, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--technology">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=31">\n<link rel="stylesheet" href="/home/css/technology.css?v=1">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=34">\n<link rel="stylesheet" href="/home/css/technology.css?v=1">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=84', h)
 h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/bk.js?v=1" defer></script>\n<script src="/home/js/tcp.js?v=1" defer></script>', h, count=1)
 assert 'class="mchs"' in h and 'class="tc"' in h and 'class="st"' in h and 'class="bk"' in h and 'az-foot' in h

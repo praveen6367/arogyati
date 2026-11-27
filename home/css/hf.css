@@ -17,11 +17,13 @@
 .hf-hero__p{position:absolute;left:0;right:0;bottom:0;z-index:2;height:2px;background:rgba(255,255,255,.2)}
 .hf-hero__p i{position:absolute;inset:0;background:#fff;transform-origin:left;transform:scaleX(var(--pr,0))}
 /* phones: the whole 16:9 frame over a soft blurred backdrop, so the film's captions are never cropped */
-@media (max-width:899px){
+@media (max-width:899px),(orientation:portrait) and (max-width:1100px){
+  /* the hero hugs the film: header, the full-width frame, then the sound toggle; no tall empty bands */
+  .hf-hero{height:calc(56.25vw + clamp(190px,26vw,280px));min-height:0}
   .hf-hero__bg{display:block}
-  .hf-hero__v{inset:auto 0;top:50%;height:auto;aspect-ratio:16/9;transform:translateY(-50%);object-fit:cover}
-  .az-home .hf-snd{left:50%;right:auto;top:auto;bottom:calc(50% - 28.125vw - 64px);transform:translateX(-50%);font-size:9px;letter-spacing:.12em;gap:.55rem}
-  .hf-snd__ic{width:38px;height:38px}.hf-snd__ic svg{width:17px;height:17px}
+  .hf-hero__v{inset:auto 0;top:clamp(92px,13vw,124px);height:auto;aspect-ratio:16/9;transform:none;object-fit:cover}
+  .az-home .hf-snd{left:50%;right:auto;top:calc(clamp(92px,13vw,124px) + 56.25vw + clamp(18px,3vw,28px));bottom:auto;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;gap:.6rem}
+  .hf-snd__ic{width:40px;height:40px}.hf-snd__ic svg{width:17px;height:17px}
 }
 /* the modalities: a quiet editorial strip between fine hairlines, names divided by the Arogyati leaf */
 .hf-mq{position:relative;overflow:hidden;padding:clamp(22px,2.6vw,34px) 0;background:#F6F7F3;border-top:1px solid rgba(20,32,26,.08);border-bottom:1px solid rgba(20,32,26,.08)}
@@ -156,7 +158,7 @@
 .hp3__idx button.is-on span{color:#E8705C}.hp3__idx button.is-on span::after{width:.5rem}
 .az-home .hp3__idx button:focus-visible{outline:1px solid #14201A;outline-offset:3px}
 .hp3__dots{grid-column:1 / -1;display:flex;gap:6px;margin-top:18px}
-.az-home .hp3__dots button{all:unset;flex:1;height:22px;cursor:pointer;position:relative}
+.az-home .hp3__dots button{all:unset;flex:1;height:36px;cursor:pointer;position:relative}
 .hp3__dots button::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;border-radius:2px;background:rgba(20,32,26,.12);transition:background .4s}
 .hp3__dots button.is-on::before{background:#E8705C}
 .hp3__dots span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -166,7 +168,7 @@
 .hp3.is-in .hp3__fig,.hp3.is-in .hp3__reel,.hp3.is-in .hp3__info,.hp3.is-in .hp3__lab{opacity:1;transform:none}
 .hp3.is-in .hp3__reel{transition-delay:.12s}.hp3.is-in .hp3__info{transition-delay:.22s}.hp3.is-in .hp3__lab{transition-delay:.3s}
 @media (max-width:899px){
-  .hp3{height:calc(var(--n) * 38vh + 100vh)}
+  .hp3{height:calc(var(--n) * 30vh + 100vh)}
   .hp3__pin{padding:76px 0 18px}
   .hp3__grid{grid-template-columns:minmax(0,.8fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"h2 h2" "fig reel" "lab lab" "info info";column-gap:12px;row-gap:12px}
   .az-home .hp3__h2{font-size:clamp(2rem,9vw,2.6rem)}
@@ -231,10 +233,10 @@
 .mdx__ticks i.is-on{width:38px;background:#14201A}
 @media (max-width:1100px) and (min-width:900px){.mdx__grid{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}}
 @media (max-width:899px){
-  .mdx{height:calc(var(--n) * 75vh + 40vh)}
+  .mdx{height:calc(var(--n) * 60vh + 40vh)}
   .mdx__pin{padding:76px 0 20px;align-items:flex-start}
   .mdx__bg::after{background:linear-gradient(180deg,#F7F9FB 0%,rgba(247,249,251,.92) 40%,rgba(247,249,251,.45) 68%,rgba(247,249,251,0) 92%)}
-  .mdx__grid{grid-template-columns:1fr;gap:18px;align-items:start}
+  .mdx__grid{grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
   .mdx__copy{max-width:none}
   .az-home .mdx__h2{font-size:clamp(1.9rem,8.4vw,2.4rem);margin-bottom:14px}
   .az-home .mdx__name{font-size:1.4rem;margin-top:.35rem}
@@ -257,7 +259,7 @@
 .bk__facts svg{flex:none;width:20px;height:20px;margin-top:2px;color:#4F8A3F}
 .bk__facts span{display:flex;flex-direction:column;gap:3px;font-size:.88rem;line-height:1.45;color:#5E6963}
 .bk__facts b{font-size:1rem;font-weight:500;color:#14201A}
-.az-home .bk__facts a{color:inherit;text-decoration:none;transition:color .3s}
+.az-home .bk__facts a{color:inherit;text-decoration:none;transition:color .3s;display:inline-block;padding:6px 0}
 .az-home .bk__facts a:hover{color:#4F8A3F}
 /* card */
 .bk-card{position:relative;background:#fff;border-radius:32px;padding:clamp(22px,2.6vw,36px);box-shadow:0 1px 2px rgba(20,40,60,.04),0 30px 70px -40px rgba(20,40,60,.28),0 0 0 1px rgba(20,32,26,.05);min-height:520px;box-sizing:border-box;overflow:hidden}
@@ -342,3 +344,33 @@
 /* breathing room between the modalities film and the timeline card; the film fades out at its very bottom edge */
 .mdx + .hx2{margin-top:clamp(56px,7vw,120px)}
 .mdx__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:clamp(40px,7vh,80px);z-index:0;pointer-events:none;background:linear-gradient(rgba(247,249,251,0),#F7F9FB)}
+/* short, wide screens (phones held sideways): the pinned sections go side by side with compact type so everything fits one screen */
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .hp3__pin{padding:62px 0 10px;align-items:stretch}
+  .hp3__grid{grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"fig h2" "fig reel" "lab info";column-gap:22px;row-gap:8px;height:100%;align-content:stretch}
+  .az-home .hp3__h2{font-size:1.55rem}
+  .hp3__reel{border-radius:16px;min-height:0}
+  .hp3__fig::after{display:none}
+  .hp3__lab{gap:8px}.az-home .hp3__arw{width:32px;height:32px}.az-home .hp3__pill{padding:.4rem .8rem;min-width:0}.hp3__lname{font-size:.9rem}
+  .hp3__info{grid-template-columns:minmax(0,1fr) auto;column-gap:16px}
+  .az-home .hp3__t{font-size:1.1rem}.az-home .hp3__c{font-size:.78rem;margin-top:.15rem}
+  .az-home .hp3__r{grid-column:2;grid-row:1 / 3;margin:0;padding-left:12px;max-width:22ch}.hp3__r b{font-size:.8rem}.hp3__r small{font-size:.7rem}
+  .hp3__dots{margin-top:4px;padding-top:0}.az-home .hp3__dots button{height:22px}
+  .mdx__pin{padding:60px 0 10px;align-items:center}
+  .mdx__grid{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:24px;align-items:center}
+  .az-home .mdx__h2{font-size:1.5rem;margin-bottom:8px}
+  .az-home .mdx__name{font-size:1.15rem;margin-top:.2rem}
+  .az-home .mdx__stat{margin-top:.4rem}.mdx__stat b{font-size:1.4rem}
+  .az-home .mdx__d{font-size:.8rem;margin-top:.5rem;padding-top:.5rem}
+  .az-home .mdx__d2{display:none}
+  .mdx__foot{margin-top:10px}.az-home .mdx__cta{padding:.6rem 1rem;font-size:.8rem}
+  .mdx__stage{max-width:calc((100svh - 120px) * 1.6 + 16px);padding:8px;border-radius:22px;justify-self:end}
+  .mdx__view,.mdx-card{border-radius:15px}
+  .mdx__bar{padding:6px 4px 0 6px}.mdx__bname b{font-size:.8rem}
+  .mdx__bg::after{background:linear-gradient(90deg,rgba(247,249,251,.96) 0%,rgba(247,249,251,.88) 42%,rgba(247,249,251,.25) 100%),linear-gradient(180deg,rgba(247,249,251,.7),rgba(247,249,251,0) 30%)}
+  /* timeline list: year beside a shorter card instead of a screen-tall photo */
+  .hx2m{max-width:none!important}
+  .hx2m__i{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr);gap:24px;align-items:end}
+  .hx2m__y{font-size:2.8rem}
+  .hx2m__card{margin:0;aspect-ratio:16/9;max-width:520px}
+}
