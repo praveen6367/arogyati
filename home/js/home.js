@@ -51,7 +51,7 @@
   }));
 
   /* active section in nav + sliding lime indicator (follows hover, settles on the active section) */
-  const nav = $('.az-nav'), ind = $('.az-nav__ind'), navLinks = $$('.az-nav a');
+  const nav = $('.az-nav'), ind = $('.az-nav__ind'), navLinks = $$('.az-nav > a, .az-nav__grp > a');
   let activeLink = null;
   const moveInd = (a) => {
     navLinks.forEach((l) => l.classList.toggle('is-ind', l === a));

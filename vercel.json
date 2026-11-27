@@ -27,5 +27,27 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/home/conditions",
+      "destination": "/home/#conditions",
+      "permanent": true
+    },
+    {
+      "source": "/home/conditions/",
+      "destination": "/home/#conditions",
+      "permanent": true
+    },
+    {
+      "source": "/home/team",
+      "destination": "/home/about/#team",
+      "permanent": true
+    },
+    {
+      "source": "/home/team/",
+      "destination": "/home/about/#team",
+      "permanent": true
+    }
   ]
 }
