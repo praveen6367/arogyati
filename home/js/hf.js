@@ -130,6 +130,7 @@
       for (const el of document.elementsFromPoint(x, y)) {
         if (head.contains(el)) continue;
         for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+          if (e.dataset && e.dataset.head) return e.dataset.head === 'light';
           if (/^(VIDEO|IMG|CANVAS|PICTURE)$/.test(e.tagName) && getComputedStyle(e).opacity > 0.5) return e.tagName === 'CANVAS';
           const L = lum(getComputedStyle(e).backgroundColor); if (L >= 0) return L > 0.6;
         }

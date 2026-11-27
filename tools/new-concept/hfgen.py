@@ -82,6 +82,36 @@ HP = (f'<section class="hp3" id="conditions" aria-label="Where does it hurt?" st
   f'<div class="hp3__info"><div class="hp3__tx"><h3 class="hp3__t">{A0[1]}</h3><p class="hp3__c">{A0[2]}</p></div><p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
   f'<nav class="hp3__dots" aria-label="Body areas">{dots}</nav></div>'
   f'</div></div><script type="application/json" id="hp3-data">{data}</script></section>')
+
+# treatments: the four advanced machines (copy from the Technology page). Machine reels are placeholders: the MRT film four times.
+MACH = [
+  ('Matrix Rhythm Therapy', '8–12', 'Hz resonance', 'A specially developed resonator produces vibration between 8 &amp; 12 Hz, equal &amp; similar to the normal cells in human body.', 'Our cells oscillate rhythmically.', '2009'),
+  ('Magnetodyn', '2–20', 'Hz magnetic field', 'Unique feature is the combination of magnetic therapy &amp; electrotherapy.', '100 times stronger than Earth’s magnetic field, which improves the cellular metabolism.', '2016'),
+  ('Class IV Laser', 'Class IV', 'Laser', 'Non-invasive use of laser energy to generate a photochemical response in damaged/dysfunctional tissue.', 'Penetrates deep into the tissue &amp; stimulates healing at a cellular level.', '2019'),
+  ('Super Inductive System', '0.85', 'Tesla intensity', 'It gives the effect of a strong pulsed electromagnetic field in human tissue.', 'Triggers strong muscle contractions &amp; contributes to pain management.', '2024'),
+]
+TXN = len(MACH)
+txcopy = ''.join(
+  f'<article class="mdx__item{" is-on" if k == 0 else ""}" data-k="{k}" aria-hidden="{"false" if k == 0 else "true"}">'
+  f'<p class="mdx__idx"><b>{k + 1:02d}</b> / {TXN:02d}</p>'
+  f'<h3 class="mdx__name">{n}</h3>'
+  f'<p class="mdx__stat"><b>{v}</b><span>{u}</span><span class="mdx__since">At Arogyati since {y}</span></p>'
+  f'<p class="mdx__d">{d}</p><p class="mdx__d2">{d2}</p></article>'
+  for k, (n, v, u, d, d2, y) in enumerate(MACH))
+txcards = ''.join(
+  f'<figure class="mdx-card" data-k="{k}" style="--k:{k}"><video muted loop playsinline preload="none" poster="/home/assets/video/mrt-film.jpg" data-src="/home/assets/video/mrt-film-720.mp4" aria-label="{n} at Arogyati"></video>'
+  f'<figcaption><span>{k + 1:02d}</span>{n}</figcaption></figure>'
+  for k, (n, v, u, d, d2, y) in enumerate(MACH))
+txticks = ''.join(f'<i data-k="{k}"{" class=\"is-on\"" if k == 0 else ""}></i>' for k in range(TXN))
+TX = (f'<section class="mdx" id="technology" aria-label="Advanced modalities" style="--n:{TXN}"><div class="mdx__pin">'
+  '<div class="mdx__bg" aria-hidden="true" data-head="light"><video muted loop playsinline preload="none" poster="/home/assets/video/tx-bg.jpg" data-src="/home/assets/video/tx-bg.mp4"></video></div>'
+  '<div class="az-wrap mdx__grid">'
+  '<div class="mdx__copy"><h2 class="mdx__h2">Advanced <em>modalities.</em></h2>'
+  f'<div class="mdx__items">{txcopy}</div>'
+  f'<div class="mdx__foot"><a class="mdx__cta" href="#contact">Book a session<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div>'
+  f'<div class="mdx__stage"><div class="mdx__view">{txcards}</div><div class="mdx__bar"><p class="mdx__bname"><span>01</span><b>{MACH[0][0]}</b></p><div class="mdx__ticks" aria-hidden="true">{txticks}</div></div></div>'
+  '</div></div></section>')
+HP = HP + '\n' + TX
 SVC = SVC + '\n' + HP
 MQ = MQ + '\n' + SVC
 HERO = HERO.replace('</section>\n</main>', '</section>\n' + MQ + '\n</main>')
@@ -92,8 +122,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=21">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=12" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=28">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=13" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>\n<script src="/home/js/mdx.js?v=2" defer></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)
