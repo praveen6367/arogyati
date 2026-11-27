@@ -62,22 +62,25 @@ SVC = ('<section class="hfs" id="services" aria-label="Our services"><div class=
 # where does it hurt: the particle body, the clinic reel and the nine areas, together (data from the conditions section)
 AREAS = re.findall(r'<article class="cd4m__s" data-area="([a-z]+)"><header class="cd4m__h"><span>[^<]*</span><h3>([^<]*)</h3><p>([^<]*)</p></header>.*?data-poster="([^"]+)" data-src="([^"]+)".*?<b>([^<]*)</b><small>([^<]*)</small>', h, re.S)
 assert len(AREAS) == 9, len(AREAS)
-SPOT = {'head': (54.2, 7.5), 'neck': (54.2, 14.1), 'shoulder': (76.4, 21.9), 'chest': (54.2, 26.4), 'back': (54.2, 42.0), 'elbow': (17.1, 37.5), 'wrist': (8.3, 52.0), 'knee': (64.8, 72.1), 'heel': (35.6, 95.5)}
-SNDOFF = SPK_OFF.replace('class="is-off"', 'class="is-off"'); SNDON = SPK_ON
-spots = ''.join(f'<button type="button" class="hp-spot" data-k="{k}" style="--x:{SPOT[a][0]}%;--y:{SPOT[a][1]}%" aria-label="{n}"><i></i></button>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
-vids = ''.join(f'<video muted loop playsinline preload="none" data-k="{k}" data-poster="{po}" data-src="{src}"></video>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
-rows = ''.join(f'<li><button type="button" class="hp-row" data-k="{k}"><span class="hp-row__n">{k + 1:02d}</span><b>{n}</b><small>{c}</small></button></li>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
+SNDOFF = SPK_OFF; SNDON = SPK_ON
 import json, html as _h
-data = json.dumps([{'n': _h.unescape(n), 'c': _h.unescape(c), 'cb': _h.unescape(cb), 'cs': _h.unescape(cs)} for (a, n, c, po, src, cb, cs) in AREAS], ensure_ascii=False).replace('</', '<\\/')
-HP = (f'<section class="hp" id="conditions" aria-label="Where does it hurt?"><div class="az-wrap">'
-  '<h2 class="hp__h2">Where does it <em>hurt?</em></h2>'
-  '<div class="hp__grid">'
-  f'<div class="hp__body"><div class="hp__fig"><img src="/home/assets/img/body-particles.webp" alt="" width="560" height="1163" loading="lazy" decoding="async">{spots}</div>'
-  '<div class="hp__name"><span class="hp__idx"><b>01</b> / 09</span><b class="hp__area">Head</b><span class="hp__cond">Stroke · Bell&#39;s Palsy</span></div></div>'
-  f'<figure class="hp__reel"><div class="hp__vids">{vids}</div><div class="hp__cap"><b>TMJ pain</b><small>Lower jaw &amp; upper skull</small></div>'
-  f'<button type="button" class="hp__snd" aria-pressed="false" aria-label="Unmute reel"><b class="hf-snd__ic">{SNDOFF}{SNDON}</b></button><div class="hp__prog" aria-hidden="true"><i></i></div></figure>'
-  f'<ol class="hp__list">{rows}</ol>'
-  f'</div><script type="application/json" id="hp-data">{data}</script></div></section>')
+vids = ''.join(f'<video muted loop playsinline preload="none" data-k="{k}" data-poster="{po}" data-src="{src}"></video>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
+bgs = ''.join(f'<img alt="" data-src="{po}" decoding="async">' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
+dots = ''.join(f'<button type="button" aria-label="{n}"><span>{k + 1:02d}</span></button>' for k, (a, n, c, po, src, cb, cs) in enumerate(AREAS))
+data = json.dumps([{'a': a, 'n': _h.unescape(n), 'c': _h.unescape(c), 'cb': _h.unescape(cb), 'cs': _h.unescape(cs)} for (a, n, c, po, src, cb, cs) in AREAS], ensure_ascii=False).replace('</', '<\\/')
+A0 = AREAS[0]
+ARW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+HP = (f'<section class="hp3" id="conditions" aria-label="Where does it hurt?" style="--n:{len(AREAS)}"><div class="hp3__pin"><div class="az-wrap hp3__grid">'
+  '<h2 class="hp3__h2">Where does it <em>hurt?</em></h2>'
+  '<div class="hp3__fig"><canvas class="hp3__gl" aria-hidden="true"></canvas></div>'
+  f'<div class="hp3__lab"><button type="button" class="hp3__arw hp3__arw--prev" aria-label="Previous area">{ARW}</button>'
+  f'<p class="hp3__pill" aria-live="polite"><span class="hp3__lidx"><b>01</b>/{len(AREAS):02d}</span><b class="hp3__lname">{A0[1]}</b></p>'
+  f'<button type="button" class="hp3__arw hp3__arw--next" aria-label="Next area">{ARW}</button></div>'
+  f'<figure class="hp3__reel"><div class="hp3__bgs">{bgs}</div><div class="hp3__vids">{vids}</div>'
+  f'<button type="button" class="hp3__snd" aria-pressed="false" aria-label="Unmute reel"><b class="hf-snd__ic">{SNDOFF}{SNDON}</b></button><div class="hp3__mprog" aria-hidden="true"><i></i></div></figure>'
+  f'<div class="hp3__info"><h3 class="hp3__t">{A0[1]}</h3><p class="hp3__c">{A0[2]}</p><p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
+  f'<nav class="hp3__dots" aria-label="Body areas">{dots}</nav></div>'
+  f'</div></div><script type="application/json" id="hp3-data">{data}</script></section>')
 SVC = SVC + '\n' + HP
 MQ = MQ + '\n' + SVC
 HERO = HERO.replace('</section>\n</main>', '</section>\n' + MQ + '\n</main>')
@@ -88,8 +91,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=16">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=11" defer></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=19">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=11" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=4"></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)
