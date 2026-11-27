@@ -151,7 +151,9 @@ BK = ('<section class="bk" id="contact" aria-label="Book an appointment"><div cl
   '<div class="bk-done__btns"><a class="bk-submit bk-wa" target="_blank" rel="noopener" href="https://wa.me/919420294219">Send on WhatsApp</a><a class="bk-ghost" href="tel:+919420294219">Call the clinic</a></div>'
   '<button type="button" class="bk-again">Pick another time</button></div>'
   '</div></div></section>')
-HP = HP + '\n' + ST + '\n' + BK
+# timeline: the homepage clinic history as it is (its pinned scroll lives in home.js)
+HX2 = re.search(r'<section class="hx2" id="history">.*?</section>', h, re.S).group(0)
+HP = HP + '\n' + HX2 + '\n' + ST + '\n' + BK
 SVC = SVC + '\n' + HP
 MQ = MQ + '\n' + SVC
 HERO = HERO.replace('</section>\n</main>', '</section>\n' + MQ + '\n</main>')
