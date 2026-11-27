@@ -80,4 +80,45 @@
       raf = requestAnimationFrame(loop);
     }
   }
+  // where does it hurt: pick an area on the body or in the list; the reel and the name follow; it cycles until someone picks
+  const hp = document.querySelector('.hp');
+  if (hp) {
+    const D = JSON.parse(document.getElementById('hp-data').textContent);
+    const spots = [...hp.querySelectorAll('.hp-spot')], rows = [...hp.querySelectorAll('.hp-row')], vids = [...hp.querySelectorAll('.hp__vids video')];
+    const idx = hp.querySelector('.hp__idx b'), area = hp.querySelector('.hp__area'), cond = hp.querySelector('.hp__cond'), cb = hp.querySelector('.hp__cap b'), cs = hp.querySelector('.hp__cap small');
+    const snd = hp.querySelector('.hp__snd'), prog = hp.querySelector('.hp__prog i');
+    rows.forEach((r, i) => r.parentElement.style.setProperty('--i', i));
+    let cur = -1, vis = false, user = false, muted = true, t0 = 0;
+    const G = window.gsap;
+    const show = (k) => {
+      if (k === cur) return; cur = k; t0 = performance.now();
+      spots.forEach((s2, i) => s2.classList.toggle('is-on', i === k)); rows.forEach((r, i) => r.classList.toggle('is-on', i === k));
+      const d = D[k], set = () => { idx.textContent = String(k + 1).padStart(2, '0'); area.textContent = d.n; cond.textContent = d.c; cb.textContent = d.cb; cs.textContent = d.cs; };
+      if (G) { G.to([area, cond, cb, cs], { opacity: 0, y: -8, duration: 0.2, ease: 'power2.in', overwrite: true, onComplete: () => { set(); G.fromTo([area, cond, cb, cs], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: 'expo.out' }); } }); } else set();
+      vids.forEach((v, i) => {
+        const on = i === k;
+        if (on) { if (!v.getAttribute('src')) { v.poster = v.dataset.poster; v.src = v.dataset.src; } v.muted = muted; v.classList.add('is-on'); if (vis) { const p = v.play(); if (p) p.catch(() => {}); } }
+        else { v.classList.remove('is-on'); v.pause(); }
+      });
+    };
+    const pick = (k) => { user = true; show(k); };
+    spots.forEach((s2, i) => s2.addEventListener('click', () => pick(i)));
+    rows.forEach((r, i) => { r.addEventListener('click', () => pick(i)); r.addEventListener('mouseenter', () => { if (matchMedia('(hover: hover)').matches) pick(i); }); });
+    snd.addEventListener('click', () => { muted = !muted; snd.setAttribute('aria-pressed', String(!muted)); snd.setAttribute('aria-label', muted ? 'Unmute reel' : 'Mute reel'); vids.forEach((v) => { v.muted = muted; }); user = true; const v = vids[cur]; if (v && !muted) { const p = v.play(); if (p) p.catch(() => {}); } });
+    new IntersectionObserver((es) => es.forEach((e) => {
+      vis = e.isIntersecting;
+      if (vis) { hp.classList.add('is-in'); if (cur < 0) show(0); const v = vids[cur]; if (v) { const p = v.play(); if (p) p.catch(() => {}); } }
+      else vids.forEach((v) => v.pause());
+    }), { threshold: 0.2 }).observe(hp);
+    // until someone picks, step through the areas; the line under the reel shows the time left
+    const CYCLE = 6500;
+    (function tick() {
+      if (vis && cur >= 0) {
+        const f = Math.min(1, (performance.now() - t0) / CYCLE);
+        prog.style.setProperty('--p', user ? 0 : f.toFixed(3));
+        if (!user && f >= 1 && !document.hidden) show((cur + 1) % D.length);
+      }
+      requestAnimationFrame(tick);
+    })();
+  }
 })();
