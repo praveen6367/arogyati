@@ -17,13 +17,13 @@ STORY = ('<section class="abs" id="top" aria-label="Our story"><div class="abs__
   '<nav class="ph__crumb abs__crumb" aria-label="Breadcrumb"><a href="/home/">Home</a><i></i><span>About</span></nav>'
   '<div class="abs__beats">'
   '<article class="abs__beat is-on" aria-hidden="false">'
-  '<h1 class="abs__h" data-ph-h1>First Big Private Clinic <em>In Kolhapur.</em></h1>'
-  '<p class="abs__p">Well Equipped Physiotherapy Center With Ultra Modern German Technologies. Working For Holistic Approach.</p>'
+  '<h1 class="abs__h" data-ph-h1>First big private clinic in <em>Kolhapur.</em></h1>'
+  '<p class="abs__p">A well equipped physiotherapy centre with ultra modern German technologies, working for a holistic approach.</p>'
   '<ul class="abs__stats"><li><b>2007</b><span>To present</span></li><li><b>18 yrs</b><span>Own private set up</span></li><li><b>12+8</b><span>Physios + assistants</span></li></ul>'
   '</article>'
   '<article class="abs__beat" aria-hidden="true">'
   '<h2 class="abs__h">Physiotherapy <em>at home.</em></h2>'
-  '<p class="abs__p">Physiotherapy Services For Hospitalized &amp; Bedridden Patients At Home.</p>'
+  '<p class="abs__p">Physiotherapy services for hospitalised and bedridden patients, at home.</p>'
   '</article>'
   '<article class="abs__beat" aria-hidden="true">'
   '<h2 class="abs__h">Hospital <em>visits.</em></h2>'
@@ -78,7 +78,7 @@ MAIN = '\n'.join([STORY, WY, VM, TEAM, MDX, HX2, ST, CX, PN])
 h = src
 a = h.index('<main id="main" class="pg pg--about">'); a = h.index('>', a) + 1; b = h.index('</main>', a)
 h = h[:a] + '\n' + MAIN + '\n' + h[b:]
-h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=31">\n<link rel="stylesheet" href="/home/css/about.css?v=1">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/pages\.css\?v=\d+">', lambda m: m.group(0) + '\n<link rel="stylesheet" href="/home/css/hf.css?v=31">\n<link rel="stylesheet" href="/home/css/about.css?v=3">', h, count=1)
 h = re.sub(r'/home/js/home\.js\?v=\d+', '/home/js/home.js?v=83', h)
 h = re.sub(r'/home/css/home\.css\?v=\d+', '/home/css/home.css?v=133', h)
 h = re.sub(r'(<script src="/home/js/pages\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/ab-vm.js?v=1" defer></script>\n<script type="module" src="/home/js/ab-story.js?v=3"></script>', h, count=1)
