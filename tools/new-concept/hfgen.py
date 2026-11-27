@@ -112,6 +112,46 @@ TX = (f'<section class="mdx" id="technology" aria-label="Advanced modalities" st
   f'<div class="mdx__stage"><div class="mdx__view">{txcards}</div><div class="mdx__bar"><p class="mdx__bname"><span>01</span><b>{MACH[0][0]}</b></p><div class="mdx__ticks" aria-hidden="true">{txticks}</div></div></div>'
   '</div></div></section>')
 HP = HP + '\n' + TX
+
+# testimonials: the homepage section as it is (its script lives in home.js)
+ST = re.search(r'<section class="st" id="testimonials">.*?</section>', h, re.S).group(0)
+# booking: a custom date and time picker (stand-in until Calendly); hours from the contact page
+ARW_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+IC_PH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>'
+IC_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'
+IC_CLK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+BK = ('<section class="bk" id="contact" aria-label="Book an appointment"><div class="az-wrap bk__grid">'
+  '<div class="bk__intro">'
+  '<h2 class="bk__h2">Schedule <em>appointment.</em></h2>'
+  '<p class="bk__sub">Pick a day and a time that suits you. We will call to confirm your visit.</p>'
+  '<ul class="bk__facts">'
+  f'<li>{IC_CLK}<span><b>Monday to Saturday</b>10 am – 2 pm &amp; 4 pm – 7 pm · Sunday closed</span></li>'
+  f'<li>{IC_PIN}<span><b>Arogyati, Kolhapur</b>766 E Mahalaxmi Arcade, Shahupuri Main Road</span></li>'
+  f'<li>{IC_PH}<span><b><a href="tel:+919420294219">+91 94202 94219</a></b><a href="mailto:info@arogyati.com">info@arogyati.com</a></span></li>'
+  '</ul></div>'
+  '<div class="bk-card" data-step="1">'
+  '<div class="bk-card__steps" aria-hidden="true"><span class="is-on">Date</span><span>Time</span><span>Details</span></div>'
+  '<div class="bk-pane bk-pane--pick">'
+  '<div class="bk-cal">'
+  f'<div class="bk-cal__head"><button type="button" class="bk-cal__nav bk-cal__nav--prev" aria-label="Previous month">{ARW_L}</button><p class="bk-cal__month" aria-live="polite"></p><button type="button" class="bk-cal__nav bk-cal__nav--next" aria-label="Next month">{ARW_L}</button></div>'
+  '<div class="bk-cal__dow" aria-hidden="true"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>'
+  '<div class="bk-cal__days" role="grid"></div></div>'
+  '<div class="bk-times"><p class="bk-times__date">Choose a date</p>'
+  '<div class="bk-times__grp"><p class="bk-times__lab">Morning</p><div class="bk-times__list" data-slots="am"></div></div>'
+  '<div class="bk-times__grp"><p class="bk-times__lab">Evening</p><div class="bk-times__list" data-slots="pm"></div></div>'
+  '<p class="bk-times__empty">Select a date to see open times.</p></div></div>'
+  '<form class="bk-pane bk-pane--form" novalidate>'
+  f'<button type="button" class="bk-back">{ARW_L}<span class="bk-back__when"></span></button>'
+  '<label class="bk-f"><span>Full name</span><input name="name" autocomplete="name" required></label>'
+  '<label class="bk-f"><span>Phone</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>'
+  '<label class="bk-f bk-f--wide"><span>What brings you in? <i>(optional)</i></span><input name="note" autocomplete="off"></label>'
+  '<button type="submit" class="bk-submit">Request appointment</button>'
+  '<p class="bk-err" role="alert"></p></form>'
+  '<div class="bk-pane bk-pane--done" role="status"><p class="bk-done__t">Request noted.</p><p class="bk-done__w"></p><p class="bk-done__s">Online booking opens soon. To confirm today, send this on WhatsApp or call us.</p>'
+  '<div class="bk-done__btns"><a class="bk-submit bk-wa" target="_blank" rel="noopener" href="https://wa.me/919420294219">Send on WhatsApp</a><a class="bk-ghost" href="tel:+919420294219">Call the clinic</a></div>'
+  '<button type="button" class="bk-again">Pick another time</button></div>'
+  '</div></div></section>')
+HP = HP + '\n' + ST + '\n' + BK
 SVC = SVC + '\n' + HP
 MQ = MQ + '\n' + SVC
 HERO = HERO.replace('</section>\n</main>', '</section>\n' + MQ + '\n</main>')
@@ -122,8 +162,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=29">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=13" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>\n<script src="/home/js/mdx.js?v=2" defer></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=30">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=13" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>\n<script src="/home/js/mdx.js?v=2" defer></script>\n<script src="/home/js/bk.js?v=1" defer></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)
