@@ -172,6 +172,7 @@ os.makedirs(R + 'home-final', exist_ok=True)
 io.open(R + 'home-final/index.html', 'w', encoding='utf8').write(h)
 # the live homepage: same page, indexable, with the site title
 live = re.sub(r'<meta name="robots" content="noindex">\s*', '', h).replace('<title>Home Final · ', '<title>', 1)
+live = live.replace('<a href="/home/">Home</a><span class="az-nav__grp">', '<a href="/home/" aria-current="page">Home</a><span class="az-nav__grp">', 1)
 assert 'noindex' not in live and 'Home Final' not in live
 io.open(R + 'index.html', 'w', encoding='utf8').write(live)
 print('ok', len(h))
