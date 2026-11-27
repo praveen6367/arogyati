@@ -50,7 +50,7 @@ def gcard(k, title, line, img, alt, clone=False):
     return (f'<article class="hfs-g{" is-clone" if clone else ""}" style="--i:{k}"{hide}><div class="hfs-g__media"><img class="hfs-g__img" src="/home/assets/img/svc/{img}.webp" alt="{"" if clone else alt}" width="960" height="744" loading="lazy" decoding="async"></div><div class="hfs-g__body">'
             f'<span class="hfs-g__n">{k + 1:02d}<i> / 07</i></span><h3>{title}</h3><p>{line}</p>'
             f'<a class="hfs-g__more" href="/home/services/"{" tabindex=\"-1\"" if clone else ""}>Learn more<span>{ARROW}</span></a></div></article>')
-CARDS = ('<div class="hfs__car"><div class="hfs__track" tabindex="0" aria-label="Services">' + ''.join(gcard(k, *s) for k, s in enumerate(SERV)) + ''.join(gcard(k, *s, clone=True) for k, s in enumerate(SERV)) + '</div>'
+CARDS = ('<div class="hfs__car"><div class="hfs__track" tabindex="0" aria-label="Services"><div class="hfs__rail">' + ''.join(gcard(k, *s) for k, s in enumerate(SERV)) + ''.join(gcard(k, *s, clone=True) for k, s in enumerate(SERV)) + ''.join(gcard(k, *s, clone=True) for k, s in enumerate(SERV)) + '</div></div>'
   f'<div class="hfs__nav"><div class="hfs__bar" aria-hidden="true"><i></i></div><div class="hfs__btns"><button type="button" class="hfs__btn hfs__btn--prev" aria-label="Previous services">{CHEV_L}</button>'
   f'<button type="button" class="hfs__btn hfs__btn--next" aria-label="Next services">{CHEV_R}</button></div></div></div>')
 SVC = ('<section class="hfs" id="services" aria-label="Our services"><div class="az-wrap"><div class="hfs__panel">'
@@ -67,8 +67,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=10">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=5" defer></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=11">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=8" defer></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)
