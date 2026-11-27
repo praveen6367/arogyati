@@ -1,0 +1,25 @@
+/* AROGYATI — home final: the film hero */
+.hf-hero{position:relative;height:100vh;height:100svh;overflow:hidden;background:#0D1310}
+.hf-hero__bg{position:absolute;inset:-40px;background:url(/home/assets/video/mrt-film.jpg) center/cover no-repeat;filter:blur(28px) brightness(.7);display:none}
+.hf-hero__v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer}
+.hf-hero::after{content:"";position:absolute;inset:0 0 auto;height:28%;background:linear-gradient(rgba(6,10,8,.5),rgba(6,10,8,0));pointer-events:none}
+/* mute / unmute */
+.az-home .hf-snd{all:unset;position:absolute;z-index:3;right:var(--az-gutter,48px);top:clamp(104px,14vh,128px);display:flex;align-items:center;gap:.75rem;cursor:pointer;font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff}
+.hf-snd__ic{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:#14201A;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.hf-snd__ic svg{grid-area:1/1;width:20px;height:20px;transition:opacity .25s,transform .35s}
+.hf-snd__ic .is-on{opacity:0;transform:scale(.7)}
+.hf-snd[aria-pressed="true"] .hf-snd__ic .is-on{opacity:1;transform:none}
+.hf-snd[aria-pressed="true"] .hf-snd__ic .is-off{opacity:0;transform:scale(.7)}
+.az-home .hf-snd:hover .hf-snd__ic{transform:scale(1.06)}
+.az-home .hf-snd:focus-visible{outline:1px solid #fff;outline-offset:6px;border-radius:99px}
+.hf-snd span{order:-1}
+/* progress */
+.hf-hero__p{position:absolute;left:0;right:0;bottom:0;z-index:2;height:2px;background:rgba(255,255,255,.2)}
+.hf-hero__p i{position:absolute;inset:0;background:#fff;transform-origin:left;transform:scaleX(var(--pr,0))}
+/* phones: the whole 16:9 frame over a soft blurred backdrop, so the film's captions are never cropped */
+@media (max-width:899px){
+  .hf-hero__bg{display:block}
+  .hf-hero__v{inset:auto 0;top:50%;height:auto;aspect-ratio:16/9;transform:translateY(-50%);object-fit:cover}
+  .az-home .hf-snd{left:50%;right:auto;top:auto;bottom:calc(50% - 28.125vw - 64px);transform:translateX(-50%);font-size:9px;letter-spacing:.12em;gap:.55rem}
+  .hf-snd__ic{width:38px;height:38px}.hf-snd__ic svg{width:17px;height:17px}
+}
