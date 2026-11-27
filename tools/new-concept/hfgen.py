@@ -79,7 +79,9 @@ HP = (f'<section class="hp3" id="conditions" aria-label="Where does it hurt?" st
   f'<button type="button" class="hp3__arw hp3__arw--next" aria-label="Next area">{ARW}</button></div>'
   f'<figure class="hp3__reel"><div class="hp3__bgs">{bgs}</div><div class="hp3__vids">{vids}</div>'
   f'<button type="button" class="hp3__snd" aria-pressed="false" aria-label="Unmute reel"><b class="hf-snd__ic">{SNDOFF}{SNDON}</b></button><span class="hp3__tc" aria-hidden="true">00:00</span><div class="hp3__mprog" aria-hidden="true"><i></i></div></figure>'
-  f'<div class="hp3__info"><div class="hp3__tx"><h3 class="hp3__t">{A0[1]}</h3><p class="hp3__c">{A0[2]}</p></div><p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
+  f'<div class="hp3__info"><p class="hp3__c">{"".join(f"<span>{x.strip()}</span>" for x in A0[2].split("·"))}</p>'
+  f'<p class="hp3__r"><b>{A0[5]}</b><small>{A0[6]}</small></p>'
+  '<a class="hp3__cta" href="#contact">Book appointment<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>'
   f'<nav class="hp3__dots" aria-label="Body areas">{dots}</nav></div>'
   f'</div></div><script type="application/json" id="hp3-data">{data}</script></section>')
 SVC = SVC + '\n' + HP
@@ -92,8 +94,8 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=21">', h, count=1)
-h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=12" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=6"></script>', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=23">', h, count=1)
+h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=12" defer></script>\n<script type="module" src="/home/js/hp3d.js?v=7"></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
 os.makedirs(R + 'home-final', exist_ok=True)

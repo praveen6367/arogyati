@@ -209,14 +209,14 @@ import { GLTFLoader } from '/home/vendor/three/GLTFLoader.js';
   };
 
   /* ---------- the copy, the reel, the label: everything that follows the active area ---------- */
-  const lname = $('.hp3__lname', sec), lidx = $('.hp3__lidx b', sec), tt = $('.hp3__t', sec), tc = $('.hp3__c', sec), trl = $('.hp3__r b', sec), trs = $('.hp3__r small', sec);
+  const lname = $('.hp3__lname', sec), lidx = $('.hp3__lidx b', sec), tc = $('.hp3__c', sec), trl = $('.hp3__r b', sec), trs = $('.hp3__r small', sec);
   const vids = $$('.hp3__vids video', sec), bgs = $$('.hp3__bgs img', sec), dots = $$('.hp3__dots button', sec), idxb = $$('.hp3__idx button', sec), tcode = $('.hp3__tc', sec), snd = $('.hp3__snd', sec), mprog = $('.hp3__mprog i', sec);
   const g = window.gsap;
   let cur = -1, muted = true, vis = false;
   const setArea = (k) => {
     if (k === cur) return; const first = cur < 0; cur = k; const x = DATA[k];
-    const put = () => { lname.textContent = x.n; lidx.textContent = String(k + 1).padStart(2, '0'); tt.textContent = x.n; tc.textContent = x.c; trl.textContent = x.cb; trs.textContent = x.cs; };
-    if (g && !first && !RM) { const els = [lname, tt, tc, trl, trs]; g.to(els, { opacity: 0, y: -8, duration: 0.2, ease: 'power2.in', overwrite: true, onComplete: () => { put(); g.fromTo(els, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: 'expo.out' }); } }); } else put();
+    const put = () => { lname.textContent = x.n; lidx.textContent = String(k + 1).padStart(2, '0'); tc.replaceChildren(...x.c.split('·').map((t) => { const e = d.createElement('span'); e.textContent = t.trim(); return e; })); trl.textContent = x.cb; trs.textContent = x.cs; };
+    if (g && !first && !RM) { const els = [lname, tc, trl, trs]; g.to(els, { opacity: 0, y: -8, duration: 0.2, ease: 'power2.in', overwrite: true, onComplete: () => { put(); g.fromTo(els, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: 'expo.out' }); } }); } else put();
     dots.forEach((b, i) => b.classList.toggle('is-on', i === k)); idxb.forEach((b, i) => { b.classList.toggle('is-on', i === k); if (i === k) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
     bgs.forEach((im, i) => { if (i === k && !im.getAttribute('src')) im.src = im.dataset.src; im.classList.toggle('is-on', i === k); });
     vids.forEach((v, i) => {
