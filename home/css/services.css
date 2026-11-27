@@ -31,6 +31,9 @@
   .svx__head{grid-template-columns:1fr;gap:14px}
   .az-home .svx__h2{font-size:clamp(1.9rem,8.4vw,2.4rem)}
   .az-home .svx__lede{font-size:.92rem}
+  .svx__grid{grid-template-columns:1fr 1fr;gap:12px}
+}
+@media (max-width:599px){
   .svx__grid{grid-template-columns:1fr;gap:10px}
   .az-home .svx-card{flex-direction:row;align-items:stretch;border-radius:20px}
   .svx-card__ph{flex:none;width:36%;margin:8px;border-radius:14px;aspect-ratio:1}
@@ -86,3 +89,13 @@
 .pg--services .ph__stats b{font-size:clamp(1.3rem,1.7vw,1.7rem);letter-spacing:-.03em}
 .pg--services .ph__stats span{font-size:.76rem}
 @media (max-width:899px){.pg--services .ph__h1{font-size:clamp(2rem,8.6vw,2.5rem)}.az-home.az-home .pg--services .ph__lede{font-size:.92rem}}
+
+/* phones held sideways: reels sized by the screen height */
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .rlx{padding:40px 0 32px}
+  .rlx__head{margin-bottom:14px}
+  .az-home .rlx__h2{font-size:1.7rem}
+  .rlx__track{grid-auto-columns:calc((100svh - 150px) * .5625);padding-bottom:16px}
+  .rlx__nav{display:flex}.az-home .rlx__arw{width:40px;height:40px}
+  .rlx-card figcaption{left:12px;right:12px;bottom:18px}.rlx-card figcaption b{font-size:.84rem}.rlx-card figcaption small{font-size:.68rem}
+}

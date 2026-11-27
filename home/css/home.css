@@ -2281,3 +2281,5 @@ body.az-home{background:transparent!important}
 .az-nav .az-nav__dd a{padding:.65rem .9rem;border-radius:12px;font-size:.82rem;white-space:nowrap;color:#3A4540;transition:background .25s,color .25s}
 .az-nav .az-nav__dd a:hover{background:#F2F5F3;color:var(--hx-ink,#14201A)}
 .az-menu nav a.az-menu__sub{font-size:clamp(1.3rem,5.5vw,2rem);font-weight:500;letter-spacing:-.03em;padding-left:1.1em;opacity:.7;margin:-.1em 0 .25em}
+/* phones held sideways: the floating Call / WhatsApp / Book dock stays compact and centred */
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){.az-dock{left:calc(50% - 230px);right:calc(50% - 230px);padding:4px}}

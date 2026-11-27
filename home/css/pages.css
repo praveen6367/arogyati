@@ -231,3 +231,15 @@ html.az-rm body.az-home::before,html.az-lite body.az-home::before{animation:none
 .az-home .rx,.az-home .ix,.az-home .sv,.az-home .tc,.az-home .cd,.az-home .tx,.az-home .st,.az-home .cx,.az-home .az-foot,.az-home .pg,.az-home .pg .ph,.az-home .pn,.az-home main{background:transparent!important}
 .rx,.ix,.cd,.tx,.st,.cx,.az-foot,.sx,.hv,.ap,.am,.mx,.al,.fd,.wy,.mp,.tt,.pn,.pg{isolation:auto}
 body.az-home{background:transparent!important}
+/* page hero, small screens: comfortable tap targets; phones held sideways keep the photo beside the copy */
+.ph__crumb a{display:inline-block;padding:.55rem 0}
+.ph__call{padding:.7rem 0}
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .ph__grid{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:28px;align-items:center}
+  .ph__media{order:0;aspect-ratio:4/3.2;max-height:calc(100svh - 120px);border-radius:22px}
+  .ph__crumb{margin-bottom:.6rem}
+  .ph__lede{margin-top:.8rem;font-size:.9rem}
+  .ph .ph__h1{font-size:1.85rem}
+  .ph__ctas{margin-top:1rem}
+  .ph__stats{margin-top:1.6rem}
+}
