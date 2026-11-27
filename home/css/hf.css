@@ -339,3 +339,6 @@
   .bk-card[data-step="3"],.bk-card[data-step="4"]{min-height:470px}
   .bk-pane--form{grid-template-columns:1fr}
 }
+/* breathing room between the modalities film and the timeline card; the film fades out at its very bottom edge */
+.mdx + .hx2{margin-top:clamp(56px,7vw,120px)}
+.mdx__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:clamp(40px,7vh,80px);z-index:0;pointer-events:none;background:linear-gradient(rgba(247,249,251,0),#F7F9FB)}
