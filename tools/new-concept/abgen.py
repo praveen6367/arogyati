@@ -3,7 +3,7 @@
 import io, re, os, json
 R = os.path.dirname(os.path.abspath(__file__)) + '/../../home/'
 src = io.open(os.path.dirname(os.path.abspath(__file__)) + '/about-src.html', encoding='utf8').read()
-home = io.open(R + 'index.html', encoding='utf8').read()
+home = io.open(R + '../tools/new-concept/home-src.html', encoding='utf8').read()
 hfinal = io.open(R + 'home-final/index.html', encoding='utf8').read()
 sec = lambda h, cls: re.search(r'<section class="' + cls + r'"[^>]*>.*?</section>', h, re.S).group(0)
 

@@ -3,7 +3,7 @@
 # Run:  python tools/new-concept/ncgen.py
 import io, re, os
 R = 'C:/Users/offic/Desktop/arogyati-pitchdeck/home/'
-h = io.open(R + 'index.html', encoding='utf8').read()
+h = io.open(R + '../tools/new-concept/home-src.html', encoding='utf8').read()
 ARROW = re.search(r'<span class="hx-pill__ic">(<svg.*?</svg>)</span>', h, re.S).group(1)
 FIG = re.search(r'<g class="az-lg-f" fill="#406CB4">(.*?)</g>', h, re.S).group(1)
 
