@@ -45,3 +45,27 @@
   .az-home .mch__go{font-size:.76rem;padding-top:12px}
   .az-home .mchs__note{font-size:.84rem}
 }
+.az-home .mch__go{padding-bottom:6px}
+/* phones held sideways: each modality card puts its film beside its copy, sized to the screen height */
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .tc .tcm__h2{font-size:1.7rem}
+  .tcm__track{margin-top:.8rem;padding-left:max(6vw,calc(50vw - 320px));padding-right:max(6vw,calc(50vw - 320px));scroll-padding:0 max(6vw,calc(50vw - 320px))}
+  .tcm__s{flex-basis:min(80vw,640px);display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center}
+  .tcm__media{height:calc(100svh - 150px);width:auto;aspect-ratio:4/5;border-radius:20px}
+  .tcm__copy{padding:0}
+  .tcm__book{margin-top:1rem}
+}
+/* tablets: two machine cards per row, photo on top */
+@media (min-width:600px) and (max-width:1100px){
+  .mchs__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mch{grid-template-columns:1fr;gap:0;padding:10px}
+  .mch__ph{aspect-ratio:4/3;border-radius:18px}
+  .mch__body{padding:16px 10px 8px}
+  .az-home .mch__t{font-size:1.3rem}
+  .az-home .mch__d{font-size:.86rem}
+  .az-home .mch__d2{display:block;font-size:.8rem}
+}
+@media (max-height:560px) and (min-width:600px) and (orientation:landscape){
+  .mch__ph{aspect-ratio:16/9}
+  .tcm__big b{font-size:2.6rem}
+}
