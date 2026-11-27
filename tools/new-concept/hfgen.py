@@ -16,12 +16,13 @@ HERO = f'''<main id="main">
 </section>
 </main>'''
 
-# the modalities, as a large-type band after the hero (the icons are the site's own)
+# the modalities: a quiet editorial strip, the names divided by the Arogyati leaf
+LEAF = re.search(r'<svg class="h3-logo" viewBox="129 0 35 42">(.*?)</svg>', h, re.S).group(1)
 mqs = re.findall(r'<li>(<svg class="az-ic".*?</svg>)([^<]+)</li>', re.search(r'<ul class="ix__mqt">(.*?)</ul>', h, re.S).group(1))
 seen, items = set(), []
 for svg, name in mqs:
     if name in seen: continue
-    seen.add(name); items.append(f'<li><span class="hf-mq__ic">{svg}</span><span class="hf-mq__t">{name}</span></li>')
+    seen.add(name); items.append(f'<li><span class="hf-mq__t">{name}</span><svg class="hf-mq__leaf" viewBox="129 0 35 42" aria-hidden="true">{LEAF}</svg></li>')
 MQ = ('<section class="hf-mq" aria-label="Advanced modalities"><div class="hf-mq__track">'
       + '<ul>' + ''.join(items) + '</ul><ul aria-hidden="true">' + ''.join(items) + '</ul><ul aria-hidden="true">' + ''.join(items) + '</ul><ul aria-hidden="true">' + ''.join(items) + '</ul>'
       + '</div></section>')
@@ -33,7 +34,7 @@ h = h[:a] + HERO + h[b:]
 h = re.sub(r'<script type="module" src="/home/js/h3gl\.js\?v=\d+"></script>\n?', '', h)
 h = re.sub(r'<script src="/home/js/h3film\.js\?v=\d+" defer></script>\n?', '', h)
 h = re.sub(r'<link rel="stylesheet" href="/home/css/nc\.css\?v=\d+">\n?', '', h)
-h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=4">', h, count=1)
+h = re.sub(r'<link rel="stylesheet" href="/home/css/h3\.css\?v=\d+">', '<link rel="stylesheet" href="/home/css/hf.css?v=5">', h, count=1)
 h = re.sub(r'(<script src="/home/js/home\.js\?v=\d+" defer></script>)', r'\1\n<script src="/home/js/hf.js?v=1" defer></script>', h, count=1)
 h = h.replace('<title>Home 3 · ', '<title>Home Final · ', 1)
 assert 'hf-hero' in h and 'hf.js' in h and 'hf.css' in h and 'h3gl.js' not in h and 'az-foot' in h and 'az-head' in h
